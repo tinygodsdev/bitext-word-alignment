@@ -4,9 +4,10 @@
 	import Editor from '$lib/components/editor/Editor.svelte';
 	import AlignmentPreview from '$lib/components/preview/AlignmentPreview.svelte';
 	import SettingsPanel from '$lib/components/settings/SettingsPanel.svelte';
+	import ExportShareTab from '$lib/components/settings/ExportShareTab.svelte';
+	import ShareQuickRow from '$lib/components/share/ShareQuickRow.svelte';
 	import SeoIntro from '$lib/components/seo/SeoIntro.svelte';
 	import SeoSections from '$lib/components/seo/SeoSections.svelte';
-	import SeoFaq from '$lib/components/seo/SeoFaq.svelte';
 	import JsonLd from '$lib/components/seo/JsonLd.svelte';
 	import { encodeState } from '$lib/serialization/encode.js';
 	import { SCHEMA_VERSION, type AppStateV1 } from '$lib/serialization/schema.js';
@@ -111,13 +112,19 @@
 			<div class="large-margin">
 				<SeoIntro />
 				<SeoSections />
-				<SeoFaq />
 			</div>
 		</div>
 		<div class="s12 l4">
 			<div id="settings-panel">
 				<SettingsPanel />
 			</div>
+			<div class="top-margin">
+				<ShareQuickRow />
+			</div>
+			<article class="top-margin padding border round medium-elevate settings-card">
+				<h5 class="no-margin bottom-margin">Export</h5>
+				<ExportShareTab />
+			</article>
 		</div>
 	</div>
 </main>

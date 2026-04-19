@@ -260,3 +260,23 @@ button.token-view--clickable:focus-visible {
 	word-break: break-all;
 	overflow-wrap: anywhere;
 }
+
+.share-quick-row {
+	justify-content: center;
+	gap: 0.5rem;
+}
+
+.share-icon-link {
+	min-width: 2.2rem;
+	padding-inline: 0.5rem;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+}
+
+.share-icon {
+	width: 1rem;
+	height: 1rem;
+	display: block;
+}
