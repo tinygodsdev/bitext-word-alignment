@@ -26,20 +26,27 @@
 
 	const useLinkTint = $derived(settingsStore.settings.colorTokensByLink && linkHex);
 
-	const chipClass = $derived(
-		selected
-			? 'chip small fill primary'
-			: useLinkTint
-				? 'chip small border'
-				: linked
-					? 'chip small border primary'
-					: 'chip small border'
-	);
+	const chipClass = $derived.by(() => {
+		const base =
+			'inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 dark:focus:ring-offset-gray-900';
+		if (selected) {
+			return `${base} border-transparent bg-primary-600 text-white dark:bg-primary-500`;
+		}
+		if (useLinkTint) {
+			return `${base} border-gray-300 bg-white/80 dark:border-gray-600 dark:bg-gray-800/80`;
+		}
+		if (linked) {
+			return `${base} border-primary-400 bg-white dark:border-primary-500 dark:bg-gray-800`;
+		}
+		return `${base} border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-800`;
+	});
+
+	const hiClass = 'outline outline-2 outline-primary-500 outline-offset-2';
 </script>
 
 <button
 	type="button"
-	class="{chipClass} {highlighted ? 'token-chip--hi' : ''}"
+	class="{chipClass} {highlighted ? hiClass : ''}"
 	style:border-color={useLinkTint && linkHex ? linkHex : undefined}
 	style:color={useLinkTint && linkHex ? linkHex : undefined}
 	style:background={useLinkTint && linkHex

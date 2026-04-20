@@ -8,27 +8,15 @@
 
 	$effect(() => {
 		if (!browser) return;
-		const mode = settingsStore.settings.theme === 'dark' ? 'dark' : 'light';
-		document.body.classList.remove('light', 'dark');
-		document.body.classList.add(mode);
+		const isDark = settingsStore.settings.theme === 'dark';
+		document.documentElement.classList.toggle('dark', isDark);
 	});
 </script>
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
-	<link
-		href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
-		rel="stylesheet"
-	/>
-	<link href="https://cdn.jsdelivr.net/npm/beercss@4.0.20/dist/cdn/beer.min.css" rel="stylesheet" />
-	<script
-		type="module"
-		src="https://cdn.jsdelivr.net/npm/beercss@4.0.20/dist/cdn/beer.min.js"
-	></script>
-	<script
-		type="module"
-		src="https://cdn.jsdelivr.net/npm/material-dynamic-colors@1.1.4/dist/cdn/material-dynamic-colors.min.js"
-	></script>
 </svelte:head>
 
-{@render children()}
+<div class="min-h-screen bg-white text-gray-900 antialiased dark:bg-gray-900 dark:text-gray-100">
+	{@render children()}
+</div>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Button } from 'flowbite-svelte';
 	import { encodeState } from '$lib/serialization/encode.js';
 	import { SCHEMA_VERSION, type AppStateV1 } from '$lib/serialization/schema.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
@@ -24,6 +25,11 @@
 	}
 </script>
 
-<button type="button" class="small fill primary" onclick={copy}>
+<Button
+	color="primary"
+	size="sm"
+	class="inline-flex min-w-[12.5rem] shrink-0 justify-center"
+	onclick={copy}
+>
 	{copied ? 'Copied!' : 'Copy share link'}
-</button>
+</Button>

@@ -8,9 +8,9 @@ Single-page **word-by-word translation visualizer** — manual bilingual alignme
 
 ## Styling
 
-UI uses **[BeerCSS](https://www.beercss.com/)** (Material Design 3) loaded from jsDelivr in `src/routes/+layout.svelte`: `beer.min.css`, `beer.min.js`, and `material-dynamic-colors.min.js`. The Material Symbols font is loaded for icon font usage.
-
-App-specific layout and preview chrome live in `src/app.css`.
+- **Tailwind CSS v4** via `@tailwindcss/vite` — see [`vite.config.ts`](vite.config.ts) and [`src/app.css`](src/app.css) (`@import "tailwindcss"`, Flowbite plugin, `@source` for `flowbite-svelte`).
+- **Flowbite Svelte** — buttons, cards, modals, tabs, ranges, etc. Dark mode uses the `dark` class on `<html>` (see [`src/routes/+layout.svelte`](src/routes/+layout.svelte)).
+- **Preview / alignment visualization** — custom CSS for `.preview-*`, `.token-*`, `.gloss-*` remains in `src/app.css` (not part of the Flowbite layout).
 
 ## Commands
 
@@ -26,7 +26,7 @@ npm run lint
 ## Stack
 
 - SvelteKit + Svelte 5 (runes)
-- BeerCSS (CDN)
+- Tailwind CSS v4 + Flowbite Svelte
 - `adapter-node` for deployment (e.g. Node / Vercel)
 
 ## Project layout

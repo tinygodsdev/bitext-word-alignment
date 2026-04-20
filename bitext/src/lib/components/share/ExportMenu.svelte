@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Button, ButtonGroup } from 'flowbite-svelte';
 	import { buildStandaloneSvgString } from '$lib/export/svg.js';
 	import { svgStringToPngBlob, downloadBlob } from '$lib/export/png.js';
 	import { svgStringToPdfBlob } from '$lib/export/pdf.js';
@@ -61,9 +62,9 @@
 	}
 </script>
 
-<nav class="wrap">
-	<button type="button" class="small border" onclick={downloadPng}>PNG</button>
-	<button type="button" class="small border" onclick={downloadSvg}>SVG</button>
-	<button type="button" class="small border" onclick={downloadPdf}>PDF</button>
-	<button type="button" class="small border" onclick={downloadHtml}>HTML</button>
-</nav>
+<ButtonGroup class="flex-wrap">
+	<Button color="light" size="sm" onclick={downloadPng}>PNG</Button>
+	<Button color="light" size="sm" onclick={downloadSvg}>SVG</Button>
+	<Button color="light" size="sm" onclick={downloadPdf}>PDF</Button>
+	<Button color="light" size="sm" onclick={downloadHtml}>HTML</Button>
+</ButtonGroup>

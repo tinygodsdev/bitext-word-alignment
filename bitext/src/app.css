@@ -1,72 +1,36 @@
-/* App-specific layout on top of BeerCSS (CDN) */
+@import 'tailwindcss';
+@plugin 'flowbite/plugin';
+@import 'flowbite/src/themes/default.css';
+@custom-variant dark (&:where(.dark, .dark *));
 
-.app-shell {
-	max-width: 80rem;
-	margin-inline: auto;
-	padding: 2rem 1rem 3rem;
+@theme {
+	--color-primary-50: #eff6ff;
+	--color-primary-100: #dbeafe;
+	--color-primary-200: #bfdbfe;
+	--color-primary-300: #93c5fd;
+	--color-primary-400: #60a5fa;
+	--color-primary-500: #3b82f6;
+	--color-primary-600: #2563eb;
+	--color-primary-700: #1d4ed8;
+	--color-primary-800: #1e40af;
+	--color-primary-900: #1e3a8a;
+
+	--color-secondary-50: #f0f9ff;
+	--color-secondary-100: #e0f2fe;
+	--color-secondary-200: #bae6fd;
+	--color-secondary-300: #7dd3fc;
+	--color-secondary-400: #38bdf8;
+	--color-secondary-500: #0ea5e9;
+	--color-secondary-600: #0284c7;
+	--color-secondary-700: #0369a1;
+	--color-secondary-800: #075985;
+	--color-secondary-900: #0c4a6e;
 }
 
-@media (min-width: 1024px) {
-	.app-shell {
-		padding: 3rem 1.5rem 4rem;
-	}
-}
+@source "../node_modules/flowbite-svelte/dist";
 
-.app-hero {
-	text-align: center;
-	margin-bottom: 2rem;
-}
+/* --- Preview / alignment visualization (unchanged by UI migration) --- */
 
-.app-hero h1 {
-	font-size: 1.5rem;
-	font-weight: 600;
-	line-height: 1.3;
-}
-
-.app-hero p {
-	margin-top: 0.5rem;
-	max-width: 42rem;
-	margin-inline: auto;
-	opacity: 0.85;
-	line-height: 1.5;
-}
-
-.seo-prose {
-	max-width: 48rem;
-	margin-top: 2.5rem;
-	line-height: 1.65;
-	opacity: 0.92;
-}
-
-.seo-prose h2,
-.seo-prose h3 {
-	font-weight: 600;
-	margin-bottom: 0.75rem;
-}
-
-.seo-prose h2 {
-	font-size: 1.5rem;
-	margin-top: 0;
-}
-
-.seo-prose h3 {
-	font-size: 1.25rem;
-	margin-top: 1.5rem;
-}
-
-.seo-prose .sr-only {
-	position: absolute;
-	width: 1px;
-	height: 1px;
-	padding: 0;
-	margin: -1px;
-	overflow: hidden;
-	clip: rect(0, 0, 0, 0);
-	white-space: nowrap;
-	border: 0;
-}
-
-/* Preview surface */
 .preview-frame {
 	position: relative;
 	width: 100%;
@@ -115,7 +79,6 @@
 	inset: 0;
 	width: 100%;
 	height: 100%;
-	/* Let clicks pass through to token buttons; paths re-enable hits */
 	pointer-events: none;
 	z-index: 2;
 	overflow: visible;
@@ -127,6 +90,12 @@
 
 path.link-path {
 	pointer-events: stroke;
+	cursor: pointer;
+	transition: stroke-width 0.12s ease;
+}
+
+path.link-path:hover {
+	stroke-width: 3px !important;
 }
 
 .token-row {
@@ -168,68 +137,6 @@ path.link-path {
 	padding-inline: 4px;
 }
 
-path.link-path {
-	cursor: pointer;
-	transition: stroke-width 0.12s ease;
-}
-
-path.link-path:hover {
-	stroke-width: 3px !important;
-}
-
-.token-chip--hi {
-	outline: 2px solid var(--primary, #6750a4);
-	outline-offset: 2px;
-	border-radius: 4px;
-}
-
-.editor-token-row {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 0.35rem 0.5rem;
-}
-
-.gloss-input-wrap {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: flex-start;
-	gap: 0.5rem;
-}
-
-.gloss-input-wrap .field {
-	min-width: 4rem;
-	max-width: 8rem;
-}
-
-.settings-tab-panel {
-	min-height: 12rem;
-}
-
-/* Settings card: tabs scroll horizontally instead of clipping */
-.settings-card {
-	min-width: 0;
-}
-
-.settings-tabs-outer {
-	max-width: 100%;
-	overflow-x: auto;
-	overflow-y: hidden;
-	-webkit-overflow-scrolling: touch;
-	scrollbar-width: thin;
-}
-
-.settings-tabs.tabs {
-	flex-wrap: nowrap;
-	width: max-content;
-	min-width: 100%;
-}
-
-.preview-link-hint {
-	margin: 0 0 0.75rem;
-	opacity: 0.9;
-}
-
 button.token-view--clickable {
 	font: inherit;
 	background: none;
@@ -247,42 +154,7 @@ button.token-view--clickable:focus-visible {
 	border-radius: 4px;
 }
 
-.palette-swatches {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 0.5rem;
-	align-items: center;
-}
-
-.palette-swatch {
-	width: 2rem;
-	height: 2rem;
-	border-radius: 0.25rem;
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-	border: 1px solid var(--outline-variant, rgba(0, 0, 0, 0.12));
-}
-
-.share-dialog-url {
-	word-break: break-all;
-	overflow-wrap: anywhere;
-}
-
-.share-quick-row {
-	justify-content: center;
-	gap: 0.5rem;
-}
-
-.share-icon-link {
-	min-width: 2.2rem;
-	padding-inline: 0.5rem;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	text-align: center;
-}
-
-.share-icon {
-	width: 1rem;
-	height: 1rem;
-	display: block;
+.preview-link-hint {
+	margin: 0 0 0.75rem;
+	opacity: 0.9;
 }

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Label } from 'flowbite-svelte';
 	import type { Token } from '$lib/domain/tokens.js';
 	import TokenChip from './TokenChip.svelte';
 	import { selectionStore } from '$lib/state/selection.svelte.js';
@@ -7,6 +8,9 @@
 	import { linkForId, primaryLinkForToken } from '$lib/domain/alignment.js';
 
 	type Side = 'source' | 'target';
+
+	const areaClass =
+		'block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-primary-500 dark:focus:ring-primary-500';
 
 	let {
 		label,
@@ -49,17 +53,18 @@
 </script>
 
 <div>
-	<div class="field label border">
-		<textarea
-			id="sentence-{side}"
-			rows="2"
-			placeholder=" "
-			value={rawText}
-			oninput={(e) => onText((e.currentTarget as HTMLTextAreaElement).value)}
-		></textarea>
-		<label class="active" for="sentence-{side}">{label}</label>
-	</div>
-	<div class="editor-token-row top-margin" role="group" aria-label="Word tokens">
+	<Label class="mb-2 block text-sm font-medium text-gray-900 dark:text-white" for="sentence-{side}">
+		{label}
+	</Label>
+	<textarea
+		id="sentence-{side}"
+		class="{areaClass} mb-3"
+		rows={2}
+		placeholder=" "
+		value={rawText}
+		oninput={(e) => onText((e.currentTarget as HTMLTextAreaElement).value)}
+	></textarea>
+	<div class="flex flex-wrap items-center gap-x-2 gap-y-1.5" role="group" aria-label="Word tokens">
 		{#each tokens as t (t.id)}
 			<TokenChip
 				id={t.id}

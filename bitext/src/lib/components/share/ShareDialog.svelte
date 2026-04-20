@@ -1,6 +1,5 @@
 <script lang="ts">
-	/* External share URLs are intentional (not in-app routes). */
-	/* eslint-disable svelte/no-navigation-without-resolve */
+	import { Button, Modal } from 'flowbite-svelte';
 	import { encodeState } from '$lib/serialization/encode.js';
 	import { SCHEMA_VERSION, type AppStateV1 } from '$lib/serialization/schema.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
@@ -9,11 +8,11 @@
 	import { shareTwitterUrl, shareFacebookUrl, shareRedditUrl } from '$lib/share/social.js';
 	import CopyLinkButton from './CopyLinkButton.svelte';
 
-	let dlg: HTMLDialogElement | undefined = $state();
+	let modalOpen = $state(false);
 
 	/** Called from parent via `bind:this` */
 	export function open() {
-		dlg?.showModal();
+		modalOpen = true;
 	}
 
 	function buildState(): AppStateV1 {
@@ -32,29 +31,37 @@
 	const title = $derived('Word-by-word translation visualizer');
 </script>
 
-<dialog bind:this={dlg} class="medium padding border round">
-	<h5 class="no-margin bottom-margin">Share</h5>
-	<p class="small-text share-dialog-url">{shareUrl}</p>
-	<nav class="wrap top-margin">
+<Modal bind:open={modalOpen} title="Share" size="md">
+	<p class="break-all text-sm text-gray-600 dark:text-gray-400">{shareUrl}</p>
+	<div class="mt-4 flex flex-wrap gap-2">
 		<CopyLinkButton />
-		<a
-			class="button small border"
+		<Button
 			href={shareTwitterUrl(title, shareUrl)}
 			target="_blank"
-			rel="noopener noreferrer">X / Twitter</a
+			rel="noopener noreferrer"
+			color="light"
+			size="sm"
 		>
-		<a
-			class="button small border"
+			X / Twitter
+		</Button>
+		<Button
 			href={shareFacebookUrl(shareUrl)}
 			target="_blank"
-			rel="noopener noreferrer">Facebook</a
+			rel="noopener noreferrer"
+			color="light"
+			size="sm"
 		>
-		<a
-			class="button small border"
+			Facebook
+		</Button>
+		<Button
 			href={shareRedditUrl(title, shareUrl)}
 			target="_blank"
-			rel="noopener noreferrer">Reddit</a
+			rel="noopener noreferrer"
+			color="light"
+			size="sm"
 		>
-		<button type="button" class="small border" onclick={() => dlg?.close()}>Close</button>
-	</nav>
-</dialog>
+			Reddit
+		</Button>
+		<Button color="alternative" size="sm" onclick={() => (modalOpen = false)}>Close</Button>
+	</div>
+</Modal>

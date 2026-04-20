@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { Button, Card } from 'flowbite-svelte';
 	import CopyLinkButton from './CopyLinkButton.svelte';
 	import ShareDialog from './ShareDialog.svelte';
 	import { encodeState } from '$lib/serialization/encode.js';
@@ -29,17 +30,21 @@
 	}
 </script>
 
-<article class="padding border round medium-elevate settings-card">
-	<h5 class="no-margin bottom-margin">Share</h5>
-	<p class="small-text bottom-margin">Copy a link with your alignment encoded in the URL.</p>
-	<nav class="wrap">
-		<CopyLinkButton />
+<Card class="mt-0 w-full p-4 sm:p-6">
+	<h2 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">Share</h2>
+	<p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
+		Copy a link with your alignment encoded in the URL.
+	</p>
+	<div class="flex flex-nowrap items-center gap-2 overflow-x-auto pb-0.5">
+		<div class="flex shrink-0 items-center gap-2">
+			<CopyLinkButton />
+			<Button color="light" size="sm" class="shrink-0" onclick={() => shareRef?.open()}>
+				More options
+			</Button>
+		</div>
 		{#if canWebShare}
-			<button type="button" class="small border" onclick={webShare}>Share…</button>
+			<Button color="light" size="sm" class="ml-auto shrink-0" onclick={webShare}>Share…</Button>
 		{/if}
-		<button type="button" class="small border" onclick={() => shareRef?.open()}>
-			More options
-		</button>
-	</nav>
-</article>
+	</div>
+</Card>
 <ShareDialog bind:this={shareRef} />

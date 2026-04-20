@@ -4,7 +4,7 @@
 	import Editor from '$lib/components/editor/Editor.svelte';
 	import AlignmentPreview from '$lib/components/preview/AlignmentPreview.svelte';
 	import SettingsPanel from '$lib/components/settings/SettingsPanel.svelte';
-	import ExportShareTab from '$lib/components/settings/ExportShareTab.svelte';
+	import ExportCard from '$lib/components/settings/ExportCard.svelte';
 	import ShareQuickRow from '$lib/components/share/ShareQuickRow.svelte';
 	import SeoIntro from '$lib/components/seo/SeoIntro.svelte';
 	import SeoSections from '$lib/components/seo/SeoSections.svelte';
@@ -91,40 +91,47 @@
 
 <JsonLd {origin} />
 
-<main class="app-shell">
-	<header class="app-hero">
-		<h1 class="no-margin">Word-by-word translation visualizer</h1>
-		<p>
-			Create a <strong>bilingual sentence alignment</strong> with connector lines, optional
-			<strong>interlinear gloss</strong>, and exports — in under a minute.
+<main class="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-12">
+	<header class="mb-8 text-center">
+		<h1 class="text-2xl font-semibold leading-snug text-gray-900 dark:text-white">
+			Word-by-word translation visualizer
+		</h1>
+		<p class="mx-auto mt-2 max-w-2xl text-base leading-relaxed text-gray-600 dark:text-gray-400">
+			Create a <strong class="font-medium text-gray-800 dark:text-gray-200"
+				>bilingual sentence alignment</strong
+			>
+			with connector lines, optional
+			<strong class="font-medium text-gray-800 dark:text-gray-200">interlinear gloss</strong>, and
+			exports — in under a minute.
 		</p>
 	</header>
 
-	<div class="grid large-space">
-		<div class="s12 l8">
-			<div class="large-margin">
+	<div class="grid grid-cols-12 gap-6 lg:gap-8">
+		<div class="col-span-12 lg:col-span-8">
+			<div class="mb-8">
 				<Editor />
 			</div>
-			<section class="large-margin" aria-labelledby="preview-heading">
-				<h5 id="preview-heading" class="no-margin bottom-margin">Preview</h5>
+			<section class="mb-8" aria-labelledby="preview-heading">
+				<h2 id="preview-heading" class="mb-3 text-lg font-semibold text-gray-900 dark:text-white">
+					Preview
+				</h2>
 				<AlignmentPreview />
 			</section>
-			<div class="large-margin">
+			<div class="mb-8">
 				<SeoIntro />
 				<SeoSections />
 			</div>
 		</div>
-		<div class="s12 l4">
+		<div class="col-span-12 min-w-0 lg:col-span-4">
 			<div id="settings-panel">
 				<SettingsPanel />
 			</div>
-			<div class="top-margin">
+			<div class="mt-6">
+				<ExportCard />
+			</div>
+			<div class="mt-6">
 				<ShareQuickRow />
 			</div>
-			<article class="top-margin padding border round medium-elevate settings-card">
-				<h5 class="no-margin bottom-margin">Export</h5>
-				<ExportShareTab />
-			</article>
 		</div>
 	</div>
 </main>

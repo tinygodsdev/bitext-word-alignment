@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Label } from 'flowbite-svelte';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { selectionStore } from '$lib/state/selection.svelte.js';
@@ -14,66 +15,82 @@
 		selectionStore.clear();
 		projectStore.retokenizeFromSettings();
 	}
+
+	const chk =
+		'peer h-4 w-4 rounded border-gray-300 bg-gray-100 text-primary-600 focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-primary-600';
+
+	const inputClass =
+		'block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-500';
 </script>
 
-<div class="grid medium-space">
-	<div class="s12">
-		<div class="field middle-align">
-			<nav>
-				<div class="max">
-					<h6 class="no-margin">Interlinear gloss row</h6>
-					<div class="small-text">Shown between source and target in the preview</div>
-				</div>
-				<label class="switch">
-					<input
-						type="checkbox"
-						checked={s.showGloss}
-						onchange={(e) =>
-							settingsStore.patch({ showGloss: (e.currentTarget as HTMLInputElement).checked })}
-					/>
-					<span></span>
-				</label>
-			</nav>
-		</div>
-	</div>
-	<div class="s12">
-		<div class="field middle-align">
-			<nav>
-				<div class="max">
-					<h6 class="no-margin">Token numbers</h6>
-					<div class="small-text">Show indices on each word in the preview</div>
-				</div>
-				<label class="switch">
-					<input
-						type="checkbox"
-						checked={s.showNumbers}
-						onchange={(e) =>
-							settingsStore.patch({ showNumbers: (e.currentTarget as HTMLInputElement).checked })}
-					/>
-					<span></span>
-				</label>
-			</nav>
-		</div>
-	</div>
-	<div class="s12">
-		<details class="border round padding">
-			<summary><strong>Advanced tokenization</strong></summary>
-			<div class="top-margin">
-				<p class="small-text">
-					Whitespace always splits tokens. Add extra separator characters to also split inside words
-					(for example: <code>.-</code> makes <code>cat.s</code> and <code>cat-s</code> become
-					<code>cat</code> + <code>s</code>).
+<div class="grid grid-cols-12 gap-4">
+	<div class="col-span-12">
+		<div class="flex flex-wrap items-start justify-between gap-3">
+			<div>
+				<h3 class="text-sm font-semibold text-gray-900 dark:text-white">Interlinear gloss row</h3>
+				<p class="text-sm text-gray-600 dark:text-gray-400">
+					Shown between source and target in the preview
 				</p>
-				<div class="field label border">
-					<input
-						id="token-split-chars"
-						type="text"
-						placeholder={DEFAULT_TOKEN_SPLIT_CHARS}
-						value={s.tokenSplitChars}
-						oninput={(e) => updateTokenSplitChars((e.currentTarget as HTMLInputElement).value)}
-					/>
-					<label class="active" for="token-split-chars">Extra token separators</label>
-				</div>
+			</div>
+			<Label class="inline-flex cursor-pointer items-center gap-2">
+				<input
+					type="checkbox"
+					class={chk}
+					checked={s.showGloss}
+					onchange={(e) =>
+						settingsStore.patch({ showGloss: (e.currentTarget as HTMLInputElement).checked })}
+				/>
+				<span class="text-sm text-gray-700 dark:text-gray-300">Show</span>
+			</Label>
+		</div>
+	</div>
+	<div class="col-span-12">
+		<div class="flex flex-wrap items-start justify-between gap-3">
+			<div>
+				<h3 class="text-sm font-semibold text-gray-900 dark:text-white">Token numbers</h3>
+				<p class="text-sm text-gray-600 dark:text-gray-400">
+					Show indices on each word in the preview
+				</p>
+			</div>
+			<Label class="inline-flex cursor-pointer items-center gap-2">
+				<input
+					type="checkbox"
+					class={chk}
+					checked={s.showNumbers}
+					onchange={(e) =>
+						settingsStore.patch({ showNumbers: (e.currentTarget as HTMLInputElement).checked })}
+				/>
+				<span class="text-sm text-gray-700 dark:text-gray-300">Show</span>
+			</Label>
+		</div>
+	</div>
+	<div class="col-span-12">
+		<details
+			class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-800/50"
+		>
+			<summary class="cursor-pointer text-sm font-medium text-gray-900 dark:text-white">
+				Advanced tokenization
+			</summary>
+			<div class="mt-3">
+				<p class="mb-3 text-sm text-gray-600 dark:text-gray-400">
+					Whitespace always splits tokens. Add extra separator characters to also split inside words
+					(for example: <code class="rounded bg-gray-200 px-1 dark:bg-gray-700">.-</code> makes
+					<code class="rounded bg-gray-200 px-1 dark:bg-gray-700">cat.s</code>
+					and
+					<code class="rounded bg-gray-200 px-1 dark:bg-gray-700">cat-s</code>
+					become
+					<code class="rounded bg-gray-200 px-1 dark:bg-gray-700">cat</code> +
+					<code class="rounded bg-gray-200 px-1 dark:bg-gray-700">s</code>).
+				</p>
+				<Label for="token-split-chars" class="mb-2">Extra token separators</Label>
+				<input
+					id="token-split-chars"
+					type="text"
+					class={inputClass}
+					placeholder={DEFAULT_TOKEN_SPLIT_CHARS}
+					value={s.tokenSplitChars}
+					oninput={(e) => updateTokenSplitChars((e.currentTarget as HTMLInputElement).value)}
+				/>
 			</div>
 		</details>
 	</div>
