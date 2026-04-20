@@ -1,15 +1,15 @@
 # syntax=docker/dockerfile:1
 
-# Debian-based image: @resvg/resvg-js ships linux-x64-gnu binaries (Alpine/musl is a separate optional dep).
+# App lives in bitext/. Debian image: @resvg/resvg-js uses linux-x64-gnu (not musl).
 FROM node:22-bookworm-slim AS builder
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-COPY svelte.config.js tsconfig.json vite.config.ts ./
+COPY bitext/package.json bitext/package-lock.json ./
+COPY bitext/svelte.config.js bitext/tsconfig.json bitext/vite.config.ts ./
 RUN npm ci
 
-COPY . .
+COPY bitext/ .
 RUN npm run build && npm prune --omit=dev
 
 FROM node:22-bookworm-slim AS production
@@ -18,7 +18,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# adapter-node: HOST defaults to 0.0.0.0; PORT is read from the environment (Railway injects PORT).
+# adapter-node: HOST defaults to 0.0.0.0; Railway sets PORT.
 COPY --from=builder /app/build ./build
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules

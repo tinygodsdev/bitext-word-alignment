@@ -1,0 +1,16 @@
+.git
+docs
+LICENSE
+README.md
+**/.DS_Store
+**/.vscode
+**/.cursor
+**/coverage
+**/npm-debug.log*
+
+bitext/node_modules
+bitext/.svelte-kit
+bitext/build
+bitext/.env
+bitext/.env.*
+!bitext/.env.example
