@@ -93,7 +93,7 @@
 
 <main class="app-shell">
 	<header class="app-hero">
-		<h3 class="no-margin">Word-by-word translation visualizer</h3>
+		<h1 class="no-margin">Word-by-word translation visualizer</h1>
 		<p>
 			Create a <strong>bilingual sentence alignment</strong> with connector lines, optional
 			<strong>interlinear gloss</strong>, and exports — in under a minute.

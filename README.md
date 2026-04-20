@@ -1,6 +1,6 @@
 # bitext-word-alignment
 
-Spec: [`idea.md`](idea.md).
+Draft requirements: `docs/tmp/idea.md` (under `docs/tmp/`, often gitignored).
 
 ## App (`bitext/`)
 

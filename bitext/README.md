@@ -31,7 +31,7 @@ npm run lint
 
 ## Project layout
 
-- `src/lib/domain/` — pure tokenization & alignment logic
+- `src/lib/domain/` — tokenization, alignment, link graph helpers
 - `src/lib/state/` — runes stores (project, settings, selection, layout export)
 - `src/lib/components/` — editor, preview, settings, SEO, share/export
 - `src/routes/api/og/` — Open Graph PNG (SVG → `@resvg/resvg-js`)
