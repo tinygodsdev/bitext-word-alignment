@@ -82,6 +82,11 @@ export function reconcile(
 	});
 }
 
+/** True if the phrase has at least one non-empty gloss (for conditional gloss rows in the preview). */
+export function phraseHasAnyGloss(tokens: Token[]): boolean {
+	return tokens.some((t) => (t.gloss?.trim() ?? '').length > 0);
+}
+
 export function textsFromTokens(tokens: Token[]): string {
 	return tokens.map((t) => t.text).join(' ');
 }

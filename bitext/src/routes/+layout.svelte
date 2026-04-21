@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { afterNavigate } from '$app/navigation';
 	import '../app.css';
+	import { GA_MEASUREMENT_ID } from '$lib/brand.js';
 	import { flowbiteTheme } from '$lib/flowbite-theme.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { ThemeProvider } from 'flowbite-svelte';
@@ -11,6 +13,16 @@
 		if (!browser) return;
 		const isDark = settingsStore.settings.theme === 'dark';
 		document.documentElement.classList.toggle('dark', isDark);
+	});
+
+	/** SPA navigations: initial `enter` is already counted by the snippet in app.html */
+	afterNavigate(({ to, type }) => {
+		if (!browser || type === 'enter' || !to) return;
+		const g = (window as Window & { gtag?: (...args: unknown[]) => void }).gtag;
+		if (typeof g !== 'function') return;
+		g('config', GA_MEASUREMENT_ID, {
+			page_path: to.url.pathname + to.url.search
+		});
 	});
 </script>
 

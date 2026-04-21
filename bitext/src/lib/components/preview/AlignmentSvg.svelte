@@ -52,11 +52,17 @@
 			const b = tr.getBoundingClientRect();
 			targetRowY = b.top - ro.top + b.height / 2;
 		}
-		let glossRowY: number | null = null;
-		const gr = rootEl.querySelector('[data-gloss-row]');
-		if (gr) {
-			const b = gr.getBoundingClientRect();
-			glossRowY = b.top - ro.top + b.height / 2;
+		let glossSourceRowY: number | null = null;
+		let glossTargetRowY: number | null = null;
+		const gsr = rootEl.querySelector('[data-gloss-row="source"]');
+		if (gsr) {
+			const b = gsr.getBoundingClientRect();
+			glossSourceRowY = b.top - ro.top + b.height / 2;
+		}
+		const gtr = rootEl.querySelector('[data-gloss-row="target"]');
+		if (gtr) {
+			const b = gtr.getBoundingClientRect();
+			glossTargetRowY = b.top - ro.top + b.height / 2;
 		}
 
 		const style = settingsStore.settings.lineStyle;
@@ -77,7 +83,8 @@
 			linkPaths,
 			sourceRowY,
 			targetRowY,
-			glossRowY
+			glossSourceRowY,
+			glossTargetRowY
 		});
 	}
 
@@ -91,6 +98,7 @@
 			void l.color;
 		}
 		void settingsStore.settings.lineStyle;
+		void settingsStore.settings.glossLineGapPx;
 		void projectStore.sourceTokens;
 		void projectStore.targetTokens;
 		/** Two rAFs: wait for style/layout flush after font or DOM updates. */

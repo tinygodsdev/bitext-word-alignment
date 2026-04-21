@@ -1,10 +1,15 @@
-import { addAtomicLinks, removeLink, type Link } from '$lib/domain/alignment.js';
+import {
+	addAtomicLinks,
+	pendingAlignmentColor,
+	removeLink,
+	type Link
+} from '$lib/domain/alignment.js';
 import {
 	connectedLinkComponents,
 	connectedLinkIds,
 	filterValidLinks
 } from '$lib/domain/link-graph.js';
-import { pickUnusedPaletteColor, PALETTES, type PaletteName } from '$lib/domain/palettes.js';
+import { PALETTES, type PaletteName } from '$lib/domain/palettes.js';
 import { reconcile, tokenize, type Token } from '$lib/domain/tokens.js';
 import {
 	defaultProjectSnapshot,
@@ -68,11 +73,8 @@ class ProjectStore {
 	}
 
 	addAlignment(sourceIds: string[], targetIds: string[], palette: PaletteName) {
+		const color = pendingAlignmentColor(this.links, sourceIds, targetIds, palette);
 		const seedTokens = new Set<string>([...sourceIds, ...targetIds]);
-		const componentBefore = connectedLinkIds(this.links, seedTokens);
-		const used = new Set(this.links.map((l) => l.color).filter((c): c is string => Boolean(c)));
-		const inherited = this.links.find((l) => componentBefore.has(l.id) && l.color)?.color;
-		const color = inherited ?? pickUnusedPaletteColor(palette, used);
 		const pairs: { sourceId: string; targetId: string }[] = [];
 		for (const s of sourceIds) {
 			for (const t of targetIds) {

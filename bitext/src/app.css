@@ -164,6 +164,14 @@ path.link-path:hover {
 	border-radius: 0;
 }
 
+.token-view.token-view--join-before {
+	padding-inline-start: 0;
+}
+
+.token-view.token-view--join-after {
+	padding-inline-end: 0;
+}
+
 .token-view__num {
 	font-size: 0.65em;
 	opacity: 0.5;
@@ -176,16 +184,26 @@ path.link-path:hover {
 }
 
 .gloss-row {
-	display: flex;
-	flex-wrap: wrap;
 	align-items: baseline;
-	opacity: 0.85;
 }
 
 .gloss-cell {
 	min-width: 2ch;
+	min-height: 1.25em;
+	display: inline-block;
 	text-align: center;
 	padding-inline: 4px;
+	vertical-align: baseline;
+}
+
+/** Match token spacing when split with alt. separator (`joinLeft`): no extra pad between cells */
+.gloss-cell.gloss-cell--join-before {
+	padding-inline-start: 0;
+	min-width: 0;
+}
+
+.gloss-cell.gloss-cell--join-after {
+	padding-inline-end: 0;
 }
 
 button.token-view--clickable {
@@ -203,4 +221,19 @@ button.token-view--clickable:focus-visible {
 	outline: 2px solid var(--color-primary-600);
 	outline-offset: 2px;
 	border-radius: 0;
+}
+
+button.token-view--clickable.token-view--accent-hover {
+	background: color-mix(in srgb, var(--token-accent) 16%, transparent);
+	box-shadow: inset 0 -1px 0 0 color-mix(in srgb, var(--token-accent) 55%, transparent);
+}
+
+button.token-view--clickable.token-view--accent-sel {
+	background: color-mix(in srgb, var(--token-accent) 26%, transparent);
+	box-shadow: inset 0 -2px 0 0 var(--token-accent);
+}
+
+button.token-view--clickable.token-view--accent-hover .token-view__num,
+button.token-view--clickable.token-view--accent-sel .token-view__num {
+	opacity: 0.62;
 }

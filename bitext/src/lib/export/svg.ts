@@ -34,6 +34,8 @@ export function buildStandaloneSvgString(args: {
 	embedFontCdataImports?: string[];
 	/** Full `@font-face` CSS with src: url(data:...). Required for PNG/PDF where SVG is loaded via `<img>` and cannot fetch external CSS. */
 	embedFontCss?: string;
+	/** PNG data URL for optional corner QR (site only). ExportMenu leaves this unset for now. */
+	siteQrPngDataUri?: string;
 }): string {
 	const {
 		width,
@@ -55,7 +57,8 @@ export function buildStandaloneSvgString(args: {
 		showGloss,
 		includeAttributionFooter = true,
 		embedFontCdataImports,
-		embedFontCss
+		embedFontCss,
+		siteQrPngDataUri
 	} = args;
 
 	const exportHeight = includeAttributionFooter ? height + ATTRIBUTION_FOOTER_PX : height;
@@ -113,8 +116,19 @@ export function buildStandaloneSvgString(args: {
 			const box = tokenLayout[gid];
 			const g = t.gloss?.trim();
 			if (!box || !g) continue;
+			const fill = tokenFill(t.id);
 			texts.push(
-				`<text fill="${escapeXml(defaultTextColor)}" font-family="${escapeXml(fontFamilySource)}" font-size="${glossFontSize}" font-weight="500" opacity="0.85" text-anchor="middle" dominant-baseline="central" transform="translate(${box.cx},${box.cy})">${escapeXml(g)}</text>`
+				`<text fill="${escapeXml(fill)}" font-family="${escapeXml(fontFamilySource)}" font-size="${glossFontSize}" font-weight="500" text-anchor="middle" dominant-baseline="central" transform="translate(${box.cx},${box.cy})">${escapeXml(g)}</text>`
+			);
+		}
+		for (const t of targetTokens) {
+			const gid = `gloss-${t.id}`;
+			const box = tokenLayout[gid];
+			const g = t.gloss?.trim();
+			if (!box || !g) continue;
+			const fill = tokenFill(t.id);
+			texts.push(
+				`<text fill="${escapeXml(fill)}" font-family="${escapeXml(fontFamilyTarget)}" font-size="${glossFontSize}" font-weight="500" text-anchor="middle" dominant-baseline="central" transform="translate(${box.cx},${box.cy})">${escapeXml(g)}</text>`
 			);
 		}
 	}
@@ -125,5 +139,19 @@ export function buildStandaloneSvgString(args: {
 		? `<text fill="${escapeXml(defaultTextColor)}" opacity="0.55" font-family="${escapeXml(ATTRIBUTION_FONT)}" font-size="11" text-anchor="middle" dominant-baseline="central" transform="translate(${width / 2},${height + ATTRIBUTION_FOOTER_PX / 2})">${escapeXml(`Created with ${ALIGNER_SITE_HOST}`)}</text>`
 		: '';
 
-	return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${exportHeight}" viewBox="0 0 ${width} ${exportHeight}">${fontDefs}${bgRect}${paths.join('')}${texts.join('')}${attribution}</svg>`;
+	/** Inset from the full export rectangle (including footer band) — same on right and bottom. */
+	const CORNER_INSET = 8;
+	const QR_INNER_PAD = 2;
+	const qrDisplay = 48;
+	const qrTotal = qrDisplay + QR_INNER_PAD * 2;
+	const qrLeft = width - CORNER_INSET - qrTotal;
+	const qrTop = exportHeight - CORNER_INSET - qrTotal;
+	const cornerQr = siteQrPngDataUri
+		? `<g aria-label="QR code — ${escapeXml(ALIGNER_SITE_HOST)}">
+<rect x="${qrLeft}" y="${qrTop}" width="${qrTotal}" height="${qrTotal}" fill="#ffffff" fill-opacity="0.94"/>
+<image href="${escapeXml(siteQrPngDataUri)}" x="${qrLeft + QR_INNER_PAD}" y="${qrTop + QR_INNER_PAD}" width="${qrDisplay}" height="${qrDisplay}" preserveAspectRatio="xMidYMid meet"/>
+</g>`
+		: '';
+
+	return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${exportHeight}" viewBox="0 0 ${width} ${exportHeight}">${fontDefs}${bgRect}${paths.join('')}${texts.join('')}${cornerQr}${attribution}</svg>`;
 }

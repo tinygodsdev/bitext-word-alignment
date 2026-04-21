@@ -13,7 +13,14 @@ export const MAX_LINE_GAP_PX = 156;
 export const MIN_TEXT_SIZE_PX = 12;
 /** Previous cap was 36px; +30% headroom */
 export const MAX_TEXT_SIZE_PX = 47;
+export const MIN_GLOSS_LINE_GAP_PX = 0;
+export const MAX_GLOSS_LINE_GAP_PX = 80;
 export const DEFAULT_TOKEN_SPLIT_CHARS = '.-';
+
+/** Default gloss-to-token spacing ≈ 1.5× the gloss line height (gloss font ≈ 0.75× text size, min 12px). */
+export function defaultGlossLineGapForTextSize(textSizePx: number): number {
+	return Math.round(1.5 * Math.max(12, textSizePx * 0.75));
+}
 
 /** Normalize theme from shared `?data=` payloads to BeerCSS body class `light` | `dark`. */
 export function normalizeUiTheme(theme: string): UiTheme {
@@ -28,6 +35,8 @@ export interface VisualSettingsV1 {
 	textSizePx: number;
 	gapWordPx: number;
 	gapLinePx: number;
+	/** Vertical gap between a gloss row and its sentence line (preview + export layout). */
+	glossLineGapPx: number;
 	lineThickness: number;
 	lineOpacity: number;
 	lineStyle: LineStyle;
@@ -72,6 +81,7 @@ export function defaultVisualSettings(): VisualSettingsV1 {
 		textSizePx: 36,
 		gapWordPx: 14,
 		gapLinePx: 120,
+		glossLineGapPx: defaultGlossLineGapForTextSize(36),
 		lineThickness: 3,
 		lineOpacity: 1,
 		lineStyle: 'curved',
@@ -156,7 +166,11 @@ export function normalizeVisualSettings(
 		gapLinePx:
 			typeof raw.gapLinePx === 'number'
 				? Math.max(MIN_LINE_GAP_PX, Math.min(MAX_LINE_GAP_PX, raw.gapLinePx))
-				: d.gapLinePx
+				: d.gapLinePx,
+		glossLineGapPx:
+			typeof raw.glossLineGapPx === 'number'
+				? Math.max(MIN_GLOSS_LINE_GAP_PX, Math.min(MAX_GLOSS_LINE_GAP_PX, raw.glossLineGapPx))
+				: d.glossLineGapPx
 	} as VisualSettingsV1;
 }
 

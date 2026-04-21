@@ -20,11 +20,20 @@
 
 <div class="token-row" data-row={side} role="group">
 	{#each tokens as t, i (t.id)}
+		{@const nextTok = tokens[i + 1]}
 		<span
 			class="token-row__item"
 			style:margin-inline-start="{i === 0 ? 0 : t.joinLeft ? 0 : gap}px"
 		>
-			<TokenView token={t} {side} showNumber={showNumbers} index={i} {interactive} />
+			<TokenView
+				token={t}
+				{side}
+				showNumber={showNumbers}
+				index={i}
+				{interactive}
+				joinTightStart={Boolean(t.joinLeft)}
+				joinTightEnd={Boolean(nextTok?.joinLeft)}
+			/>
 		</span>
 	{/each}
 </div>

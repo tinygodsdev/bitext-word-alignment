@@ -1,6 +1,11 @@
-- [ ] Sort out glossing functionality
-- [ ] Improve sharing visuals
+- [x] Sort out glossing functionality
+- [x] Improve sharing visuals
 - [ ] Check SEO
-- [ ] Highlighting tokens when selecting (with current color, which will be the link color)
+- [x] Highlighting tokens when selecting (hovering) and when selected (with current color, which will be the link color)
 - [ ] Make sure instructions are clear and concise, up to date, and complete. 
 - [ ] Add better examples - with complex links and advanced tokenization.
+- [x] Improve export card comment
+- [ ] Twitter doesn't show visual preview
+- [x] Dependency CVE check (`npm audit` / CI)
+- [x] Add QR code export method
+- [-] Add QR code to visualization exports (small in the corner - only site link; `siteLandingQrDataUrl` + `siteQrPngDataUri` in svg — wiring disabled in ExportMenu) - out of scope for now

@@ -22,4 +22,6 @@ jobs:
 
       - run: npm ci
 
+      - run: npm run audit:ci
+
       - run: npm test

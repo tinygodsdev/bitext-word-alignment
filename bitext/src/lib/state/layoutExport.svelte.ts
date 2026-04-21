@@ -15,7 +15,8 @@ class LayoutExportStore {
 	linkPaths = $state<LinkLayout[]>([]);
 	sourceRowY = $state(0);
 	targetRowY = $state(0);
-	glossRowY = $state<number | null>(null);
+	glossSourceRowY = $state<number | null>(null);
+	glossTargetRowY = $state<number | null>(null);
 	/** Bumped so preview layout is remeasured (e.g. before export) with up-to-date font metrics. */
 	layoutRemeasureTick = $state(0);
 
@@ -31,7 +32,8 @@ class LayoutExportStore {
 		linkPaths: LinkLayout[];
 		sourceRowY: number;
 		targetRowY: number;
-		glossRowY: number | null;
+		glossSourceRowY: number | null;
+		glossTargetRowY: number | null;
 	}) {
 		this.width = s.width;
 		this.height = s.height;
@@ -39,7 +41,8 @@ class LayoutExportStore {
 		this.linkPaths = s.linkPaths;
 		this.sourceRowY = s.sourceRowY;
 		this.targetRowY = s.targetRowY;
-		this.glossRowY = s.glossRowY;
+		this.glossSourceRowY = s.glossSourceRowY;
+		this.glossTargetRowY = s.glossTargetRowY;
 	}
 }
 

@@ -14,6 +14,10 @@
 		visualizationGoogleFontUrls
 	} from '$lib/fonts/visualization-font.js';
 	import { buildInlinedFontCss } from '$lib/fonts/inline-fonts.js';
+	import { encodeState } from '$lib/serialization/encode.js';
+	import { SCHEMA_VERSION, type AppStateV1 } from '$lib/serialization/schema.js';
+	import { getShareUrl } from '$lib/share/url.js';
+	import { shareUrlToQrDataUrl } from '$lib/share/qr.js';
 
 	async function flushPreviewLayout() {
 		if (!browser) return;
@@ -40,10 +44,12 @@
 		return visualizationGoogleFontUrls(settingsStore.settings);
 	}
 
+	/** Pass `siteQrPngDataUri: await siteLandingQrDataUrl()` to draw the corner site QR (currently off). */
 	function buildSvg(opts: {
 		includeAttributionFooter: boolean;
 		embedFontCss?: string;
 		includeImports?: boolean;
+		siteQrPngDataUri?: string;
 	}): string {
 		const lay = layoutExportStore;
 		const s = settingsStore.settings;
@@ -68,7 +74,8 @@
 			showGloss: s.showGloss,
 			includeAttributionFooter: opts.includeAttributionFooter,
 			embedFontCdataImports: imports.length ? imports : undefined,
-			embedFontCss: opts.embedFontCss
+			embedFontCss: opts.embedFontCss,
+			siteQrPngDataUri: opts.siteQrPngDataUri
 		});
 	}
 
@@ -100,6 +107,34 @@
 		const html = wrapSvgInHtml(svg, 'Alignment export', googleFontImportList());
 		downloadBlob('alignment.html', new Blob([html], { type: 'text/html;charset=utf-8' }));
 	}
+
+	function buildState(): AppStateV1 {
+		return {
+			v: SCHEMA_VERSION,
+			project: projectStore.getSnapshot(),
+			settings: { ...settingsStore.settings }
+		};
+	}
+
+	async function downloadShareQrPng() {
+		if (!browser) return;
+		const url = getShareUrl(encodeState(buildState()));
+		if (!url) return;
+		try {
+			const dataUrl = await shareUrlToQrDataUrl(url);
+			const a = document.createElement('a');
+			a.href = dataUrl;
+			a.download = 'alignment-share-qr.png';
+			a.click();
+		} catch (e: unknown) {
+			const raw = e instanceof Error ? e.message : String(e);
+			const friendly =
+				/code length overflow|too long|larger than/i.test(raw) || raw.includes('overflow')
+					? 'This share link is too long for a single QR code. Shorten the text a bit or use Copy share link.'
+					: raw || 'Could not generate QR code.';
+			window.alert(friendly);
+		}
+	}
 </script>
 
 <ButtonGroup class="flex-wrap">
@@ -107,4 +142,7 @@
 	<Button color="light" size="sm" onclick={downloadSvg}>SVG</Button>
 	<Button color="light" size="sm" onclick={downloadPdf}>PDF</Button>
 	<Button color="light" size="sm" onclick={downloadHtml}>HTML</Button>
+	<Button color="light" size="sm" onclick={downloadShareQrPng} title="QR with full share link"
+		>QR</Button
+	>
 </ButtonGroup>

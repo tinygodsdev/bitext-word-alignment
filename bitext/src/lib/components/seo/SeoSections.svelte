@@ -29,8 +29,9 @@
 		Interlinear gloss explanation
 	</h3>
 	<p>
-		A gloss is a short label (often grammatical or lexical) under each word. Turn on gloss in
-		settings to show a dedicated row between the two sentence lines — ideal for an
+		A gloss is a short label (often grammatical or lexical) aligned with each word. With gloss
+		enabled in settings, source glosses appear above the source line and target glosses below the
+		target line whenever that side has at least one gloss filled — ideal for an
 		<strong class="font-medium text-gray-900 dark:text-white">interlinear gloss tool</strong> workflow.
 	</p>
 </section>
