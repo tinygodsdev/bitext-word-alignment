@@ -21,14 +21,14 @@
 		highlighted: boolean;
 		/** Line color when colorTokensByLink */
 		linkHex: string | null;
-		onclick: (id: string, side: Side) => void;
+		onclick?: (id: string, side: Side) => void;
 	} = $props();
 
 	const useLinkTint = $derived(settingsStore.settings.colorTokensByLink && linkHex);
 
 	const chipClass = $derived.by(() => {
 		const base =
-			'inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 dark:focus:ring-offset-gray-900';
+			'inline-flex items-center rounded-none border px-2 py-0.5 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 dark:focus:ring-offset-gray-900';
 		if (selected) {
 			return `${base} border-transparent bg-primary-600 text-white dark:bg-primary-500`;
 		}
@@ -44,18 +44,33 @@
 	const hiClass = 'outline outline-2 outline-primary-500 outline-offset-2';
 </script>
 
-<button
-	type="button"
-	class="{chipClass} {highlighted ? hiClass : ''}"
-	style:border-color={useLinkTint && linkHex ? linkHex : undefined}
-	style:color={useLinkTint && linkHex ? linkHex : undefined}
-	style:background={useLinkTint && linkHex
-		? `color-mix(in srgb, ${linkHex} 18%, transparent)`
-		: undefined}
-	data-token-id={id}
-	data-side={side}
-	aria-pressed={selected}
-	onclick={() => onclick(id, side)}
->
-	{text}
-</button>
+{#if onclick}
+	<button
+		type="button"
+		class="{chipClass} {highlighted ? hiClass : ''}"
+		style:border-color={useLinkTint && linkHex ? linkHex : undefined}
+		style:color={useLinkTint && linkHex ? linkHex : undefined}
+		style:background={useLinkTint && linkHex
+			? `color-mix(in srgb, ${linkHex} 18%, transparent)`
+			: undefined}
+		data-token-id={id}
+		data-side={side}
+		aria-pressed={selected}
+		onclick={() => onclick(id, side)}
+	>
+		{text}
+	</button>
+{:else}
+	<span
+		class="{chipClass} {highlighted ? hiClass : ''}"
+		style:border-color={useLinkTint && linkHex ? linkHex : undefined}
+		style:color={useLinkTint && linkHex ? linkHex : undefined}
+		style:background={useLinkTint && linkHex
+			? `color-mix(in srgb, ${linkHex} 18%, transparent)`
+			: undefined}
+		data-token-id={id}
+		data-side={side}
+	>
+		{text}
+	</span>
+{/if}

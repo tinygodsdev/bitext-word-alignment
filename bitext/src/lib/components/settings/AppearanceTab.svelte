@@ -1,15 +1,20 @@
 <script lang="ts">
 	import { Label, Range } from 'flowbite-svelte';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
-	import { MAX_LINE_GAP_PX, MIN_LINE_GAP_PX } from '$lib/serialization/schema.js';
+	import {
+		MAX_LINE_GAP_PX,
+		MAX_TEXT_SIZE_PX,
+		MIN_LINE_GAP_PX,
+		MIN_TEXT_SIZE_PX
+	} from '$lib/serialization/schema.js';
 
 	const s = $derived(settingsStore.settings);
 
 	const sel =
-		'block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-500';
+		'block w-full rounded-none border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-500';
 
 	const fileInputClass =
-		'block w-full cursor-pointer rounded-lg border border-gray-300 bg-gray-50 text-sm text-gray-900 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400';
+		'block w-full cursor-pointer rounded-none border border-gray-300 bg-gray-50 text-sm text-gray-900 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400';
 </script>
 
 <div class="grid grid-cols-12 gap-4">
@@ -70,10 +75,10 @@
 		<Label class="mb-2">Text size ({s.textSizePx}px)</Label>
 		<Range
 			appearance="auto"
-			color="blue"
+			color="indigo"
 			size="lg"
-			min={12}
-			max={36}
+			min={MIN_TEXT_SIZE_PX}
+			max={MAX_TEXT_SIZE_PX}
 			step={1}
 			value={s.textSizePx}
 			oninput={(e) =>
@@ -86,7 +91,7 @@
 		<Label class="mb-2">Word gap ({s.gapWordPx}px)</Label>
 		<Range
 			appearance="auto"
-			color="blue"
+			color="indigo"
 			size="lg"
 			min={0}
 			max={32}
@@ -100,7 +105,7 @@
 		<Label class="mb-2">Line gap ({s.gapLinePx}px)</Label>
 		<Range
 			appearance="auto"
-			color="blue"
+			color="indigo"
 			size="lg"
 			min={MIN_LINE_GAP_PX}
 			max={MAX_LINE_GAP_PX}
@@ -114,7 +119,7 @@
 		<Label class="mb-2">Line thickness ({s.lineThickness}px)</Label>
 		<Range
 			appearance="auto"
-			color="blue"
+			color="indigo"
 			size="lg"
 			min={1}
 			max={8}
@@ -130,7 +135,7 @@
 		<Label class="mb-2">Line opacity ({Math.round(s.lineOpacity * 100)}%)</Label>
 		<Range
 			appearance="auto"
-			color="blue"
+			color="indigo"
 			size="lg"
 			min={0.2}
 			max={1}

@@ -15,12 +15,20 @@
 		return '#0f172a';
 	}
 
+	/** Same fills as `.preview-frame--light` / `--dark` (image mode exports without photo → white). */
+	function exportBackgroundColor(): string {
+		const bg = settingsStore.settings.background;
+		if (bg === 'dark') return '#1e1e1e';
+		return '#ffffff';
+	}
+
 	function buildSvg(): string {
 		const lay = layoutExportStore;
 		const s = settingsStore.settings;
 		return buildStandaloneSvgString({
 			width: Math.max(1, lay.width),
 			height: Math.max(1, lay.height),
+			backgroundColor: exportBackgroundColor(),
 			fontFamilySource: svgFontFamilyStack(s, 'source'),
 			fontFamilyTarget: svgFontFamilyStack(s, 'target'),
 			fontSize: s.textSizePx,

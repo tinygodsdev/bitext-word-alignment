@@ -105,6 +105,10 @@ class ProjectStore {
 		this.links = removeLink(this.links, linkId);
 	}
 
+	clearAllLinks() {
+		this.links = [];
+	}
+
 	updateLinkColor(linkId: string, color: string) {
 		const link = this.links.find((l) => l.id === linkId);
 		if (!link) return;

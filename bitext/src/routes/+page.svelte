@@ -9,6 +9,7 @@
 	import SeoIntro from '$lib/components/seo/SeoIntro.svelte';
 	import SeoSections from '$lib/components/seo/SeoSections.svelte';
 	import JsonLd from '$lib/components/seo/JsonLd.svelte';
+	import { Button } from 'flowbite-svelte';
 	import { encodeState } from '$lib/serialization/encode.js';
 	import { SCHEMA_VERSION, type AppStateV1 } from '$lib/serialization/schema.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
@@ -62,17 +63,6 @@
 	const canonical = $derived(page.url.origin + page.url.pathname);
 </script>
 
-<svelte:window
-	onkeydown={(e) => {
-		if (e.key !== 'Enter') return;
-		const el = e.target as HTMLElement | null;
-		if (el?.closest('textarea, input[type="text"], select')) return;
-		if (!selectionStore.needsManualCommit()) return;
-		e.preventDefault();
-		selectionStore.commitLink();
-	}}
-/>
-
 <svelte:head>
 	<title>{DEFAULT_TITLE} · {SITE_NAME}</title>
 	<meta name="description" content={DEFAULT_DESCRIPTION} />
@@ -93,7 +83,7 @@
 
 <main class="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-12">
 	<header class="mb-8 text-center">
-		<h1 class="text-2xl font-semibold leading-snug text-gray-900 dark:text-white">
+		<h1 class="font-heading text-2xl font-semibold leading-snug text-gray-900 dark:text-white">
 			Word-by-word translation visualizer
 		</h1>
 		<p class="mx-auto mt-2 max-w-2xl text-base leading-relaxed text-gray-600 dark:text-gray-400">
@@ -112,9 +102,33 @@
 				<Editor />
 			</div>
 			<section class="mb-8" aria-labelledby="preview-heading">
-				<h2 id="preview-heading" class="mb-3 text-lg font-semibold text-gray-900 dark:text-white">
-					Preview
-				</h2>
+				<div class="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+					<div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
+						<h2
+							id="preview-heading"
+							class="font-heading shrink-0 text-lg font-semibold text-gray-900 dark:text-white"
+						>
+							Preview
+						</h2>
+						{#if selectionStore.showLinkHint()}
+							<p class="max-w-xl text-sm text-gray-600 dark:text-gray-400" role="status">
+								Click a word on the other line to create the link.
+							</p>
+						{/if}
+					</div>
+					<Button
+						color="light"
+						size="sm"
+						class="shrink-0"
+						disabled={projectStore.links.length === 0}
+						onclick={() => {
+							projectStore.clearAllLinks();
+							selectionStore.clear();
+						}}
+					>
+						Clear all links
+					</Button>
+				</div>
 				<AlignmentPreview />
 			</section>
 			<div class="mb-8">

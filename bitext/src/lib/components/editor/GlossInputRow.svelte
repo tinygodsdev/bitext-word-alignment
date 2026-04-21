@@ -3,7 +3,7 @@
 	import type { Token } from '$lib/domain/tokens.js';
 
 	const inputClass =
-		'block w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-xs text-gray-900 placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-500';
+		'block w-full rounded-none border border-gray-300 bg-gray-50 p-2 text-xs text-gray-900 placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-500';
 
 	let {
 		tokens,

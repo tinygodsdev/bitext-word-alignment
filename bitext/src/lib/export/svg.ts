@@ -8,6 +8,8 @@ import { escapeXml } from './xml.js';
 export function buildStandaloneSvgString(args: {
 	width: number;
 	height: number;
+	/** Matches on-screen preview / raster exports (PNG, PDF). */
+	backgroundColor: string;
 	fontFamilySource: string;
 	fontFamilyTarget: string;
 	fontSize: number;
@@ -26,6 +28,7 @@ export function buildStandaloneSvgString(args: {
 	const {
 		width,
 		height,
+		backgroundColor,
 		fontFamilySource,
 		fontFamilyTarget,
 		fontSize,
@@ -88,5 +91,7 @@ export function buildStandaloneSvgString(args: {
 		}
 	}
 
-	return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">${paths.join('')}${texts.join('')}</svg>`;
+	const bgRect = `<rect x="0" y="0" width="${width}" height="${height}" fill="${escapeXml(backgroundColor)}"/>`;
+
+	return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">${bgRect}${paths.join('')}${texts.join('')}</svg>`;
 }

@@ -24,14 +24,6 @@ class SelectionStore {
 		}
 	}
 
-	toggleToken(side: 'source' | 'target', tokenId: string) {
-		const cur = side === 'source' ? this.selectedSource : this.selectedTarget;
-		const next = new SvelteSet(cur);
-		if (next.has(tokenId)) next.delete(tokenId);
-		else next.add(tokenId);
-		this.syncSet(side, next);
-	}
-
 	/** Preview mode: first click selects one token, second click on other side creates link immediately. */
 	previewTokenClick(side: 'source' | 'target', tokenId: string) {
 		const own = side === 'source' ? this.selectedSource : this.selectedTarget;
@@ -65,15 +57,6 @@ class SelectionStore {
 		if (src.length === 0 || tgt.length === 0) return;
 		projectStore.addAlignment(src, tgt, settingsStore.settings.palette);
 		this.clear();
-	}
-
-	hasSelection(): boolean {
-		return this.selectedSource.size > 0 || this.selectedTarget.size > 0;
-	}
-
-	/** Show Create link / Enter when both sides have at least one token */
-	needsManualCommit(): boolean {
-		return this.selectedSource.size >= 1 && this.selectedTarget.size >= 1;
 	}
 
 	showLinkHint(): boolean {

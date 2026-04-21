@@ -3,17 +3,31 @@
 @import 'flowbite/src/themes/default.css';
 @custom-variant dark (&:where(.dark, .dark *));
 
+/*
+ * Central theme: edit primary scale + app shell here.
+ * Flowbite plugin forms/range use --color-brand*; Flowbite Svelte uses Tailwind `primary-*` for buttons/tabs.
+ */
 @theme {
-	--color-primary-50: #eff6ff;
-	--color-primary-100: #dbeafe;
-	--color-primary-200: #bfdbfe;
-	--color-primary-300: #93c5fd;
-	--color-primary-400: #60a5fa;
-	--color-primary-500: #3b82f6;
-	--color-primary-600: #2563eb;
-	--color-primary-700: #1d4ed8;
-	--color-primary-800: #1e40af;
-	--color-primary-900: #1e3a8a;
+	/* UI typography (loaded in +layout.svelte via fonts.googleapis.com) */
+	--font-sans:
+		'Google Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+	--font-heading: 'Merriweather', ui-serif, Georgia, 'Times New Roman', serif;
+
+	/* Page / cards (slightly darker border than shell) */
+	--color-app-shell: #f3f1f1;
+	--color-card-border: #e8e5e5;
+
+	/* primary = indigo (Tailwind default scale) */
+	--color-primary-50: #eef2ff;
+	--color-primary-100: #e0e7ff;
+	--color-primary-200: #c7d2fe;
+	--color-primary-300: #a5b4fc;
+	--color-primary-400: #818cf8;
+	--color-primary-500: #6366f1;
+	--color-primary-600: #4f46e5;
+	--color-primary-700: #4338ca;
+	--color-primary-800: #3730a3;
+	--color-primary-900: #312e81;
 
 	--color-secondary-50: #f0f9ff;
 	--color-secondary-100: #e0f2fe;
@@ -25,39 +39,76 @@
 	--color-secondary-700: #0369a1;
 	--color-secondary-800: #075985;
 	--color-secondary-900: #0c4a6e;
+
+	/* Flowbite semantic brand → indigo (overrides blues from flowbite default theme) */
+	--color-fg-brand-subtle: var(--color-indigo-200);
+	--color-fg-brand: var(--color-indigo-700);
+	--color-fg-brand-strong: var(--color-indigo-900);
+	--color-brand-softer: var(--color-indigo-50);
+	--color-brand-soft: var(--color-indigo-100);
+	--color-brand: var(--color-indigo-700);
+	--color-brand-medium: var(--color-indigo-200);
+	--color-brand-strong: var(--color-indigo-800);
+	--color-brand-subtle: var(--color-indigo-200);
+	--color-brand-light: var(--color-indigo-600);
+	--color-shiki-fg-brand: #a5b4fc;
+	--color-shiki-fg-brand-subtle: #c7d2fe;
+}
+
+/* Dark: Flowbite default theme sets brand to blue — align with indigo */
+.dark {
+	--color-fg-brand-subtle: var(--color-indigo-200);
+	--color-fg-brand: var(--color-indigo-500);
+	--color-fg-brand-strong: var(--color-indigo-400);
+	--color-brand-softer: var(--color-indigo-950);
+	--color-brand-soft: var(--color-indigo-900);
+	--color-brand: var(--color-indigo-600);
+	--color-brand-medium: var(--color-indigo-900);
+	--color-brand-strong: var(--color-indigo-700);
+	--color-brand-subtle: var(--color-indigo-900);
+	--color-brand-light: var(--color-indigo-600);
 }
 
 @source "../node_modules/flowbite-svelte/dist";
+@source "../node_modules/flowbite-svelte-icons/dist";
 
-/* --- Preview / alignment visualization (unchanged by UI migration) --- */
+/* --- Preview / alignment visualization --- */
 
 .preview-frame {
 	position: relative;
 	width: 100%;
 	max-width: 64rem;
 	margin-inline: auto;
-	border-radius: 0.75rem;
-	border: 1px solid var(--outline-variant, rgba(0, 0, 0, 0.12));
+	border-radius: 0;
+	border: 1px solid var(--color-card-border);
 	padding: 1.5rem;
 	min-height: 12rem;
 	overflow: hidden;
 }
 
 .preview-frame--light {
-	background: var(--surface-container-low, #fafafa);
+	background: #ffffff;
 	color: var(--on-surface, #1c1b1f);
 }
 
 .preview-frame--dark {
 	background: #1e1e1e;
 	color: #e8e8e8;
+	border-color: rgb(55 65 81);
 }
 
 .preview-frame__image-overlay {
 	position: absolute;
 	inset: 0;
-	background: color-mix(in srgb, var(--surface-container-low, #fafafa) 82%, transparent);
 	backdrop-filter: blur(1px);
+}
+
+.preview-frame--light .preview-frame__image-overlay {
+	background: color-mix(in srgb, #ffffff 82%, transparent);
+}
+
+.preview-frame--dark .preview-frame__image-overlay {
+	background: color-mix(in srgb, #1e1e1e 82%, transparent);
 }
 
 .preview-stack {
@@ -110,7 +161,7 @@ path.link-path:hover {
 	align-items: baseline;
 	gap: 2px;
 	padding-inline: 4px;
-	border-radius: 4px;
+	border-radius: 0;
 }
 
 .token-view__num {
@@ -149,12 +200,7 @@ button.token-view--clickable {
 }
 
 button.token-view--clickable:focus-visible {
-	outline: 2px solid var(--primary, #6750a4);
+	outline: 2px solid var(--color-primary-600);
 	outline-offset: 2px;
-	border-radius: 4px;
-}
-
-.preview-link-hint {
-	margin: 0 0 0.75rem;
-	opacity: 0.9;
+	border-radius: 0;
 }

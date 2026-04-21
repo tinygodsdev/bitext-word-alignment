@@ -18,12 +18,12 @@
 		'peer h-4 w-4 rounded border-gray-300 bg-gray-100 text-primary-600 focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-primary-600';
 
 	const paletteBtnBase =
-		'rounded-lg border-2 px-3 py-1.5 text-sm font-medium capitalize transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900';
+		'rounded-none border-2 px-3 py-1.5 text-sm font-medium capitalize transition focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900';
 
 	function paletteBtnClass(name: PaletteName): string {
 		const on = s.palette === name;
 		if (on) {
-			return `${paletteBtnBase} border-blue-600 bg-blue-600 text-white shadow-sm dark:border-blue-500 dark:bg-blue-600`;
+			return `${paletteBtnBase} border-primary-600 bg-primary-600 text-white shadow-sm dark:border-primary-500 dark:bg-primary-600`;
 		}
 		return `${paletteBtnBase} border-gray-300 bg-white text-gray-800 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700/80`;
 	}
@@ -32,7 +32,7 @@
 <div>
 	<div class="mb-4 flex flex-wrap items-start justify-between gap-3">
 		<div>
-			<h3 class="text-sm font-semibold text-gray-900 dark:text-white">
+			<h3 class="font-heading text-sm font-semibold text-gray-900 dark:text-white">
 				Match token color to links
 			</h3>
 			<p class="text-sm text-gray-600 dark:text-gray-400">
@@ -66,7 +66,7 @@
 	<div class="flex flex-wrap items-center gap-2">
 		{#each PALETTES[s.palette] as color, i (i)}
 			<span
-				class="h-8 w-8 rounded border border-gray-200 shadow-sm dark:border-gray-600"
+				class="h-8 w-8 rounded-none border border-gray-200 shadow-sm dark:border-gray-600"
 				style:background={color}
 				title={color}
 			></span>

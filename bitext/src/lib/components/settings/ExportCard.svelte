@@ -4,7 +4,7 @@
 </script>
 
 <Card class="w-full p-4 sm:p-6">
-	<h2 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">Export</h2>
+	<h2 class="font-heading mb-2 text-lg font-semibold text-gray-900 dark:text-white">Export</h2>
 	<p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
 		Exports match the preview area (measured after layout).
 	</p>

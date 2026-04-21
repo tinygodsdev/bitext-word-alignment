@@ -5,7 +5,6 @@
 	import PreviewFontLoader from './PreviewFontLoader.svelte';
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
-	import { selectionStore } from '$lib/state/selection.svelte.js';
 	import { resolveVisualizationFontCss } from '$lib/fonts/visualization-font.js';
 
 	let rootEl = $state<HTMLElement | null>(null);
@@ -33,9 +32,6 @@
 >
 	{#if bg === 'image' && settingsStore.settings.backgroundImageDataUrl}
 		<div class="preview-frame__image-overlay"></div>
-	{/if}
-	{#if selectionStore.showLinkHint()}
-		<p class="preview-link-hint small-text">Click a word on the other line to create the link.</p>
 	{/if}
 	<div class="preview-stack" style:gap="{gapLine}px">
 		<div class="preview-token-line" style:font-family={fontSource}>

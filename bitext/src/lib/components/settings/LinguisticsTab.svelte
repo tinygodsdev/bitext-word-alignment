@@ -20,14 +20,16 @@
 		'peer h-4 w-4 rounded border-gray-300 bg-gray-100 text-primary-600 focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-primary-600';
 
 	const inputClass =
-		'block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-500';
+		'block w-full rounded-none border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-500';
 </script>
 
 <div class="grid grid-cols-12 gap-4">
 	<div class="col-span-12">
 		<div class="flex flex-wrap items-start justify-between gap-3">
 			<div>
-				<h3 class="text-sm font-semibold text-gray-900 dark:text-white">Interlinear gloss row</h3>
+				<h3 class="font-heading text-sm font-semibold text-gray-900 dark:text-white">
+					Interlinear gloss row
+				</h3>
 				<p class="text-sm text-gray-600 dark:text-gray-400">
 					Shown between source and target in the preview
 				</p>
@@ -47,7 +49,9 @@
 	<div class="col-span-12">
 		<div class="flex flex-wrap items-start justify-between gap-3">
 			<div>
-				<h3 class="text-sm font-semibold text-gray-900 dark:text-white">Token numbers</h3>
+				<h3 class="font-heading text-sm font-semibold text-gray-900 dark:text-white">
+					Token numbers
+				</h3>
 				<p class="text-sm text-gray-600 dark:text-gray-400">
 					Show indices on each word in the preview
 				</p>
@@ -66,21 +70,23 @@
 	</div>
 	<div class="col-span-12">
 		<details
-			class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-800/50"
+			class="rounded-none border border-gray-200 bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-800/50"
 		>
-			<summary class="cursor-pointer text-sm font-medium text-gray-900 dark:text-white">
+			<summary
+				class="font-heading cursor-pointer text-sm font-medium text-gray-900 dark:text-white"
+			>
 				Advanced tokenization
 			</summary>
 			<div class="mt-3">
 				<p class="mb-3 text-sm text-gray-600 dark:text-gray-400">
 					Whitespace always splits tokens. Add extra separator characters to also split inside words
-					(for example: <code class="rounded bg-gray-200 px-1 dark:bg-gray-700">.-</code> makes
-					<code class="rounded bg-gray-200 px-1 dark:bg-gray-700">cat.s</code>
+					(for example: <code class="rounded-none bg-gray-200 px-1 dark:bg-gray-700">.-</code> makes
+					<code class="rounded-none bg-gray-200 px-1 dark:bg-gray-700">cat.s</code>
 					and
-					<code class="rounded bg-gray-200 px-1 dark:bg-gray-700">cat-s</code>
+					<code class="rounded-none bg-gray-200 px-1 dark:bg-gray-700">cat-s</code>
 					become
-					<code class="rounded bg-gray-200 px-1 dark:bg-gray-700">cat</code> +
-					<code class="rounded bg-gray-200 px-1 dark:bg-gray-700">s</code>).
+					<code class="rounded-none bg-gray-200 px-1 dark:bg-gray-700">cat</code> +
+					<code class="rounded-none bg-gray-200 px-1 dark:bg-gray-700">s</code>).
 				</p>
 				<Label for="token-split-chars" class="mb-2">Extra token separators</Label>
 				<input

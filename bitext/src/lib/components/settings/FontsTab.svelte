@@ -7,10 +7,10 @@
 	const s = $derived(settingsStore.settings);
 
 	const sel =
-		'block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-500';
+		'block w-full rounded-none border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-500';
 
 	const fileClass =
-		'block w-full cursor-pointer rounded-lg border border-gray-300 bg-gray-50 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400';
+		'block w-full cursor-pointer rounded-none border border-gray-300 bg-gray-50 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400';
 
 	async function onCustomFile(side: 'source' | 'target', e: Event) {
 		const input = e.currentTarget as HTMLInputElement;
@@ -32,7 +32,7 @@
 
 <div class="grid grid-cols-12 gap-4">
 	<div class="col-span-12">
-		<h3 class="text-sm font-semibold text-gray-900 dark:text-white">Source line</h3>
+		<h3 class="font-heading text-sm font-semibold text-gray-900 dark:text-white">Source line</h3>
 	</div>
 	<div class="col-span-12 md:col-span-6">
 		<Label for="settings-font-source-src" class="mb-2">Source font source</Label>
@@ -85,7 +85,7 @@
 	{/if}
 
 	<div class="col-span-12 mt-2">
-		<h3 class="text-sm font-semibold text-gray-900 dark:text-white">Target line</h3>
+		<h3 class="font-heading text-sm font-semibold text-gray-900 dark:text-white">Target line</h3>
 	</div>
 	<div class="col-span-12 md:col-span-6">
 		<Label for="settings-font-source-tgt" class="mb-2">Target font source</Label>

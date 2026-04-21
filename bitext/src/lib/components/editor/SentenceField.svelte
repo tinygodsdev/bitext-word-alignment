@@ -2,7 +2,6 @@
 	import { Label } from 'flowbite-svelte';
 	import type { Token } from '$lib/domain/tokens.js';
 	import TokenChip from './TokenChip.svelte';
-	import { selectionStore } from '$lib/state/selection.svelte.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { linkHover } from '$lib/state/linkHover.svelte.js';
 	import { linkForId, primaryLinkForToken } from '$lib/domain/alignment.js';
@@ -10,7 +9,7 @@
 	type Side = 'source' | 'target';
 
 	const areaClass =
-		'block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-primary-500 dark:focus:ring-primary-500';
+		'block w-full rounded-none border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-primary-500 dark:focus:ring-primary-500';
 
 	let {
 		label,
@@ -46,10 +45,6 @@
 			(side === 'source' && link.sourceId === id) || (side === 'target' && link.targetId === id)
 		);
 	}
-
-	function onTokenClick(id: string, s: Side) {
-		selectionStore.toggleToken(s, id);
-	}
 </script>
 
 <div>
@@ -70,14 +65,10 @@
 				id={t.id}
 				text={t.text}
 				{side}
-				selected={(side === 'source'
-					? selectionStore.selectedSource
-					: selectionStore.selectedTarget
-				).has(t.id)}
+				selected={false}
 				linked={tokenLinked(t.id)}
 				linkHex={tokenLinkColor(t.id)}
 				highlighted={tokenHighlighted(t.id)}
-				onclick={onTokenClick}
 			/>
 		{/each}
 	</div>

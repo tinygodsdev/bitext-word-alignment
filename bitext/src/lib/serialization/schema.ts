@@ -7,7 +7,12 @@ export type LineStyle = 'straight' | 'curved';
 export type BackgroundMode = 'light' | 'dark' | 'image';
 export type UiTheme = 'light' | 'dark';
 export const MIN_LINE_GAP_PX = 40;
-export const MAX_LINE_GAP_PX = 120;
+/** Previous cap was 120px; +30% headroom for large layouts */
+export const MAX_LINE_GAP_PX = 156;
+
+export const MIN_TEXT_SIZE_PX = 12;
+/** Previous cap was 36px; +30% headroom */
+export const MAX_TEXT_SIZE_PX = 47;
 export const DEFAULT_TOKEN_SPLIT_CHARS = '.-';
 
 /** Normalize theme from shared `?data=` payloads to BeerCSS body class `light` | `dark`. */
@@ -64,11 +69,11 @@ export interface AppStateV1 {
 export function defaultVisualSettings(): VisualSettingsV1 {
 	return {
 		theme: 'light',
-		textSizePx: 18,
-		gapWordPx: 8,
-		gapLinePx: MIN_LINE_GAP_PX,
-		lineThickness: 2,
-		lineOpacity: 0.85,
+		textSizePx: 36,
+		gapWordPx: 14,
+		gapLinePx: 120,
+		lineThickness: 3,
+		lineOpacity: 1,
 		lineStyle: 'curved',
 		palette: 'pastel',
 		showGloss: false,
@@ -116,9 +121,15 @@ export function normalizeVisualSettings(
 		return uniq.join('').slice(0, 24);
 	})();
 
+	const textSizePx =
+		typeof raw.textSizePx === 'number'
+			? Math.round(Math.max(MIN_TEXT_SIZE_PX, Math.min(MAX_TEXT_SIZE_PX, raw.textSizePx)))
+			: d.textSizePx;
+
 	return {
 		...d,
 		...raw,
+		textSizePx,
 		theme: normalizeUiTheme(String(raw.theme ?? d.theme)),
 		sourceFontFamily:
 			typeof raw.sourceFontFamily === 'string'

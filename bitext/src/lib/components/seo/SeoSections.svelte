@@ -2,8 +2,8 @@
 	class="mt-10 max-w-3xl space-y-3 leading-relaxed text-gray-700 dark:text-gray-300"
 	aria-labelledby="seo-sections"
 >
-	<h2 id="seo-sections" class="sr-only">Guides</h2>
-	<h3 class="mt-6 text-xl font-semibold text-gray-900 dark:text-white">
+	<h2 id="seo-sections" class="sr-only font-heading">Guides</h2>
+	<h3 class="font-heading mt-6 text-xl font-semibold text-gray-900 dark:text-white">
 		What is word-by-word translation?
 	</h3>
 	<p>
@@ -13,7 +13,7 @@
 			>interlinear gloss</strong
 		> row.
 	</p>
-	<h3 class="mt-6 text-xl font-semibold text-gray-900 dark:text-white">
+	<h3 class="font-heading mt-6 text-xl font-semibold text-gray-900 dark:text-white">
 		How to align words between languages
 	</h3>
 	<p>
@@ -25,7 +25,7 @@
 			>bilingual sentence alignment tool</strong
 		> like this when textbook examples need to be legible at a glance.
 	</p>
-	<h3 class="mt-6 text-xl font-semibold text-gray-900 dark:text-white">
+	<h3 class="font-heading mt-6 text-xl font-semibold text-gray-900 dark:text-white">
 		Interlinear gloss explanation
 	</h3>
 	<p>
