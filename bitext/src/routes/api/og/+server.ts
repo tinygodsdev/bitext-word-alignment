@@ -14,6 +14,9 @@ export const GET: RequestHandler = async ({ url }) => {
 			mode: 'width',
 			value: OG_IMAGE_WIDTH
 		},
+		// Opaque canvas — some social scrapers (Facebook's in particular) render PNGs with alpha
+		// as a blank dark rectangle in their preview widget even when the pixels are fully opaque.
+		background: '#0f172a',
 		font: {
 			fontFiles,
 			loadSystemFonts: false,
@@ -25,6 +28,7 @@ export const GET: RequestHandler = async ({ url }) => {
 	return new Response(new Uint8Array(buffer), {
 		headers: {
 			'Content-Type': 'image/png',
+			'Content-Length': String(buffer.length),
 			'Cache-Control': 'public, max-age=3600'
 		}
 	});

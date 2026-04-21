@@ -55,12 +55,19 @@
 	});
 
 	const origin = $derived(page.url.origin);
+	const dataParam = $derived(page.url.searchParams.get('data'));
 	const ogImage = $derived.by(() => {
-		const p = page.url.searchParams.get('data');
-		if (p) return `${origin}/api/og?data=${encodeURIComponent(p)}`;
+		if (dataParam) return `${origin}/api/og?data=${encodeURIComponent(dataParam)}`;
 		return `${origin}/api/og`;
 	});
-	const canonical = $derived(page.url.origin + page.url.pathname);
+	// Canonical / og:url must include the `?data=...` payload when present.
+	// Without it, Facebook resolves each shared URL back to the bare landing page, reuses its
+	// cached og:image (the generic preview), and never shows the visualization for the actual
+	// share. Each `?data=...` URL is a distinct shareable view and deserves its own canonical.
+	const canonical = $derived.by(() => {
+		const base = page.url.origin + page.url.pathname;
+		return dataParam ? `${base}?data=${encodeURIComponent(dataParam)}` : base;
+	});
 
 	const authorSite = 'https://danipolani.github.io/en/';
 	const toolsPage = 'https://danipolani.github.io/en/blog/tools/';
@@ -77,6 +84,7 @@
 	<meta property="og:description" content={DEFAULT_DESCRIPTION} />
 	<meta property="og:url" content={canonical} />
 	<meta property="og:image" content={ogImage} />
+	<meta property="og:image:secure_url" content={ogImage} />
 	<meta property="og:image:type" content="image/png" />
 	<meta property="og:image:width" content="1200" />
 	<meta property="og:image:height" content="630" />
