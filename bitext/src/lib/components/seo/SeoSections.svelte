@@ -18,12 +18,13 @@
 	</h3>
 	<p>
 		Type your <strong class="font-medium text-gray-900 dark:text-white">source sentence</strong> and
-		<strong class="font-medium text-gray-900 dark:text-white">target sentence</strong>, tap words on
-		each side to select them, then create a link. The tool draws connector lines in the preview. You
-		can use a
+		<strong class="font-medium text-gray-900 dark:text-white">target sentence</strong>, click a word
+		in the preview, then click the matching word on the other line — a connector is drawn right
+		away. You can link a word to multiple words on the other side. Click any connector to remove it.
+		A
 		<strong class="font-medium text-gray-900 dark:text-white"
 			>bilingual sentence alignment tool</strong
-		> like this when textbook examples need to be legible at a glance.
+		> like this keeps textbook examples legible at a glance.
 	</p>
 	<h3 class="font-heading mt-6 text-xl font-semibold text-gray-900 dark:text-white">
 		Interlinear gloss explanation

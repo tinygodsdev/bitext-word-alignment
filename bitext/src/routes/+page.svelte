@@ -77,10 +77,15 @@
 	<meta property="og:description" content={DEFAULT_DESCRIPTION} />
 	<meta property="og:url" content={canonical} />
 	<meta property="og:image" content={ogImage} />
+	<meta property="og:image:type" content="image/png" />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
+	<meta property="og:image:alt" content={`${DEFAULT_TITLE} — ${SITE_NAME}`} />
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:title" content={`${DEFAULT_TITLE} · ${SITE_NAME}`} />
 	<meta name="twitter:description" content={DEFAULT_DESCRIPTION} />
 	<meta name="twitter:image" content={ogImage} />
+	<meta name="twitter:image:alt" content={`${DEFAULT_TITLE} — ${SITE_NAME}`} />
 </svelte:head>
 
 <JsonLd {origin} />

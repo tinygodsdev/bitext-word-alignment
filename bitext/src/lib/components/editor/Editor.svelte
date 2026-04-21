@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, Card } from 'flowbite-svelte';
+	import { Card } from 'flowbite-svelte';
 	import SentenceField from './SentenceField.svelte';
 	import GlossInputRow from './GlossInputRow.svelte';
 	import { projectStore } from '$lib/state/project.svelte.js';
@@ -7,21 +7,27 @@
 </script>
 
 <Card class="w-full max-w-none p-4 sm:p-6" aria-labelledby="editor-heading">
-	<h2
-		id="editor-heading"
-		class="font-heading mb-4 text-lg font-semibold text-gray-900 dark:text-white"
-	>
-		Editor
-	</h2>
-	<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-		<p class="max-w-prose text-base text-gray-600 dark:text-gray-400">
-			Edit the sentences here. To add word links, click words in the preview below — you can select
-			several words on one side for many-to-one or one-to-many alignments.
-		</p>
-		<Button color="light" size="sm" class="shrink-0" onclick={() => projectStore.loadExample()}>
+	<div class="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+		<h2
+			id="editor-heading"
+			class="font-heading text-lg font-semibold text-gray-900 dark:text-white"
+		>
+			Editor
+		</h2>
+		<button
+			type="button"
+			class="shrink-0 rounded-none border-0 bg-transparent px-2 py-1 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:text-gray-400 dark:hover:bg-gray-800/80 dark:hover:text-gray-100 dark:focus-visible:outline-primary-500"
+			onclick={() => projectStore.loadExample()}
+		>
 			Load example
-		</Button>
+		</button>
 	</div>
+	<p class="mb-4 w-full text-base text-gray-600 dark:text-gray-400">
+		Edit the sentences here. To link words, click a word in the preview below, then click the
+		matching word on the other line — the connector will appear. You can link a word to multiple
+		words on the other side. Click a connector to remove it. Click a selected word again to deselect
+		it.
+	</p>
 	<div class="grid grid-cols-12 gap-4">
 		<div class="col-span-12 md:col-span-6">
 			<SentenceField

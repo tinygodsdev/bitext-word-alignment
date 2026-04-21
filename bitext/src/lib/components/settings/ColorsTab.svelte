@@ -53,8 +53,8 @@
 		</Label>
 	</div>
 	<p class="mb-4 text-base text-gray-600 dark:text-gray-400">
-		New links pick the next color from the palette. Remove a link in the preview by clicking its
-		line.
+		New links pick the next unused color from the palette. Changing the palette recolors every
+		existing link.
 	</p>
 	<div class="mb-4 flex flex-wrap gap-2">
 		{#each names as name (name)}
