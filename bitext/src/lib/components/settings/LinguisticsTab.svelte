@@ -30,7 +30,7 @@
 				<h3 class="font-heading text-sm font-semibold text-gray-900 dark:text-white">
 					Interlinear gloss row
 				</h3>
-				<p class="text-sm text-gray-600 dark:text-gray-400">
+				<p class="text-base text-gray-600 dark:text-gray-400">
 					Shown between source and target in the preview
 				</p>
 			</div>
@@ -52,7 +52,7 @@
 				<h3 class="font-heading text-sm font-semibold text-gray-900 dark:text-white">
 					Token numbers
 				</h3>
-				<p class="text-sm text-gray-600 dark:text-gray-400">
+				<p class="text-base text-gray-600 dark:text-gray-400">
 					Show indices on each word in the preview
 				</p>
 			</div>
@@ -78,7 +78,7 @@
 				Advanced tokenization
 			</summary>
 			<div class="mt-3">
-				<p class="mb-3 text-sm text-gray-600 dark:text-gray-400">
+				<p class="mb-3 text-base text-gray-600 dark:text-gray-400">
 					Whitespace always splits tokens. Add extra separator characters to also split inside words
 					(for example: <code class="rounded-none bg-gray-200 px-1 dark:bg-gray-700">.-</code> makes
 					<code class="rounded-none bg-gray-200 px-1 dark:bg-gray-700">cat.s</code>

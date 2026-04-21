@@ -1,11 +1,7 @@
-import LZString from 'lz-string';
 import type { AppStateV1 } from './schema.js';
+import { deflateBase64url } from './codec.js';
+import { toCompactJSON } from './compact-v2.js';
 
 export function encodeState(state: AppStateV1): string {
-	const slim = structuredClone(state) as AppStateV1;
-	if (slim.settings.backgroundImageDataUrl) {
-		delete slim.settings.backgroundImageDataUrl;
-	}
-	const json = JSON.stringify(slim);
-	return LZString.compressToEncodedURIComponent(json);
+	return deflateBase64url(toCompactJSON(state));
 }

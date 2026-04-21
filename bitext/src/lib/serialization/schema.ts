@@ -123,7 +123,7 @@ export function normalizeVisualSettings(
 
 	const textSizePx =
 		typeof raw.textSizePx === 'number'
-			? Math.round(Math.max(MIN_TEXT_SIZE_PX, Math.min(MAX_TEXT_SIZE_PX, raw.textSizePx)))
+			? Math.max(MIN_TEXT_SIZE_PX, Math.min(MAX_TEXT_SIZE_PX, raw.textSizePx))
 			: d.textSizePx;
 
 	return {

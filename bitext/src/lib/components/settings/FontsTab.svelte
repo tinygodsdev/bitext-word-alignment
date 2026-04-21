@@ -77,7 +77,7 @@
 		</div>
 		{#if s.sourceCustomFontName}
 			<div class="col-span-12">
-				<p class="text-sm text-gray-600 dark:text-gray-400">
+				<p class="text-base text-gray-600 dark:text-gray-400">
 					Loaded: <strong class="text-gray-900 dark:text-white">{s.sourceCustomFontName}</strong>
 				</p>
 			</div>
@@ -130,7 +130,7 @@
 		</div>
 		{#if s.targetCustomFontName}
 			<div class="col-span-12">
-				<p class="text-sm text-gray-600 dark:text-gray-400">
+				<p class="text-base text-gray-600 dark:text-gray-400">
 					Loaded: <strong class="text-gray-900 dark:text-white">{s.targetCustomFontName}</strong>
 				</p>
 			</div>

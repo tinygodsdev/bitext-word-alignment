@@ -35,7 +35,7 @@
 			<h3 class="font-heading text-sm font-semibold text-gray-900 dark:text-white">
 				Match token color to links
 			</h3>
-			<p class="text-sm text-gray-600 dark:text-gray-400">
+			<p class="text-base text-gray-600 dark:text-gray-400">
 				Preview, editor chips, and exports when enabled
 			</p>
 		</div>
@@ -52,7 +52,7 @@
 			<span class="text-sm text-gray-700 dark:text-gray-300">Enabled</span>
 		</Label>
 	</div>
-	<p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
+	<p class="mb-4 text-base text-gray-600 dark:text-gray-400">
 		New links pick the next color from the palette. Remove a link in the preview by clicking its
 		line.
 	</p>

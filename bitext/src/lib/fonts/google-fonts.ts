@@ -1,6 +1,7 @@
 /** Curated Google Fonts for the picker (family slug → display name). */
 export const GOOGLE_FONT_OPTIONS: { family: string; label: string }[] = [
 	{ family: 'Inter', label: 'Inter' },
+	{ family: 'Space Grotesk', label: 'Space Grotesk' },
 	{ family: 'Lora', label: 'Lora' },
 	{ family: 'Merriweather', label: 'Merriweather' },
 	{ family: 'Open+Sans', label: 'Open Sans' },

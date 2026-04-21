@@ -1,9 +1,13 @@
+import { ALIGNER_SITE_HOST } from '$lib/brand.js';
 import type { Token } from '$lib/domain/tokens.js';
 import type { TokenLayout } from '$lib/types/layout.js';
 import type { Link } from '$lib/domain/alignment.js';
 import { primaryLinkForToken } from '$lib/domain/alignment.js';
 import { linkEndpoints, linkPathD } from '$lib/domain/link-geometry.js';
 import { escapeXml } from './xml.js';
+
+const ATTRIBUTION_FOOTER_PX = 28;
+const ATTRIBUTION_FONT = '"Google Sans", sans-serif';
 
 export function buildStandaloneSvgString(args: {
 	width: number;
@@ -24,6 +28,8 @@ export function buildStandaloneSvgString(args: {
 	tokenLayout: Record<string, TokenLayout>;
 	links: Link[];
 	showGloss: boolean;
+	/** When true (default), reserve a footer band with static attribution (PNG/PDF/SVG file). Omit for HTML wrapper (clickable line below SVG). */
+	includeAttributionFooter?: boolean;
 }): string {
 	const {
 		width,
@@ -42,8 +48,11 @@ export function buildStandaloneSvgString(args: {
 		targetTokens,
 		tokenLayout,
 		links,
-		showGloss
+		showGloss,
+		includeAttributionFooter = true
 	} = args;
+
+	const exportHeight = includeAttributionFooter ? height + ATTRIBUTION_FOOTER_PX : height;
 
 	const paths: string[] = [];
 	for (const link of links) {
@@ -91,7 +100,11 @@ export function buildStandaloneSvgString(args: {
 		}
 	}
 
-	const bgRect = `<rect x="0" y="0" width="${width}" height="${height}" fill="${escapeXml(backgroundColor)}"/>`;
+	const bgRect = `<rect x="0" y="0" width="${width}" height="${exportHeight}" fill="${escapeXml(backgroundColor)}"/>`;
 
-	return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">${bgRect}${paths.join('')}${texts.join('')}</svg>`;
+	const attribution = includeAttributionFooter
+		? `<text fill="${escapeXml(defaultTextColor)}" opacity="0.55" font-family="${escapeXml(ATTRIBUTION_FONT)}" font-size="11" text-anchor="middle" dominant-baseline="central" transform="translate(${width / 2},${height + ATTRIBUTION_FOOTER_PX / 2})">${escapeXml(`Created with ${ALIGNER_SITE_HOST}`)}</text>`
+		: '';
+
+	return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${exportHeight}" viewBox="0 0 ${width} ${exportHeight}">${bgRect}${paths.join('')}${texts.join('')}${attribution}</svg>`;
 }

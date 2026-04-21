@@ -22,7 +22,7 @@
 		return '#ffffff';
 	}
 
-	function buildSvg(): string {
+	function buildSvg(includeAttributionFooter: boolean): string {
 		const lay = layoutExportStore;
 		const s = settingsStore.settings;
 		return buildStandaloneSvgString({
@@ -42,29 +42,30 @@
 			targetTokens: projectStore.targetTokens,
 			tokenLayout: lay.tokenLayout,
 			links: projectStore.links,
-			showGloss: s.showGloss
+			showGloss: s.showGloss,
+			includeAttributionFooter
 		});
 	}
 
 	async function downloadSvg() {
-		const svg = buildSvg();
+		const svg = buildSvg(true);
 		downloadBlob('alignment.svg', new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
 	}
 
 	async function downloadPng() {
-		const svg = buildSvg();
+		const svg = buildSvg(true);
 		const blob = await svgStringToPngBlob(svg, 2);
 		downloadBlob('alignment.png', blob);
 	}
 
 	async function downloadPdf() {
-		const svg = buildSvg();
+		const svg = buildSvg(true);
 		const blob = await svgStringToPdfBlob(svg);
 		downloadBlob('alignment.pdf', blob);
 	}
 
 	function downloadHtml() {
-		const svg = buildSvg();
+		const svg = buildSvg(false);
 		const html = wrapSvgInHtml(svg, 'Alignment export');
 		downloadBlob('alignment.html', new Blob([html], { type: 'text/html;charset=utf-8' }));
 	}

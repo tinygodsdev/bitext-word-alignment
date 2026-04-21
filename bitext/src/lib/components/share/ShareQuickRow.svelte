@@ -32,7 +32,7 @@
 
 <Card class="mt-0 w-full p-4 sm:p-6">
 	<h2 class="font-heading mb-2 text-lg font-semibold text-gray-900 dark:text-white">Share</h2>
-	<p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
+	<p class="mb-4 text-base text-gray-600 dark:text-gray-400">
 		Copy a link with your alignment encoded in the URL.
 	</p>
 	<div class="flex flex-nowrap items-center gap-2 overflow-x-auto pb-0.5">

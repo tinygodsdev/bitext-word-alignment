@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import LinkPath from './LinkPath.svelte';
 	import type { Link } from '$lib/domain/alignment.js';
 	import { linkEndpoints, linkPathD } from '$lib/domain/link-geometry.js';
@@ -92,12 +93,31 @@
 		void settingsStore.settings.lineStyle;
 		void projectStore.sourceTokens;
 		void projectStore.targetTokens;
+		/** Two rAFs: wait for style/layout flush after font or DOM updates. */
+		function remeasure() {
+			requestAnimationFrame(() => {
+				requestAnimationFrame(() => measure());
+			});
+		}
 		const ro = new ResizeObserver(() => {
-			requestAnimationFrame(() => measure());
+			remeasure();
 		});
 		ro.observe(rootEl);
-		requestAnimationFrame(() => measure());
-		return () => ro.disconnect();
+		remeasure();
+		let cancelled = false;
+		if (browser && document.fonts) {
+			void document.fonts.ready.then(() => {
+				if (!cancelled) remeasure();
+			});
+			document.fonts.addEventListener('loadingdone', remeasure);
+		}
+		return () => {
+			cancelled = true;
+			ro.disconnect();
+			if (browser && document.fonts) {
+				document.fonts.removeEventListener('loadingdone', remeasure);
+			}
+		};
 	});
 </script>
 

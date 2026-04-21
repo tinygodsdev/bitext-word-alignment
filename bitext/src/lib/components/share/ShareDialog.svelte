@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Button, Modal } from 'flowbite-svelte';
+	import { ALIGNER_SITE_HOST } from '$lib/brand.js';
 	import { encodeState } from '$lib/serialization/encode.js';
 	import { SCHEMA_VERSION, type AppStateV1 } from '$lib/serialization/schema.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
@@ -32,7 +33,12 @@
 </script>
 
 <Modal bind:open={modalOpen} title="Share" size="md">
-	<p class="break-all text-sm text-gray-600 dark:text-gray-400">{shareUrl}</p>
+	<p class="text-base text-gray-600 dark:text-gray-400">
+		The link encodes your sentences, glosses, alignments, and visualization settings in the
+		<code class="text-sm">data</code> URL parameter. It can be long, but everything is restored when
+		the page opens on {ALIGNER_SITE_HOST}.
+	</p>
+	<p class="mt-3 break-all text-base text-gray-600 dark:text-gray-400">{shareUrl}</p>
 	<div class="mt-4 flex flex-wrap gap-2">
 		<CopyLinkButton />
 		<Button
@@ -62,6 +68,5 @@
 		>
 			Reddit
 		</Button>
-		<Button color="alternative" size="sm" onclick={() => (modalOpen = false)}>Close</Button>
 	</div>
 </Modal>

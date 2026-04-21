@@ -61,6 +61,10 @@
 		return `${origin}/api/og`;
 	});
 	const canonical = $derived(page.url.origin + page.url.pathname);
+
+	const authorSite = 'https://danipolani.github.io/en/';
+	const toolsPage = 'https://danipolani.github.io/en/blog/tools/';
+	const year = new Date().getFullYear();
 </script>
 
 <svelte:head>
@@ -83,21 +87,37 @@
 
 <main class="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-12">
 	<header class="mb-8 text-center">
-		<h1 class="font-heading text-2xl font-semibold leading-snug text-gray-900 dark:text-white">
+		<h1
+			class="font-heading text-3xl font-semibold tracking-tight leading-tight text-gray-900 md:text-4xl dark:text-white"
+		>
 			Word-by-word translation visualizer
 		</h1>
-		<p class="mx-auto mt-2 max-w-2xl text-base leading-relaxed text-gray-600 dark:text-gray-400">
+		<p class="mx-auto mt-3 max-w-2xl text-lg leading-relaxed text-gray-600 dark:text-gray-400">
 			Create a <strong class="font-medium text-gray-800 dark:text-gray-200"
 				>bilingual sentence alignment</strong
 			>
 			with connector lines, optional
 			<strong class="font-medium text-gray-800 dark:text-gray-200">interlinear gloss</strong>, and
 			exports — in under a minute.
+			<br />
+			Created by
+			<a
+				href={authorSite}
+				class="font-medium text-primary-700 underline decoration-primary-700/40 underline-offset-2 hover:text-primary-800 hover:decoration-primary-800 dark:text-primary-400 dark:decoration-primary-400/50 dark:hover:text-primary-300"
+				target="_blank"
+				rel="noopener noreferrer">Dani</a
+			>. See other
+			<a
+				href={toolsPage}
+				class="font-medium text-primary-700 underline decoration-primary-700/40 underline-offset-2 hover:text-primary-800 hover:decoration-primary-800 dark:text-primary-400 dark:decoration-primary-400/50 dark:hover:text-primary-300"
+				target="_blank"
+				rel="noopener noreferrer">tools</a
+			> for linguistics and conlanging.
 		</p>
 	</header>
 
 	<div class="grid grid-cols-12 gap-6 lg:gap-8">
-		<div class="col-span-12 lg:col-span-8">
+		<div class="col-span-12 lg:col-span-8 lg:col-start-1 lg:row-start-1">
 			<div class="mb-8">
 				<Editor />
 			</div>
@@ -111,7 +131,7 @@
 							Preview
 						</h2>
 						{#if selectionStore.showLinkHint()}
-							<p class="max-w-xl text-sm text-gray-600 dark:text-gray-400" role="status">
+							<p class="max-w-xl text-base text-gray-600 dark:text-gray-400" role="status">
 								Click a word on the other line to create the link.
 							</p>
 						{/if}
@@ -131,12 +151,8 @@
 				</div>
 				<AlignmentPreview />
 			</section>
-			<div class="mb-8">
-				<SeoIntro />
-				<SeoSections />
-			</div>
 		</div>
-		<div class="col-span-12 min-w-0 lg:col-span-4">
+		<div class="col-span-12 min-w-0 lg:col-span-4 lg:col-start-9 lg:row-start-1 lg:row-end-3">
 			<div id="settings-panel">
 				<SettingsPanel />
 			</div>
@@ -147,5 +163,32 @@
 				<ShareQuickRow />
 			</div>
 		</div>
+		<div class="col-span-12 lg:col-span-8 lg:col-start-1 lg:row-start-2">
+			<div class="mb-8">
+				<SeoIntro />
+				<SeoSections />
+			</div>
+		</div>
 	</div>
+
+	<footer
+		class="mt-12 border-t border-gray-200 pt-8 text-center text-base leading-relaxed text-gray-600 dark:border-gray-700 dark:text-gray-400"
+	>
+		<p>
+			Created by
+			<a
+				href={authorSite}
+				class="font-medium text-primary-700 underline decoration-primary-700/40 underline-offset-2 hover:text-primary-800 hover:decoration-primary-800 dark:text-primary-400 dark:decoration-primary-400/50 dark:hover:text-primary-300"
+				target="_blank"
+				rel="noopener noreferrer">Dani</a
+			>. See other
+			<a
+				href={toolsPage}
+				class="font-medium text-primary-700 underline decoration-primary-700/40 underline-offset-2 hover:text-primary-800 hover:decoration-primary-800 dark:text-primary-400 dark:decoration-primary-400/50 dark:hover:text-primary-300"
+				target="_blank"
+				rel="noopener noreferrer">tools</a
+			> for linguistics and conlanging.
+		</p>
+		<p class="mt-2 text-gray-500 dark:text-gray-500">© {year} Dani Polani</p>
+	</footer>
 </main>
