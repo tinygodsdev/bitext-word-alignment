@@ -20,5 +20,6 @@ export const GOOGLE_FONT_OPTIONS: { family: string; label: string }[] = [
 
 export function googleFontStylesheetUrl(familyCss: string): string {
 	const f = familyCss.replace(/ /g, '+');
-	return `https://fonts.googleapis.com/css2?family=${f}:wght@400;600;700&display=swap`;
+	/* Include 500 — token text uses font-weight 500 in preview and SVG export */
+	return `https://fonts.googleapis.com/css2?family=${f}:wght@400;500;600;700&display=swap`;
 }

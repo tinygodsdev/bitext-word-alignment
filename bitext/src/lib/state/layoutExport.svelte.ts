@@ -16,6 +16,13 @@ class LayoutExportStore {
 	sourceRowY = $state(0);
 	targetRowY = $state(0);
 	glossRowY = $state<number | null>(null);
+	/** Bumped so preview layout is remeasured (e.g. before export) with up-to-date font metrics. */
+	layoutRemeasureTick = $state(0);
+
+	/** Request a fresh token bounding-box snapshot; wait for `tick()` + fonts + rAF before reading layout. */
+	requestRemeasure() {
+		this.layoutRemeasureTick++;
+	}
 
 	setSnapshot(s: {
 		width: number;

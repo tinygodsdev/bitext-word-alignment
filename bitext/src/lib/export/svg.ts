@@ -30,6 +30,10 @@ export function buildStandaloneSvgString(args: {
 	showGloss: boolean;
 	/** When true (default), reserve a footer band with static attribution (PNG/PDF/SVG file). Omit for HTML wrapper (clickable line below SVG). */
 	includeAttributionFooter?: boolean;
+	/** Google Fonts stylesheet URLs (@import in SVG) so standalone files resolve the same faces as the preview. */
+	embedFontCdataImports?: string[];
+	/** Full `@font-face` CSS with src: url(data:...). Required for PNG/PDF where SVG is loaded via `<img>` and cannot fetch external CSS. */
+	embedFontCss?: string;
 }): string {
 	const {
 		width,
@@ -49,10 +53,25 @@ export function buildStandaloneSvgString(args: {
 		tokenLayout,
 		links,
 		showGloss,
-		includeAttributionFooter = true
+		includeAttributionFooter = true,
+		embedFontCdataImports,
+		embedFontCss
 	} = args;
 
 	const exportHeight = includeAttributionFooter ? height + ATTRIBUTION_FOOTER_PX : height;
+
+	const styleChunks: string[] = [];
+	if (embedFontCss && embedFontCss.length > 0) styleChunks.push(embedFontCss);
+	if (embedFontCdataImports?.length) {
+		styleChunks.push(
+			embedFontCdataImports
+				.map((u) => `@import url("${u.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}");`)
+				.join('\n')
+		);
+	}
+	const fontDefs = styleChunks.length
+		? `<defs><style type="text/css"><![CDATA[\n${styleChunks.join('\n')}\n]]></style></defs>`
+		: '';
 
 	const paths: string[] = [];
 	for (const link of links) {
@@ -81,7 +100,7 @@ export function buildStandaloneSvgString(args: {
 		if (!box) return;
 		const fill = tokenFill(t.id);
 		texts.push(
-			`<text fill="${escapeXml(fill)}" font-family="${escapeXml(fontFamily)}" font-size="${fontSize}" text-anchor="middle" dominant-baseline="central" transform="translate(${box.cx},${box.cy})">${escapeXml(t.text)}</text>`
+			`<text fill="${escapeXml(fill)}" font-family="${escapeXml(fontFamily)}" font-size="${fontSize}" font-weight="500" text-anchor="middle" dominant-baseline="central" transform="translate(${box.cx},${box.cy})">${escapeXml(t.text)}</text>`
 		);
 	}
 
@@ -95,7 +114,7 @@ export function buildStandaloneSvgString(args: {
 			const g = t.gloss?.trim();
 			if (!box || !g) continue;
 			texts.push(
-				`<text fill="${escapeXml(defaultTextColor)}" font-family="${escapeXml(fontFamilySource)}" font-size="${glossFontSize}" opacity="0.85" text-anchor="middle" dominant-baseline="central" transform="translate(${box.cx},${box.cy})">${escapeXml(g)}</text>`
+				`<text fill="${escapeXml(defaultTextColor)}" font-family="${escapeXml(fontFamilySource)}" font-size="${glossFontSize}" font-weight="500" opacity="0.85" text-anchor="middle" dominant-baseline="central" transform="translate(${box.cx},${box.cy})">${escapeXml(g)}</text>`
 			);
 		}
 	}
@@ -106,5 +125,5 @@ export function buildStandaloneSvgString(args: {
 		? `<text fill="${escapeXml(defaultTextColor)}" opacity="0.55" font-family="${escapeXml(ATTRIBUTION_FONT)}" font-size="11" text-anchor="middle" dominant-baseline="central" transform="translate(${width / 2},${height + ATTRIBUTION_FOOTER_PX / 2})">${escapeXml(`Created with ${ALIGNER_SITE_HOST}`)}</text>`
 		: '';
 
-	return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${exportHeight}" viewBox="0 0 ${width} ${exportHeight}">${bgRect}${paths.join('')}${texts.join('')}${attribution}</svg>`;
+	return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${exportHeight}" viewBox="0 0 ${width} ${exportHeight}">${fontDefs}${bgRect}${paths.join('')}${texts.join('')}${attribution}</svg>`;
 }

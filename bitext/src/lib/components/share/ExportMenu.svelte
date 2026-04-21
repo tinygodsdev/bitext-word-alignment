@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import { Button, ButtonGroup } from 'flowbite-svelte';
+	import { tick } from 'svelte';
 	import { buildStandaloneSvgString } from '$lib/export/svg.js';
 	import { svgStringToPngBlob, downloadBlob } from '$lib/export/png.js';
 	import { svgStringToPdfBlob } from '$lib/export/pdf.js';
@@ -7,7 +9,19 @@
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { layoutExportStore } from '$lib/state/layoutExport.svelte.js';
-	import { svgFontFamilyStack } from '$lib/fonts/visualization-font.js';
+	import {
+		svgFontFamilyStack,
+		visualizationGoogleFontUrls
+	} from '$lib/fonts/visualization-font.js';
+	import { buildInlinedFontCss } from '$lib/fonts/inline-fonts.js';
+
+	async function flushPreviewLayout() {
+		if (!browser) return;
+		layoutExportStore.requestRemeasure();
+		await tick();
+		await document.fonts?.ready;
+		await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
+	}
 
 	function exportTextColor(): string {
 		const bg = settingsStore.settings.background;
@@ -22,9 +36,18 @@
 		return '#ffffff';
 	}
 
-	function buildSvg(includeAttributionFooter: boolean): string {
+	function googleFontImportList(): string[] {
+		return visualizationGoogleFontUrls(settingsStore.settings);
+	}
+
+	function buildSvg(opts: {
+		includeAttributionFooter: boolean;
+		embedFontCss?: string;
+		includeImports?: boolean;
+	}): string {
 		const lay = layoutExportStore;
 		const s = settingsStore.settings;
+		const imports = opts.includeImports !== false ? googleFontImportList() : [];
 		return buildStandaloneSvgString({
 			width: Math.max(1, lay.width),
 			height: Math.max(1, lay.height),
@@ -43,30 +66,38 @@
 			tokenLayout: lay.tokenLayout,
 			links: projectStore.links,
 			showGloss: s.showGloss,
-			includeAttributionFooter
+			includeAttributionFooter: opts.includeAttributionFooter,
+			embedFontCdataImports: imports.length ? imports : undefined,
+			embedFontCss: opts.embedFontCss
 		});
 	}
 
 	async function downloadSvg() {
-		const svg = buildSvg(true);
+		await flushPreviewLayout();
+		const svg = buildSvg({ includeAttributionFooter: true });
 		downloadBlob('alignment.svg', new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
 	}
 
 	async function downloadPng() {
-		const svg = buildSvg(true);
+		await flushPreviewLayout();
+		const embedFontCss = await buildInlinedFontCss(settingsStore.settings);
+		const svg = buildSvg({ includeAttributionFooter: true, embedFontCss, includeImports: false });
 		const blob = await svgStringToPngBlob(svg, 2);
 		downloadBlob('alignment.png', blob);
 	}
 
 	async function downloadPdf() {
-		const svg = buildSvg(true);
+		await flushPreviewLayout();
+		const embedFontCss = await buildInlinedFontCss(settingsStore.settings);
+		const svg = buildSvg({ includeAttributionFooter: true, embedFontCss, includeImports: false });
 		const blob = await svgStringToPdfBlob(svg);
 		downloadBlob('alignment.pdf', blob);
 	}
 
-	function downloadHtml() {
-		const svg = buildSvg(false);
-		const html = wrapSvgInHtml(svg, 'Alignment export');
+	async function downloadHtml() {
+		await flushPreviewLayout();
+		const svg = buildSvg({ includeAttributionFooter: false });
+		const html = wrapSvgInHtml(svg, 'Alignment export', googleFontImportList());
 		downloadBlob('alignment.html', new Blob([html], { type: 'text/html;charset=utf-8' }));
 	}
 </script>

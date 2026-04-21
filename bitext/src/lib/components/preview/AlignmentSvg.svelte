@@ -119,6 +119,14 @@
 			}
 		};
 	});
+
+	$effect(() => {
+		void layoutExportStore.layoutRemeasureTick;
+		if (!rootEl) return;
+		requestAnimationFrame(() => {
+			requestAnimationFrame(() => measure());
+		});
+	});
 </script>
 
 <svg class="preview-svg-layer" aria-hidden="true">

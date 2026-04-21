@@ -1,0 +1,6 @@
+- [ ] Sort out glossing functionality
+- [ ] Improve sharing visuals
+- [ ] Check SEO
+- [ ] Highlighting tokens when selecting (with current color, which will be the link color)
+- [ ] Make sure instructions are clear and concise, up to date, and complete. 
+- [ ] Add better examples - with complex links and advanced tokenization.
