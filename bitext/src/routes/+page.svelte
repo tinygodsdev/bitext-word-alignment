@@ -161,6 +161,61 @@
 				</div>
 				<AlignmentPreview />
 			</section>
+			<section class="mb-8" aria-labelledby="examples-heading">
+				<details open class="group">
+					<summary
+						class="flex cursor-pointer list-none items-center gap-2 text-gray-900 marker:hidden [&::-webkit-details-marker]:hidden dark:text-white"
+					>
+						<svg
+							class="h-4 w-4 shrink-0 text-gray-500 transition-transform group-open:rotate-90 dark:text-gray-400"
+							viewBox="0 0 20 20"
+							fill="currentColor"
+							aria-hidden="true"
+						>
+							<path
+								fill-rule="evenodd"
+								d="M7.21 14.77a.75.75 0 0 1 .02-1.06L10.94 10 7.23 6.29a.75.75 0 0 1 1.06-1.06l4.24 4.24a.75.75 0 0 1 0 1.06l-4.24 4.24a.75.75 0 0 1-1.08.0Z"
+								clip-rule="evenodd"
+							/>
+						</svg>
+						<h2 id="examples-heading" class="font-heading text-lg font-semibold">Examples</h2>
+					</summary>
+					<div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+						<figure class="m-0">
+							<div
+								class="flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-md border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800"
+							>
+								<img
+									src="/examples/action.gif"
+									alt="Animated demo: creating word links between “Hello world” and its French translation"
+									loading="lazy"
+									decoding="async"
+									class="h-full w-full object-contain"
+								/>
+							</div>
+							<figcaption class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+								Linking words between two sentences
+							</figcaption>
+						</figure>
+						<figure class="m-0">
+							<div
+								class="flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-md border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800"
+							>
+								<img
+									src="/examples/conlang_gloss.png"
+									alt="Conlang example with a custom script font, interlinear glosses, and an English translation"
+									loading="lazy"
+									decoding="async"
+									class="h-full w-full object-contain"
+								/>
+							</div>
+							<figcaption class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+								Conlang with a custom font and interlinear glosses
+							</figcaption>
+						</figure>
+					</div>
+				</details>
+			</section>
 		</div>
 		<div class="col-span-12 min-w-0 lg:col-span-4 lg:col-start-9 lg:row-start-1 lg:row-end-3">
 			<div id="settings-panel">
