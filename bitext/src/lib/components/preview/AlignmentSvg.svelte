@@ -99,6 +99,10 @@
 		}
 		void settingsStore.settings.lineStyle;
 		void settingsStore.settings.glossLineGapPx;
+		void settingsStore.settings.sourceTextSizePx;
+		void settingsStore.settings.targetTextSizePx;
+		void settingsStore.settings.glossFontFamily;
+		void settingsStore.settings.glossFontSource;
 		void projectStore.sourceTokens;
 		void projectStore.targetTokens;
 		/** Two rAFs: wait for style/layout flush after font or DOM updates. */

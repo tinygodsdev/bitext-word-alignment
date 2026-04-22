@@ -192,7 +192,12 @@ function settingsToCompact(rounded: VisualSettingsV1): CompactSettings | undefin
 	const o: CompactSettings = {};
 
 	if (rounded.theme !== def.theme) o.th = rounded.theme === 'dark' ? 1 : 0;
-	if (rounded.textSizePx !== def.textSizePx) o.ts = rounded.textSizePx;
+	if (rounded.sourceTextSizePx === rounded.targetTextSizePx) {
+		if (rounded.sourceTextSizePx !== def.sourceTextSizePx) o.ts = rounded.sourceTextSizePx;
+	} else {
+		if (rounded.sourceTextSizePx !== def.sourceTextSizePx) o.sts = rounded.sourceTextSizePx;
+		if (rounded.targetTextSizePx !== def.targetTextSizePx) o.tts = rounded.targetTextSizePx;
+	}
 	if (rounded.gapWordPx !== def.gapWordPx) o.gw = rounded.gapWordPx;
 	if (rounded.gapLinePx !== def.gapLinePx) o.gl = rounded.gapLinePx;
 	if (rounded.glossLineGapPx !== def.glossLineGapPx) o.gg = rounded.glossLineGapPx;
@@ -218,6 +223,13 @@ function settingsToCompact(rounded: VisualSettingsV1): CompactSettings | undefin
 		o.tcn = rounded.targetCustomFontName;
 	}
 
+	if (rounded.glossFontFamily !== def.glossFontFamily) o.gff = rounded.glossFontFamily;
+	if (rounded.glossFontSource !== def.glossFontSource)
+		o.gfs = rounded.glossFontSource === 'custom' ? 1 : 0;
+	if (rounded.glossFontSource === 'custom' && rounded.glossCustomFontName) {
+		o.gcn = rounded.glossCustomFontName;
+	}
+
 	if (rounded.tokenSplitChars !== def.tokenSplitChars) o.sp = rounded.tokenSplitChars;
 
 	if (rounded.background !== def.background) {
@@ -232,6 +244,8 @@ function compactToVisualSettings(s: CompactSettings | undefined): VisualSettings
 	const raw: Record<string, unknown> = {};
 	if (s.th !== undefined) raw.theme = Number(s.th) === 1 ? 'dark' : 'light';
 	if (s.ts !== undefined) raw.textSizePx = Number(s.ts);
+	if (s.sts !== undefined) raw.sourceTextSizePx = Number(s.sts);
+	if (s.tts !== undefined) raw.targetTextSizePx = Number(s.tts);
 	if (s.gw !== undefined) raw.gapWordPx = Number(s.gw);
 	if (s.gl !== undefined) raw.gapLinePx = Number(s.gl);
 	if (s.gg !== undefined) raw.glossLineGapPx = Number(s.gg);
@@ -248,6 +262,9 @@ function compactToVisualSettings(s: CompactSettings | undefined): VisualSettings
 	if (s.tfs !== undefined) raw.targetFontSource = Number(s.tfs) === 1 ? 'custom' : 'google';
 	if (s.scn !== undefined) raw.sourceCustomFontName = String(s.scn);
 	if (s.tcn !== undefined) raw.targetCustomFontName = String(s.tcn);
+	if (s.gff !== undefined) raw.glossFontFamily = String(s.gff);
+	if (s.gfs !== undefined) raw.glossFontSource = Number(s.gfs) === 1 ? 'custom' : 'google';
+	if (s.gcn !== undefined) raw.glossCustomFontName = String(s.gcn);
 	if (s.sp !== undefined) raw.tokenSplitChars = String(s.sp);
 	if (s.bg !== undefined) {
 		const n = Number(s.bg);

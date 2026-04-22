@@ -72,7 +72,7 @@
 		</div>
 	{/if}
 	<div class="col-span-12 md:col-span-6">
-		<Label class="mb-2">Text size ({s.textSizePx}px)</Label>
+		<Label class="mb-2">Source size ({s.sourceTextSizePx}px)</Label>
 		<Range
 			appearance="auto"
 			color="indigo"
@@ -80,10 +80,26 @@
 			min={MIN_TEXT_SIZE_PX}
 			max={MAX_TEXT_SIZE_PX}
 			step={1}
-			value={s.textSizePx}
+			value={s.sourceTextSizePx}
 			oninput={(e) =>
 				settingsStore.patch({
-					textSizePx: Number((e.currentTarget as HTMLInputElement).value)
+					sourceTextSizePx: Number((e.currentTarget as HTMLInputElement).value)
+				})}
+		/>
+	</div>
+	<div class="col-span-12 md:col-span-6">
+		<Label class="mb-2">Target size ({s.targetTextSizePx}px)</Label>
+		<Range
+			appearance="auto"
+			color="indigo"
+			size="lg"
+			min={MIN_TEXT_SIZE_PX}
+			max={MAX_TEXT_SIZE_PX}
+			step={1}
+			value={s.targetTextSizePx}
+			oninput={(e) =>
+				settingsStore.patch({
+					targetTextSizePx: Number((e.currentTarget as HTMLInputElement).value)
 				})}
 		/>
 	</div>

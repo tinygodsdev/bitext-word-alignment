@@ -12,6 +12,7 @@ import {
 	defaultProjectSnapshot,
 	defaultVisualSettings,
 	migrate,
+	normalizeVisualSettings,
 	type AppStateV1,
 	type BackgroundMode,
 	type LineStyle,
@@ -35,6 +36,14 @@ function state(partial: {
 	}
 	return base;
 }
+
+describe('visual settings migration', () => {
+	it('maps legacy textSizePx to both line sizes', () => {
+		const s = normalizeVisualSettings({ textSizePx: 28 });
+		expect(s.sourceTextSizePx).toBe(28);
+		expect(s.targetTextSizePx).toBe(28);
+	});
+});
 
 describe('compact v2 encode/decode', () => {
 	it('round-trip: defaults', () => {
@@ -176,13 +185,15 @@ describe('compact v2 encode/decode', () => {
 	it('preserves fractional layout settings (preview geometry)', () => {
 		const s = state({
 			settings: {
-				textSizePx: 35.25,
+				sourceTextSizePx: 35.25,
+				targetTextSizePx: 35.25,
 				gapWordPx: 13.5,
 				gapLinePx: 118.75
 			}
 		});
 		const decoded = decodeState(encodeState(s));
-		expect(decoded.settings.textSizePx).toBe(35.25);
+		expect(decoded.settings.sourceTextSizePx).toBe(35.25);
+		expect(decoded.settings.targetTextSizePx).toBe(35.25);
 		expect(decoded.settings.gapWordPx).toBe(13.5);
 		expect(decoded.settings.gapLinePx).toBe(118.75);
 	});
@@ -210,7 +221,7 @@ describe('compact v2 encode/decode', () => {
 
 	it('encode is deterministic', () => {
 		const s = state({
-			settings: { textSizePx: 24, palette: 'vivid' },
+			settings: { sourceTextSizePx: 24, targetTextSizePx: 24, palette: 'vivid' },
 			project: {
 				sourceText: 'one two',
 				targetText: 'un deux',

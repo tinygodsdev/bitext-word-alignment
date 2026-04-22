@@ -2,12 +2,13 @@
 	import type { Token } from '$lib/domain/tokens.js';
 	import { primaryLinkForToken } from '$lib/domain/alignment.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
+	import { defaultGlossFontSizePx } from '$lib/serialization/schema.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
 
 	let { tokens, side }: { tokens: Token[]; side: 'source' | 'target' } = $props();
 
 	const gap = $derived(settingsStore.settings.gapWordPx);
-	const sz = $derived(Math.max(12, settingsStore.settings.textSizePx * 0.75));
+	const sz = $derived(defaultGlossFontSizePx(settingsStore.settings));
 	const links = $derived(projectStore.links);
 	const colorByLink = $derived(settingsStore.settings.colorTokensByLink);
 

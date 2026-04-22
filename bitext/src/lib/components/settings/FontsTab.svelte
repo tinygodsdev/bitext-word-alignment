@@ -12,7 +12,7 @@
 	const fileClass =
 		'block w-full cursor-pointer rounded-none border border-gray-300 bg-gray-50 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400';
 
-	async function onCustomFile(side: 'source' | 'target', e: Event) {
+	async function onCustomFile(side: 'source' | 'target' | 'gloss', e: Event) {
 		const input = e.currentTarget as HTMLInputElement;
 		const file = input.files?.[0];
 		if (!file) return;
@@ -24,8 +24,10 @@
 		document.fonts.add(ff);
 		if (side === 'source') {
 			settingsStore.patch({ sourceFontSource: 'custom', sourceCustomFontName: name });
-		} else {
+		} else if (side === 'target') {
 			settingsStore.patch({ targetFontSource: 'custom', targetCustomFontName: name });
+		} else {
+			settingsStore.patch({ glossFontSource: 'custom', glossCustomFontName: name });
 		}
 	}
 </script>
@@ -132,6 +134,63 @@
 			<div class="col-span-12">
 				<p class="text-base text-gray-600 dark:text-gray-400">
 					Loaded: <strong class="text-gray-900 dark:text-white">{s.targetCustomFontName}</strong>
+				</p>
+			</div>
+		{/if}
+	{/if}
+
+	<div class="col-span-12 mt-2">
+		<h3 class="font-heading text-sm font-semibold text-gray-900 dark:text-white">Gloss line</h3>
+		<p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+			Interlinear glosses (preview, editor, export). Independent of the source and target script
+			fonts.
+		</p>
+	</div>
+	<div class="col-span-12 md:col-span-6">
+		<Label for="settings-font-source-gloss" class="mb-2">Gloss font source</Label>
+		<select
+			id="settings-font-source-gloss"
+			class={sel}
+			value={s.glossFontSource}
+			onchange={(e) =>
+				settingsStore.patch({
+					glossFontSource: (e.currentTarget as HTMLSelectElement).value as 'google' | 'custom'
+				})}
+		>
+			<option value="google">Google Fonts</option>
+			<option value="custom">Custom upload</option>
+		</select>
+	</div>
+	{#if s.glossFontSource === 'google'}
+		<div class="col-span-12 md:col-span-6">
+			<Label for="settings-font-family-gloss" class="mb-2">Gloss typeface</Label>
+			<select
+				id="settings-font-family-gloss"
+				class={sel}
+				value={s.glossFontFamily}
+				onchange={(e) =>
+					settingsStore.patch({ glossFontFamily: (e.currentTarget as HTMLSelectElement).value })}
+			>
+				{#each GOOGLE_FONT_OPTIONS as o (o.family)}
+					<option value={o.label}>{o.label}</option>
+				{/each}
+			</select>
+		</div>
+	{:else}
+		<div class="col-span-12 md:col-span-6">
+			<Label for="settings-font-file-gloss" class="mb-2">Upload gloss font</Label>
+			<input
+				id="settings-font-file-gloss"
+				type="file"
+				accept=".woff2,.ttf,.otf,.woff"
+				class={fileClass}
+				onchange={(e) => onCustomFile('gloss', e)}
+			/>
+		</div>
+		{#if s.glossCustomFontName}
+			<div class="col-span-12">
+				<p class="text-base text-gray-600 dark:text-gray-400">
+					Loaded: <strong class="text-gray-900 dark:text-white">{s.glossCustomFontName}</strong>
 				</p>
 			</div>
 		{/if}

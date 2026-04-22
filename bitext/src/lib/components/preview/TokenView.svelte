@@ -27,7 +27,11 @@
 
 	let hovering = $state(false);
 
-	const sz = $derived(settingsStore.settings.textSizePx);
+	const sz = $derived(
+		side === 'source'
+			? settingsStore.settings.sourceTextSizePx
+			: settingsStore.settings.targetTextSizePx
+	);
 	const palette = $derived(settingsStore.settings.palette);
 
 	const links = $derived(projectStore.links);

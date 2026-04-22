@@ -16,7 +16,10 @@ export function buildStandaloneSvgString(args: {
 	backgroundColor: string;
 	fontFamilySource: string;
 	fontFamilyTarget: string;
-	fontSize: number;
+	/** Interlinear gloss lines */
+	fontFamilyGloss: string;
+	fontSizeSource: number;
+	fontSizeTarget: number;
 	glossFontSize: number;
 	defaultTextColor: string;
 	colorTokensByLink: boolean;
@@ -43,7 +46,9 @@ export function buildStandaloneSvgString(args: {
 		backgroundColor,
 		fontFamilySource,
 		fontFamilyTarget,
-		fontSize,
+		fontFamilyGloss,
+		fontSizeSource,
+		fontSizeTarget,
 		glossFontSize,
 		defaultTextColor,
 		colorTokensByLink,
@@ -98,17 +103,17 @@ export function buildStandaloneSvgString(args: {
 		return link.color;
 	}
 
-	function pushTokenText(t: Token, fontFamily: string) {
+	function pushTokenText(t: Token, fontFamily: string, sizePx: number) {
 		const box = tokenLayout[t.id];
 		if (!box) return;
 		const fill = tokenFill(t.id);
 		texts.push(
-			`<text fill="${escapeXml(fill)}" font-family="${escapeXml(fontFamily)}" font-size="${fontSize}" font-weight="500" text-anchor="middle" dominant-baseline="central" transform="translate(${box.cx},${box.cy})">${escapeXml(t.text)}</text>`
+			`<text fill="${escapeXml(fill)}" font-family="${escapeXml(fontFamily)}" font-size="${sizePx}" font-weight="500" text-anchor="middle" dominant-baseline="central" transform="translate(${box.cx},${box.cy})">${escapeXml(t.text)}</text>`
 		);
 	}
 
-	for (const t of sourceTokens) pushTokenText(t, fontFamilySource);
-	for (const t of targetTokens) pushTokenText(t, fontFamilyTarget);
+	for (const t of sourceTokens) pushTokenText(t, fontFamilySource, fontSizeSource);
+	for (const t of targetTokens) pushTokenText(t, fontFamilyTarget, fontSizeTarget);
 
 	if (showGloss) {
 		for (const t of sourceTokens) {
@@ -118,7 +123,7 @@ export function buildStandaloneSvgString(args: {
 			if (!box || !g) continue;
 			const fill = tokenFill(t.id);
 			texts.push(
-				`<text fill="${escapeXml(fill)}" font-family="${escapeXml(fontFamilySource)}" font-size="${glossFontSize}" font-weight="500" text-anchor="middle" dominant-baseline="central" transform="translate(${box.cx},${box.cy})">${escapeXml(g)}</text>`
+				`<text fill="${escapeXml(fill)}" font-family="${escapeXml(fontFamilyGloss)}" font-size="${glossFontSize}" font-weight="500" text-anchor="middle" dominant-baseline="central" transform="translate(${box.cx},${box.cy})">${escapeXml(g)}</text>`
 			);
 		}
 		for (const t of targetTokens) {
@@ -128,7 +133,7 @@ export function buildStandaloneSvgString(args: {
 			if (!box || !g) continue;
 			const fill = tokenFill(t.id);
 			texts.push(
-				`<text fill="${escapeXml(fill)}" font-family="${escapeXml(fontFamilyTarget)}" font-size="${glossFontSize}" font-weight="500" text-anchor="middle" dominant-baseline="central" transform="translate(${box.cx},${box.cy})">${escapeXml(g)}</text>`
+				`<text fill="${escapeXml(fill)}" font-family="${escapeXml(fontFamilyGloss)}" font-size="${glossFontSize}" font-weight="500" text-anchor="middle" dominant-baseline="central" transform="translate(${box.cx},${box.cy})">${escapeXml(g)}</text>`
 			);
 		}
 	}

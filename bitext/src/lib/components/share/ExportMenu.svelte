@@ -15,7 +15,11 @@
 	} from '$lib/fonts/visualization-font.js';
 	import { buildInlinedFontCss } from '$lib/fonts/inline-fonts.js';
 	import { encodeState } from '$lib/serialization/encode.js';
-	import { SCHEMA_VERSION, type AppStateV1 } from '$lib/serialization/schema.js';
+	import {
+		SCHEMA_VERSION,
+		defaultGlossFontSizePx,
+		type AppStateV1
+	} from '$lib/serialization/schema.js';
 	import { getShareUrl } from '$lib/share/url.js';
 	import { shareUrlToQrDataUrl } from '$lib/share/qr.js';
 
@@ -60,8 +64,10 @@
 			backgroundColor: exportBackgroundColor(),
 			fontFamilySource: svgFontFamilyStack(s, 'source'),
 			fontFamilyTarget: svgFontFamilyStack(s, 'target'),
-			fontSize: s.textSizePx,
-			glossFontSize: Math.max(12, s.textSizePx * 0.75),
+			fontFamilyGloss: svgFontFamilyStack(s, 'gloss'),
+			fontSizeSource: s.sourceTextSizePx,
+			fontSizeTarget: s.targetTextSizePx,
+			glossFontSize: defaultGlossFontSizePx(s),
 			defaultTextColor: exportTextColor(),
 			colorTokensByLink: s.colorTokensByLink,
 			lineStyle: s.lineStyle,

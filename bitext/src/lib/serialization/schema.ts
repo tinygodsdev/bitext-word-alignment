@@ -11,15 +11,18 @@ export const MIN_LINE_GAP_PX = 40;
 export const MAX_LINE_GAP_PX = 156;
 
 export const MIN_TEXT_SIZE_PX = 12;
-/** Previous cap was 36px; +30% headroom */
-export const MAX_TEXT_SIZE_PX = 47;
+/** Was 36→47; allow large on-screen preview (e.g. demos) */
+export const MAX_TEXT_SIZE_PX = 64;
 export const MIN_GLOSS_LINE_GAP_PX = 0;
 export const MAX_GLOSS_LINE_GAP_PX = 80;
 export const DEFAULT_TOKEN_SPLIT_CHARS = '.-';
 
-/** Default gloss-to-token spacing ≈ 1.5× the gloss line height (gloss font ≈ 0.75× text size, min 12px). */
-export function defaultGlossLineGapForTextSize(textSizePx: number): number {
-	return Math.round(1.5 * Math.max(12, textSizePx * 0.75));
+/** Scales with the smaller of the two line sizes (same rule as in-app gloss preview). */
+export function defaultGlossFontSizePx(s: {
+	sourceTextSizePx: number;
+	targetTextSizePx: number;
+}): number {
+	return Math.max(12, Math.round(0.75 * Math.min(s.sourceTextSizePx, s.targetTextSizePx)));
 }
 
 /** Normalize theme from shared `?data=` payloads to BeerCSS body class `light` | `dark`. */
@@ -32,7 +35,8 @@ export function normalizeUiTheme(theme: string): UiTheme {
 
 export interface VisualSettingsV1 {
 	theme: UiTheme;
-	textSizePx: number;
+	sourceTextSizePx: number;
+	targetTextSizePx: number;
 	gapWordPx: number;
 	gapLinePx: number;
 	/** Vertical gap between a gloss row and its sentence line (preview + export layout). */
@@ -49,8 +53,12 @@ export interface VisualSettingsV1 {
 	targetFontFamily: string;
 	sourceFontSource: 'google' | 'custom';
 	targetFontSource: 'google' | 'custom';
+	/** Interlinear glosses (independent of source/target line script fonts) */
+	glossFontFamily: string;
+	glossFontSource: 'google' | 'custom';
 	sourceCustomFontName?: string;
 	targetCustomFontName?: string;
+	glossCustomFontName?: string;
 	/** Tint token text (preview + editor chips) with link colors */
 	colorTokensByLink: boolean;
 	/** Extra one-char separators besides whitespace for tokenization. */
@@ -76,12 +84,14 @@ export interface AppStateV1 {
 }
 
 export function defaultVisualSettings(): VisualSettingsV1 {
+	const size = 36;
 	return {
 		theme: 'light',
-		textSizePx: 36,
+		sourceTextSizePx: size,
+		targetTextSizePx: size,
 		gapWordPx: 14,
 		gapLinePx: 120,
-		glossLineGapPx: defaultGlossLineGapForTextSize(36),
+		glossLineGapPx: MIN_GLOSS_LINE_GAP_PX,
 		lineThickness: 3,
 		lineOpacity: 1,
 		lineStyle: 'curved',
@@ -90,8 +100,10 @@ export function defaultVisualSettings(): VisualSettingsV1 {
 		showNumbers: false,
 		sourceFontFamily: 'Inter',
 		targetFontFamily: 'Inter',
+		glossFontFamily: 'Inter',
 		sourceFontSource: 'google',
 		targetFontSource: 'google',
+		glossFontSource: 'google',
 		colorTokensByLink: true,
 		tokenSplitChars: DEFAULT_TOKEN_SPLIT_CHARS,
 		background: 'light'
@@ -131,45 +143,77 @@ export function normalizeVisualSettings(
 		return uniq.join('').slice(0, 24);
 	})();
 
-	const textSizePx =
-		typeof raw.textSizePx === 'number'
-			? Math.max(MIN_TEXT_SIZE_PX, Math.min(MAX_TEXT_SIZE_PX, raw.textSizePx))
-			: d.textSizePx;
+	const { textSizePx: _legacyTextSize, ...rawRest } = raw;
+
+	const legacyLineSize =
+		typeof _legacyTextSize === 'number' && Number.isFinite(_legacyTextSize)
+			? Math.max(MIN_TEXT_SIZE_PX, Math.min(MAX_TEXT_SIZE_PX, _legacyTextSize))
+			: undefined;
+
+	const pickTextSize = (v: unknown, fallback: number) =>
+		typeof v === 'number' && Number.isFinite(v)
+			? Math.max(MIN_TEXT_SIZE_PX, Math.min(MAX_TEXT_SIZE_PX, v))
+			: fallback;
+
+	const sourceTextSizePx = pickTextSize(
+		rawRest.sourceTextSizePx,
+		legacyLineSize !== undefined ? legacyLineSize : d.sourceTextSizePx
+	);
+	const targetTextSizePx = pickTextSize(
+		rawRest.targetTextSizePx,
+		legacyLineSize !== undefined ? legacyLineSize : d.targetTextSizePx
+	);
 
 	return {
 		...d,
-		...raw,
-		textSizePx,
-		theme: normalizeUiTheme(String(raw.theme ?? d.theme)),
+		...rawRest,
+		sourceTextSizePx,
+		targetTextSizePx,
+		theme: normalizeUiTheme(String(rawRest.theme ?? d.theme)),
 		sourceFontFamily:
-			typeof raw.sourceFontFamily === 'string'
-				? raw.sourceFontFamily
+			typeof rawRest.sourceFontFamily === 'string'
+				? rawRest.sourceFontFamily
 				: (legacyFamily ?? d.sourceFontFamily),
 		targetFontFamily:
-			typeof raw.targetFontFamily === 'string'
-				? raw.targetFontFamily
+			typeof rawRest.targetFontFamily === 'string'
+				? rawRest.targetFontFamily
 				: (legacyFamily ?? d.targetFontFamily),
+		glossFontFamily:
+			typeof rawRest.glossFontFamily === 'string' ? rawRest.glossFontFamily : d.glossFontFamily,
 		sourceFontSource:
-			raw.sourceFontSource === 'google' || raw.sourceFontSource === 'custom'
-				? raw.sourceFontSource
+			rawRest.sourceFontSource === 'google' || rawRest.sourceFontSource === 'custom'
+				? rawRest.sourceFontSource
 				: (legacySource ?? d.sourceFontSource),
 		targetFontSource:
-			raw.targetFontSource === 'google' || raw.targetFontSource === 'custom'
-				? raw.targetFontSource
+			rawRest.targetFontSource === 'google' || rawRest.targetFontSource === 'custom'
+				? rawRest.targetFontSource
 				: (legacySource ?? d.targetFontSource),
+		glossFontSource:
+			rawRest.glossFontSource === 'google' || rawRest.glossFontSource === 'custom'
+				? rawRest.glossFontSource
+				: d.glossFontSource,
 		sourceCustomFontName:
-			typeof raw.sourceCustomFontName === 'string' ? raw.sourceCustomFontName : legacyCustom,
+			typeof rawRest.sourceCustomFontName === 'string'
+				? rawRest.sourceCustomFontName
+				: legacyCustom,
 		targetCustomFontName:
-			typeof raw.targetCustomFontName === 'string' ? raw.targetCustomFontName : legacyCustom,
-		colorTokensByLink: typeof raw.colorTokensByLink === 'boolean' ? raw.colorTokensByLink : true,
+			typeof rawRest.targetCustomFontName === 'string'
+				? rawRest.targetCustomFontName
+				: legacyCustom,
+		glossCustomFontName:
+			typeof rawRest.glossCustomFontName === 'string'
+				? rawRest.glossCustomFontName
+				: d.glossCustomFontName,
+		colorTokensByLink:
+			typeof rawRest.colorTokensByLink === 'boolean' ? rawRest.colorTokensByLink : true,
 		tokenSplitChars: normalizedSplitChars,
 		gapLinePx:
-			typeof raw.gapLinePx === 'number'
-				? Math.max(MIN_LINE_GAP_PX, Math.min(MAX_LINE_GAP_PX, raw.gapLinePx))
+			typeof rawRest.gapLinePx === 'number'
+				? Math.max(MIN_LINE_GAP_PX, Math.min(MAX_LINE_GAP_PX, rawRest.gapLinePx))
 				: d.gapLinePx,
 		glossLineGapPx:
-			typeof raw.glossLineGapPx === 'number'
-				? Math.max(MIN_GLOSS_LINE_GAP_PX, Math.min(MAX_GLOSS_LINE_GAP_PX, raw.glossLineGapPx))
+			typeof rawRest.glossLineGapPx === 'number'
+				? Math.max(MIN_GLOSS_LINE_GAP_PX, Math.min(MAX_GLOSS_LINE_GAP_PX, rawRest.glossLineGapPx))
 				: d.glossLineGapPx
 	} as VisualSettingsV1;
 }

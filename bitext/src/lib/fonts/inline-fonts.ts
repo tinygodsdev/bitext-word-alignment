@@ -67,6 +67,9 @@ function uniqueGoogleHrefs(settings: VisualSettingsV1): string[] {
 	if (settings.targetFontSource === 'google') {
 		urls.add(googleFontStylesheetUrl(settings.targetFontFamily));
 	}
+	if (settings.glossFontSource === 'google') {
+		urls.add(googleFontStylesheetUrl(settings.glossFontFamily));
+	}
 	return [...urls];
 }
 
@@ -85,6 +88,9 @@ export async function buildInlinedFontCss(settings: VisualSettingsV1): Promise<s
 	}
 	if (settings.targetFontSource === 'custom' && settings.targetCustomFontName) {
 		customFamilies.add(settings.targetCustomFontName);
+	}
+	if (settings.glossFontSource === 'custom' && settings.glossCustomFontName) {
+		customFamilies.add(settings.glossCustomFontName);
 	}
 	for (const family of customFamilies) {
 		const css = await customFontFaceCss(family);

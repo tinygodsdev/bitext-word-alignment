@@ -6,15 +6,10 @@
 		What this tool does
 	</h2>
 	<p>
-		This <strong class="font-medium text-gray-900 dark:text-white"
-			>word-by-word translation visualizer</strong
-		>
-		helps you build clean, shareable graphics that show how a
-		<strong class="font-medium text-gray-900 dark:text-white">bilingual sentence alignment</strong>
-		works between a source line and a target line. It is useful for language learners, conlangers, and
-		linguists who need a fast
-		<strong class="font-medium text-gray-900 dark:text-white"
-			>translation alignment visualizer</strong
-		> for lessons, articles, or social posts.
+		This page is a free word-by-word translation visualizer: a small utility for showing which words
+		in a sentence correspond to which words in its translation. Type the source on one line and the
+		translation on the other, click a word in the preview, then click its match on the other side,
+		and a connector is drawn between them. Linguists call this a word alignment. Most people just
+		want to see which words match without learning the term.
 	</p>
 </section>

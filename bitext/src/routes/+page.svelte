@@ -16,7 +16,7 @@
 	import { selectionStore } from '$lib/state/selection.svelte.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { TALLY_FORM_ID } from '$lib/brand.js';
-	import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, KEYWORDS, SITE_NAME } from '$lib/seo/metadata.js';
+	import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, SITE_NAME } from '$lib/seo/metadata.js';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -78,7 +78,6 @@
 <svelte:head>
 	<title>{DEFAULT_TITLE} · {SITE_NAME}</title>
 	<meta name="description" content={DEFAULT_DESCRIPTION} />
-	<meta name="keywords" content={KEYWORDS} />
 	<link rel="canonical" href={canonical} />
 	<meta property="og:type" content="website" />
 	<meta property="og:title" content={`${DEFAULT_TITLE} · ${SITE_NAME}`} />
@@ -97,7 +96,7 @@
 	<meta name="twitter:image:alt" content={`${DEFAULT_TITLE} — ${SITE_NAME}`} />
 </svelte:head>
 
-<JsonLd {origin} />
+<JsonLd />
 
 <main class="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-12">
 	<header class="mb-8 text-center">
@@ -107,12 +106,9 @@
 			Word-by-word translation visualizer
 		</h1>
 		<p class="mx-auto mt-3 max-w-2xl text-lg leading-relaxed text-gray-600 dark:text-gray-400">
-			Create a <strong class="font-medium text-gray-800 dark:text-gray-200"
-				>bilingual sentence alignment</strong
-			>
-			with connector lines, optional
-			<strong class="font-medium text-gray-800 dark:text-gray-200">interlinear gloss</strong>, and
-			exports — in under a minute.
+			See exactly which word matches which across two translated sentences. Link single words or
+			short phrases, add an optional interlinear gloss, and export a clean image for lessons, posts,
+			or conlang notes.
 			<br />
 			Created by
 			<a

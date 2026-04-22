@@ -1,9 +1,15 @@
 <script lang="ts">
 	import { Label } from 'flowbite-svelte';
 	import type { Token } from '$lib/domain/tokens.js';
+	import { settingsStore } from '$lib/state/settings.svelte.js';
+	import { resolveVisualizationFontCss } from '$lib/fonts/visualization-font.js';
+	import { defaultGlossFontSizePx } from '$lib/serialization/schema.js';
 
 	const inputClass =
-		'block w-full rounded-none border border-gray-300 bg-gray-50 p-2 text-xs text-gray-900 placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-500';
+		'block w-full rounded-none border border-gray-300 bg-gray-50 p-2 text-gray-900 placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-500';
+
+	const glossFont = $derived(resolveVisualizationFontCss(settingsStore.settings, 'gloss'));
+	const glossSizePx = $derived(defaultGlossFontSizePx(settingsStore.settings));
 
 	let {
 		tokens,
@@ -26,6 +32,8 @@
 				class={inputClass}
 				placeholder=" "
 				value={t.gloss ?? ''}
+				style:font-family={glossFont}
+				style:font-size="{glossSizePx}px"
 				oninput={(e) => onGloss(t.id, (e.currentTarget as HTMLInputElement).value)}
 			/>
 		</div>

@@ -15,6 +15,7 @@
 	const bg = $derived(settingsStore.settings.background);
 	const fontSource = $derived(resolveVisualizationFontCss(settingsStore.settings, 'source'));
 	const fontTarget = $derived(resolveVisualizationFontCss(settingsStore.settings, 'target'));
+	const fontGloss = $derived(resolveVisualizationFontCss(settingsStore.settings, 'gloss'));
 	/** Explicit subscription — plain `projectStore.links` in children may not invalidate UI. */
 	const links = $derived(projectStore.links);
 
@@ -47,7 +48,7 @@
 			<div
 				data-gloss-row="source"
 				class="preview-gloss-wrap"
-				style:font-family={fontSource}
+				style:font-family={fontGloss}
 				style:margin-bottom="{glossGap}px"
 			>
 				<GlossRow tokens={projectStore.sourceTokens} side="source" />
@@ -78,7 +79,7 @@
 			/>
 		</div>
 		{#if showTargetGloss}
-			<div data-gloss-row="target" class="preview-gloss-wrap" style:font-family={fontTarget}>
+			<div data-gloss-row="target" class="preview-gloss-wrap" style:font-family={fontGloss}>
 				<GlossRow tokens={projectStore.targetTokens} side="target" />
 			</div>
 		{/if}
