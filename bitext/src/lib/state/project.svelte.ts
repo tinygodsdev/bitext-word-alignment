@@ -128,19 +128,48 @@ class ProjectStore {
 		};
 	}
 
-	/** Demo alignment for first-time users */
-	loadExample() {
+	/**
+	 * Demo alignments for first-time users.
+	 *
+	 * - `simple`: English↔French with one many-to-many pair (English `world` ↔ French `le monde`)
+	 *   so newcomers immediately see that a single source word can connect to multiple target words.
+	 * - `complex`: Turkish↔English showcasing agglutination and the token-splitter feature. One Turkish
+	 *   "word" (`Ev.im.de.yim` — "I am at my house") is split on `.` into 4 morphemes, and the copula
+	 *   `yim` links to both English `I` and `am` (1-to-many). Forces `.` into the split chars if the
+	 *   user has removed it, otherwise the example degenerates into a single unsplit token.
+	 */
+	loadExample(kind: 'simple' | 'complex' = 'simple') {
+		const palette = settingsStore.settings.palette;
+
+		if (kind === 'simple') {
+			this.loadSnapshot({
+				sourceText: 'Hello world',
+				targetText: 'Bonjour le monde',
+				sourceGlosses: [],
+				targetGlosses: [],
+				links: []
+			});
+			this.addAlignment(['s-0'], ['t-0'], palette);
+			this.addAlignment(['s-1'], ['t-1', 't-2'], palette);
+			return;
+		}
+
+		if (!settingsStore.settings.tokenSplitChars.includes('.')) {
+			settingsStore.patch({
+				tokenSplitChars: settingsStore.settings.tokenSplitChars + '.'
+			});
+		}
 		this.loadSnapshot({
-			sourceText: 'The cat sleeps',
-			targetText: 'Le chat dort',
+			sourceText: 'Ev.im.de.yim',
+			targetText: 'I am at my house',
 			sourceGlosses: [],
 			targetGlosses: [],
 			links: []
 		});
-		const p = settingsStore.settings.palette;
-		this.addAlignment(['s-0'], ['t-0'], p);
-		this.addAlignment(['s-1'], ['t-1'], p);
-		this.addAlignment(['s-2'], ['t-2'], p);
+		this.addAlignment(['s-0'], ['t-4'], palette);
+		this.addAlignment(['s-1'], ['t-3'], palette);
+		this.addAlignment(['s-2'], ['t-2'], palette);
+		this.addAlignment(['s-3'], ['t-0', 't-1'], palette);
 	}
 
 	loadSnapshot(s: ProjectSnapshotV1) {

@@ -3,7 +3,7 @@
 - [ ] Check SEO
 - [x] Highlighting tokens when selecting (hovering) and when selected (with current color, which will be the link color)
 - [x] Make sure instructions are clear and concise, up to date, and complete. 
-- [ ] Add better examples - with complex links and advanced tokenization.
+- [x] Add better examples - with complex links and advanced tokenization.
 - [x] Improve export card comment
 - [x] Twitter doesn't show visual preview
 - [x] Dependency CVE check (`npm audit` / CI)
