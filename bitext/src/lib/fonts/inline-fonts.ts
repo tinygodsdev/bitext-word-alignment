@@ -1,6 +1,7 @@
 import { loadCustomFontBlob } from './custom-fonts.js';
 import type { VisualSettingsV1 } from '$lib/serialization/schema.js';
 import { googleFontStylesheetUrl } from './google-fonts.js';
+import { detectFontFormat, fontFormatHint, fontMimeFor } from './font-format.js';
 
 /**
  * Fetches a Google Fonts stylesheet (forcing woff2 via UA-less fetch),
@@ -54,9 +55,17 @@ async function inlineGoogleStylesheet(href: string): Promise<string | null> {
 async function customFontFaceCss(family: string): Promise<string | null> {
 	const blob = await loadCustomFontBlob(family);
 	if (!blob) return null;
-	const dataUrl = await blobToDataUrl(blob);
+	/**
+	 * Re-type the blob from its magic bytes — IDB often restores it as `application/octet-stream`,
+	 * which some engines refuse to load as a font source even inside an SVG blob.
+	 */
+	const buf = await blob.arrayBuffer();
+	const head = new Uint8Array(buf, 0, Math.min(buf.byteLength, 8));
+	const fmt = detectFontFormat(head);
+	const typedBlob = new Blob([buf], { type: fontMimeFor(fmt) });
+	const dataUrl = await blobToDataUrl(typedBlob);
 	const safeFamily = family.replace(/"/g, '\\"');
-	return `@font-face{font-family:"${safeFamily}";font-style:normal;font-weight:400 700;src:url(${dataUrl});font-display:swap;}`;
+	return `@font-face{font-family:"${safeFamily}";font-style:normal;font-weight:400 700;src:url(${dataUrl}) format("${fontFormatHint(fmt)}");font-display:swap;}`;
 }
 
 function uniqueGoogleHrefs(settings: VisualSettingsV1): string[] {

@@ -15,6 +15,7 @@
 	} from '$lib/fonts/visualization-font.js';
 	import { buildInlinedFontCss } from '$lib/fonts/inline-fonts.js';
 	import { ensureVisualizationCustomFontsInDocument } from '$lib/fonts/ensure-document-fonts.js';
+	import { convertCustomFontTextToPaths } from '$lib/fonts/text-to-paths.js';
 	import { encodeState } from '$lib/serialization/encode.js';
 	import { SCHEMA_VERSION, type AppStateV1 } from '$lib/serialization/schema.js';
 	import { getShareUrl } from '$lib/share/url.js';
@@ -84,31 +85,42 @@
 
 	async function downloadSvg() {
 		await flushPreviewLayout();
-		const svg = buildSvg({ includeAttributionFooter: true });
+		/** Convert custom-font text to paths for portability (recipients don't need the font file). */
+		const rawSvg = buildSvg({ includeAttributionFooter: true });
+		const svg = await convertCustomFontTextToPaths(rawSvg, settingsStore.settings);
 		downloadBlob('alignment.svg', new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
+	}
+
+	/**
+	 * Build the SVG we feed to the rasterizer. Custom-font text is converted to vector paths
+	 * so it renders identically regardless of whether the browser finished decoding the
+	 * embedded `@font-face` before `<img>` drew the first frame.
+	 */
+	async function buildRasterSvg(): Promise<string> {
+		await ensureVisualizationCustomFontsInDocument(settingsStore.settings);
+		const embedFontCss = await buildInlinedFontCss(settingsStore.settings);
+		const svg = buildSvg({ includeAttributionFooter: true, embedFontCss, includeImports: false });
+		return await convertCustomFontTextToPaths(svg, settingsStore.settings);
 	}
 
 	async function downloadPng() {
 		await flushPreviewLayout();
-		await ensureVisualizationCustomFontsInDocument(settingsStore.settings);
-		const embedFontCss = await buildInlinedFontCss(settingsStore.settings);
-		const svg = buildSvg({ includeAttributionFooter: true, embedFontCss, includeImports: false });
+		const svg = await buildRasterSvg();
 		const blob = await svgStringToPngBlob(svg, 2);
 		downloadBlob('alignment.png', blob);
 	}
 
 	async function downloadPdf() {
 		await flushPreviewLayout();
-		await ensureVisualizationCustomFontsInDocument(settingsStore.settings);
-		const embedFontCss = await buildInlinedFontCss(settingsStore.settings);
-		const svg = buildSvg({ includeAttributionFooter: true, embedFontCss, includeImports: false });
+		const svg = await buildRasterSvg();
 		const blob = await svgStringToPdfBlob(svg);
 		downloadBlob('alignment.pdf', blob);
 	}
 
 	async function downloadHtml() {
 		await flushPreviewLayout();
-		const svg = buildSvg({ includeAttributionFooter: false });
+		const rawSvg = buildSvg({ includeAttributionFooter: false });
+		const svg = await convertCustomFontTextToPaths(rawSvg, settingsStore.settings);
 		const html = wrapSvgInHtml(svg, 'Alignment export', googleFontImportList());
 		downloadBlob('alignment.html', new Blob([html], { type: 'text/html;charset=utf-8' }));
 	}
