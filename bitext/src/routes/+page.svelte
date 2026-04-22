@@ -15,6 +15,7 @@
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { selectionStore } from '$lib/state/selection.svelte.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
+	import { TALLY_FORM_ID } from '$lib/brand.js';
 	import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, KEYWORDS, SITE_NAME } from '$lib/seo/metadata.js';
 	import type { PageProps } from './$types';
 
@@ -175,6 +176,19 @@
 			<div class="mt-6">
 				<ShareQuickRow />
 			</div>
+			<p class="mt-2 text-center">
+				<!-- Looks like a text link; <button> avoids SvelteKit href + eslint; Tally uses data-tally-*. -->
+				<button
+					type="button"
+					class="inline cursor-pointer border-0 bg-transparent p-0 text-sm text-gray-500 underline decoration-gray-400/50 underline-offset-2 transition-colors hover:text-gray-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:text-gray-400 dark:decoration-gray-500/50 dark:hover:text-gray-200 dark:focus-visible:outline-primary-500"
+					data-tally-open={TALLY_FORM_ID}
+					data-tally-auto-close="0"
+					data-tally-hide-title="1"
+					data-tally-form-events-forwarding="1"
+				>
+					Send feedback
+				</button>
+			</p>
 		</div>
 		<div class="col-span-12 lg:col-span-8 lg:col-start-1 lg:row-start-2">
 			<div class="mb-8">
