@@ -14,12 +14,9 @@
 		visualizationGoogleFontUrls
 	} from '$lib/fonts/visualization-font.js';
 	import { buildInlinedFontCss } from '$lib/fonts/inline-fonts.js';
+	import { ensureVisualizationCustomFontsInDocument } from '$lib/fonts/ensure-document-fonts.js';
 	import { encodeState } from '$lib/serialization/encode.js';
-	import {
-		SCHEMA_VERSION,
-		defaultGlossFontSizePx,
-		type AppStateV1
-	} from '$lib/serialization/schema.js';
+	import { SCHEMA_VERSION, type AppStateV1 } from '$lib/serialization/schema.js';
 	import { getShareUrl } from '$lib/share/url.js';
 	import { shareUrlToQrDataUrl } from '$lib/share/qr.js';
 
@@ -67,7 +64,7 @@
 			fontFamilyGloss: svgFontFamilyStack(s, 'gloss'),
 			fontSizeSource: s.sourceTextSizePx,
 			fontSizeTarget: s.targetTextSizePx,
-			glossFontSize: defaultGlossFontSizePx(s),
+			glossFontSize: s.glossTextSizePx,
 			defaultTextColor: exportTextColor(),
 			colorTokensByLink: s.colorTokensByLink,
 			lineStyle: s.lineStyle,
@@ -93,6 +90,7 @@
 
 	async function downloadPng() {
 		await flushPreviewLayout();
+		await ensureVisualizationCustomFontsInDocument(settingsStore.settings);
 		const embedFontCss = await buildInlinedFontCss(settingsStore.settings);
 		const svg = buildSvg({ includeAttributionFooter: true, embedFontCss, includeImports: false });
 		const blob = await svgStringToPngBlob(svg, 2);
@@ -101,6 +99,7 @@
 
 	async function downloadPdf() {
 		await flushPreviewLayout();
+		await ensureVisualizationCustomFontsInDocument(settingsStore.settings);
 		const embedFontCss = await buildInlinedFontCss(settingsStore.settings);
 		const svg = buildSvg({ includeAttributionFooter: true, embedFontCss, includeImports: false });
 		const blob = await svgStringToPdfBlob(svg);

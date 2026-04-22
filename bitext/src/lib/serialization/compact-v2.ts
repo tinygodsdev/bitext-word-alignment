@@ -201,6 +201,7 @@ function settingsToCompact(rounded: VisualSettingsV1): CompactSettings | undefin
 	if (rounded.gapWordPx !== def.gapWordPx) o.gw = rounded.gapWordPx;
 	if (rounded.gapLinePx !== def.gapLinePx) o.gl = rounded.gapLinePx;
 	if (rounded.glossLineGapPx !== def.glossLineGapPx) o.gg = rounded.glossLineGapPx;
+	if (rounded.glossTextSizePx !== def.glossTextSizePx) o.gtx = rounded.glossTextSizePx;
 	if (rounded.lineThickness !== def.lineThickness) o.lt = rounded.lineThickness;
 	if (rounded.lineOpacity !== def.lineOpacity) o.lo = rounded.lineOpacity;
 	if (rounded.lineStyle !== def.lineStyle) o.ls = rounded.lineStyle === 'straight' ? 0 : 1;
@@ -249,6 +250,7 @@ function compactToVisualSettings(s: CompactSettings | undefined): VisualSettings
 	if (s.gw !== undefined) raw.gapWordPx = Number(s.gw);
 	if (s.gl !== undefined) raw.gapLinePx = Number(s.gl);
 	if (s.gg !== undefined) raw.glossLineGapPx = Number(s.gg);
+	if (s.gtx !== undefined) raw.glossTextSizePx = Number(s.gtx);
 	if (s.lt !== undefined) raw.lineThickness = Number(s.lt);
 	if (s.lo !== undefined) raw.lineOpacity = Number(s.lo);
 	if (s.ls !== undefined) raw.lineStyle = Number(s.ls) === 0 ? 'straight' : 'curved';

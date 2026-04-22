@@ -101,6 +101,7 @@
 		void settingsStore.settings.glossLineGapPx;
 		void settingsStore.settings.sourceTextSizePx;
 		void settingsStore.settings.targetTextSizePx;
+		void settingsStore.settings.glossTextSizePx;
 		void settingsStore.settings.glossFontFamily;
 		void settingsStore.settings.glossFontSource;
 		void projectStore.sourceTokens;

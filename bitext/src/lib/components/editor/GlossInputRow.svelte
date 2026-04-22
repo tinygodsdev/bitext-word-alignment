@@ -3,13 +3,14 @@
 	import type { Token } from '$lib/domain/tokens.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { resolveVisualizationFontCss } from '$lib/fonts/visualization-font.js';
-	import { defaultGlossFontSizePx } from '$lib/serialization/schema.js';
 
 	const inputClass =
 		'block w-full rounded-none border border-gray-300 bg-gray-50 p-2 text-gray-900 placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-500';
 
+	/** Form UI: fixed; Appearance “Gloss size” is for preview + export only. */
+	const GLOSS_EDITOR_FIELD_FONT_PX = 14;
+
 	const glossFont = $derived(resolveVisualizationFontCss(settingsStore.settings, 'gloss'));
-	const glossSizePx = $derived(defaultGlossFontSizePx(settingsStore.settings));
 
 	let {
 		tokens,
@@ -33,7 +34,7 @@
 				placeholder=" "
 				value={t.gloss ?? ''}
 				style:font-family={glossFont}
-				style:font-size="{glossSizePx}px"
+				style:font-size="{GLOSS_EDITOR_FIELD_FONT_PX}px"
 				oninput={(e) => onGloss(t.id, (e.currentTarget as HTMLInputElement).value)}
 			/>
 		</div>

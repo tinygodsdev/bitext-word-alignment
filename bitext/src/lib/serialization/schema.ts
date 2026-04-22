@@ -17,14 +17,6 @@ export const MIN_GLOSS_LINE_GAP_PX = 0;
 export const MAX_GLOSS_LINE_GAP_PX = 80;
 export const DEFAULT_TOKEN_SPLIT_CHARS = '.-';
 
-/** Scales with the smaller of the two line sizes (same rule as in-app gloss preview). */
-export function defaultGlossFontSizePx(s: {
-	sourceTextSizePx: number;
-	targetTextSizePx: number;
-}): number {
-	return Math.max(12, Math.round(0.75 * Math.min(s.sourceTextSizePx, s.targetTextSizePx)));
-}
-
 /** Normalize theme from shared `?data=` payloads to BeerCSS body class `light` | `dark`. */
 export function normalizeUiTheme(theme: string): UiTheme {
 	const t = theme.toLowerCase();
@@ -37,6 +29,8 @@ export interface VisualSettingsV1 {
 	theme: UiTheme;
 	sourceTextSizePx: number;
 	targetTextSizePx: number;
+	/** Interlinear gloss (preview, editor, export) — independent of line sizes. */
+	glossTextSizePx: number;
 	gapWordPx: number;
 	gapLinePx: number;
 	/** Vertical gap between a gloss row and its sentence line (preview + export layout). */
@@ -89,6 +83,7 @@ export function defaultVisualSettings(): VisualSettingsV1 {
 		theme: 'light',
 		sourceTextSizePx: size,
 		targetTextSizePx: size,
+		glossTextSizePx: Math.max(12, Math.round(0.75 * size)),
 		gapWordPx: 14,
 		gapLinePx: 120,
 		glossLineGapPx: MIN_GLOSS_LINE_GAP_PX,
@@ -164,11 +159,25 @@ export function normalizeVisualSettings(
 		legacyLineSize !== undefined ? legacyLineSize : d.targetTextSizePx
 	);
 
+	const pickGlossTextSize = (v: unknown, fallback: number) =>
+		typeof v === 'number' && Number.isFinite(v)
+			? Math.max(MIN_TEXT_SIZE_PX, Math.min(MAX_TEXT_SIZE_PX, v))
+			: fallback;
+
+	const glossTextSizePx = pickGlossTextSize(
+		rawRest.glossTextSizePx,
+		Math.max(
+			MIN_TEXT_SIZE_PX,
+			Math.min(MAX_TEXT_SIZE_PX, Math.round(0.75 * Math.min(sourceTextSizePx, targetTextSizePx)))
+		)
+	);
+
 	return {
 		...d,
 		...rawRest,
 		sourceTextSizePx,
 		targetTextSizePx,
+		glossTextSizePx,
 		theme: normalizeUiTheme(String(rawRest.theme ?? d.theme)),
 		sourceFontFamily:
 			typeof rawRest.sourceFontFamily === 'string'
