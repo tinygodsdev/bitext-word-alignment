@@ -73,6 +73,10 @@
 	const authorSite = 'https://danipolani.github.io/en/';
 	const toolsPage = 'https://danipolani.github.io/en/blog/tools/';
 	const year = new Date().getFullYear();
+
+	/** How much to trim from the top and bottom of each example image (CSS length, e.g. %, px). */
+	const EXAMPLES_IMAGE_VERTICAL_CROP = '10%';
+	const examplesImageClipPath = `inset(${EXAMPLES_IMAGE_VERTICAL_CROP} 0 ${EXAMPLES_IMAGE_VERTICAL_CROP} 0)`;
 </script>
 
 <svelte:head>
@@ -191,6 +195,7 @@
 									loading="lazy"
 									decoding="async"
 									class="h-full w-full object-contain"
+									style:clip-path={examplesImageClipPath}
 								/>
 							</div>
 							<figcaption class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
@@ -207,6 +212,7 @@
 									loading="lazy"
 									decoding="async"
 									class="h-full w-full object-contain"
+									style:clip-path={examplesImageClipPath}
 								/>
 							</div>
 							<figcaption class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
