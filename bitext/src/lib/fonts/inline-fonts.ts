@@ -1,15 +1,8 @@
 import { loadCustomFontBlob } from './custom-fonts.js';
-import type { VisualSettingsV1 } from '$lib/serialization/schema.js';
+import type { LineV2 } from '$lib/serialization/schema.js';
 import { googleFontStylesheetUrl } from './google-fonts.js';
 import { detectFontFormat, fontFormatHint, fontMimeFor } from './font-format.js';
 
-/**
- * Fetches a Google Fonts stylesheet (forcing woff2 via UA-less fetch),
- * inlines referenced font files as `src: url(data:font/woff2;base64,...)`.
- *
- * Used for PNG/PDF exports where the SVG is loaded through `<img>` and cannot
- * fetch cross-origin CSS/fonts. For SVG/HTML files we still link fonts externally.
- */
 async function blobToDataUrl(blob: Blob): Promise<string> {
 	return await new Promise<string>((resolve, reject) => {
 		const reader = new FileReader();
@@ -41,7 +34,7 @@ async function inlineGoogleStylesheet(href: string): Promise<string | null> {
 				const blob = await r.blob();
 				replacements.set(u, await blobToDataUrl(blob));
 			} catch {
-				/* network error — skip this src */
+				/* network error */
 			}
 		})
 	);
@@ -55,10 +48,6 @@ async function inlineGoogleStylesheet(href: string): Promise<string | null> {
 async function customFontFaceCss(family: string): Promise<string | null> {
 	const blob = await loadCustomFontBlob(family);
 	if (!blob) return null;
-	/**
-	 * Re-type the blob from its magic bytes — IDB often restores it as `application/octet-stream`,
-	 * which some engines refuse to load as a font source even inside an SVG blob.
-	 */
 	const buf = await blob.arrayBuffer();
 	const head = new Uint8Array(buf, 0, Math.min(buf.byteLength, 8));
 	const fmt = detectFontFormat(head);
@@ -68,38 +57,30 @@ async function customFontFaceCss(family: string): Promise<string | null> {
 	return `@font-face{font-family:"${safeFamily}";font-style:normal;font-weight:400 700;src:url(${dataUrl}) format("${fontFormatHint(fmt)}");font-display:swap;}`;
 }
 
-function uniqueGoogleHrefs(settings: VisualSettingsV1): string[] {
+function uniqueGoogleHrefsFromLines(lines: LineV2[]): string[] {
 	const urls = new Set<string>();
-	if (settings.sourceFontSource === 'google') {
-		urls.add(googleFontStylesheetUrl(settings.sourceFontFamily));
-	}
-	if (settings.targetFontSource === 'google') {
-		urls.add(googleFontStylesheetUrl(settings.targetFontFamily));
-	}
-	if (settings.glossFontSource === 'google') {
-		urls.add(googleFontStylesheetUrl(settings.glossFontFamily));
+	for (const line of lines) {
+		if (line.font.source === 'google') {
+			urls.add(googleFontStylesheetUrl(line.font.family));
+		}
 	}
 	return [...urls];
 }
 
-/** Collect one CSS string with @font-face blocks for every family used in visualization. */
-export async function buildInlinedFontCss(settings: VisualSettingsV1): Promise<string> {
+/** Collect one CSS string with @font-face blocks for every line font used in visualization. */
+export async function buildInlinedFontCssFromLines(lines: LineV2[]): Promise<string> {
 	const chunks: string[] = [];
 
-	for (const href of uniqueGoogleHrefs(settings)) {
+	for (const href of uniqueGoogleHrefsFromLines(lines)) {
 		const css = await inlineGoogleStylesheet(href);
 		if (css) chunks.push(css);
 	}
 
 	const customFamilies = new Set<string>();
-	if (settings.sourceFontSource === 'custom' && settings.sourceCustomFontName) {
-		customFamilies.add(settings.sourceCustomFontName);
-	}
-	if (settings.targetFontSource === 'custom' && settings.targetCustomFontName) {
-		customFamilies.add(settings.targetCustomFontName);
-	}
-	if (settings.glossFontSource === 'custom' && settings.glossCustomFontName) {
-		customFamilies.add(settings.glossCustomFontName);
+	for (const line of lines) {
+		if (line.font.source === 'custom' && line.font.customName) {
+			customFamilies.add(line.font.customName);
+		}
 	}
 	for (const family of customFamilies) {
 		const css = await customFontFaceCss(family);

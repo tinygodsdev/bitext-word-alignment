@@ -2,7 +2,7 @@
 	import { Button, Modal } from 'flowbite-svelte';
 	import { ALIGNER_SITE_HOST } from '$lib/brand.js';
 	import { encodeState } from '$lib/serialization/encode.js';
-	import { SCHEMA_VERSION, type AppStateV1 } from '$lib/serialization/schema.js';
+	import { SCHEMA_VERSION, type AppStateV2 } from '$lib/serialization/schema.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { getShareUrl } from '$lib/share/url.js';
@@ -19,7 +19,7 @@
 		modalOpen = true;
 	}
 
-	function buildState(): AppStateV1 {
+	function buildState(): AppStateV2 {
 		return {
 			v: SCHEMA_VERSION,
 			project: projectStore.getSnapshot(),

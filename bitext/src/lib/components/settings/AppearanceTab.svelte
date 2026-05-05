@@ -1,12 +1,7 @@
 <script lang="ts">
 	import { Label, Range } from 'flowbite-svelte';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
-	import {
-		MAX_LINE_GAP_PX,
-		MAX_TEXT_SIZE_PX,
-		MIN_LINE_GAP_PX,
-		MIN_TEXT_SIZE_PX
-	} from '$lib/serialization/schema.js';
+	import { MAX_LINE_GAP_PX, MIN_LINE_GAP_PX } from '$lib/serialization/schema.js';
 
 	const s = $derived(settingsStore.settings);
 
@@ -18,21 +13,6 @@
 </script>
 
 <div class="grid grid-cols-12 gap-4">
-	<div class="col-span-12 md:col-span-6">
-		<Label for="settings-theme" class="mb-2">Theme</Label>
-		<select
-			id="settings-theme"
-			class={sel}
-			value={s.theme}
-			onchange={(e) =>
-				settingsStore.patch({
-					theme: (e.currentTarget as HTMLSelectElement).value as 'light' | 'dark'
-				})}
-		>
-			<option value="light">Light</option>
-			<option value="dark">Dark</option>
-		</select>
-	</div>
 	<div class="col-span-12 md:col-span-6">
 		<Label for="settings-background" class="mb-2">Background</Label>
 		<select
@@ -71,54 +51,6 @@
 			/>
 		</div>
 	{/if}
-	<div class="col-span-12 md:col-span-4">
-		<Label class="mb-2">Source size ({s.sourceTextSizePx}px)</Label>
-		<Range
-			appearance="auto"
-			color="indigo"
-			size="lg"
-			min={MIN_TEXT_SIZE_PX}
-			max={MAX_TEXT_SIZE_PX}
-			step={1}
-			value={s.sourceTextSizePx}
-			oninput={(e) =>
-				settingsStore.patch({
-					sourceTextSizePx: Number((e.currentTarget as HTMLInputElement).value)
-				})}
-		/>
-	</div>
-	<div class="col-span-12 md:col-span-4">
-		<Label class="mb-2">Target size ({s.targetTextSizePx}px)</Label>
-		<Range
-			appearance="auto"
-			color="indigo"
-			size="lg"
-			min={MIN_TEXT_SIZE_PX}
-			max={MAX_TEXT_SIZE_PX}
-			step={1}
-			value={s.targetTextSizePx}
-			oninput={(e) =>
-				settingsStore.patch({
-					targetTextSizePx: Number((e.currentTarget as HTMLInputElement).value)
-				})}
-		/>
-	</div>
-	<div class="col-span-12 md:col-span-4">
-		<Label class="mb-2">Gloss size ({s.glossTextSizePx}px)</Label>
-		<Range
-			appearance="auto"
-			color="indigo"
-			size="lg"
-			min={MIN_TEXT_SIZE_PX}
-			max={MAX_TEXT_SIZE_PX}
-			step={1}
-			value={s.glossTextSizePx}
-			oninput={(e) =>
-				settingsStore.patch({
-					glossTextSizePx: Number((e.currentTarget as HTMLInputElement).value)
-				})}
-		/>
-	</div>
 	<div class="col-span-12 md:col-span-6">
 		<Label class="mb-2">Word gap ({s.gapWordPx}px)</Label>
 		<Range

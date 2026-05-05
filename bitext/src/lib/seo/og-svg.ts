@@ -3,8 +3,8 @@ import { ALIGNER_SITE_HOST } from '$lib/brand.js';
 import { tokenize, type Token } from '$lib/domain/tokens.js';
 import { connectedLinkComponents } from '$lib/domain/link-graph.js';
 import { PALETTES } from '$lib/domain/palettes.js';
-import type { AppStateV1 } from '$lib/serialization/schema.js';
-import type { Link } from '$lib/domain/alignment.js';
+import type { AppStateV2 } from '$lib/serialization/schema.js';
+import type { Connection } from '$lib/domain/alignment.js';
 
 /** Social preview dimensions recommended by both Facebook and Twitter/X (1.91:1). */
 export const OG_IMAGE_WIDTH = 1200;
@@ -50,18 +50,18 @@ function fitTokens(tokens: Token[], budget: number): { tokens: Token[]; truncate
  * card. Components are iterated in link-array order so the mapping is deterministic
  * for a given `?data=` payload.
  */
-function buildTokenColorMap(links: Link[]): Map<string, string> {
-	const byId = new Map(links.map((l) => [l.id, l] as const));
+function buildTokenColorMap(connections: Connection[]): Map<string, string> {
+	const byId = new Map(connections.map((l) => [l.id, l] as const));
 	const map = new Map<string, string>();
 	const vivid = PALETTES.vivid;
-	const components = connectedLinkComponents(links);
+	const components = connectedLinkComponents(connections);
 	components.forEach((component, idx) => {
-		const color = vivid[idx % vivid.length];
+		const color = vivid[idx % vivid.length]!;
 		for (const linkId of component) {
 			const link = byId.get(linkId);
 			if (!link) continue;
-			map.set(link.sourceId, color);
-			map.set(link.targetId, color);
+			map.set(link.upperTokenId, color);
+			map.set(link.lowerTokenId, color);
 		}
 	});
 	return map;
@@ -93,13 +93,19 @@ function renderPlaceholder(x: number, y: number, text: string): string {
 }
 
 /** OG preview: colored tokens from the shared state, no alignment lines. */
-export function buildOgSvg(state: AppStateV1): string {
+export function buildOgSvg(state: AppStateV2): string {
 	const splitChars = state.settings.tokenSplitChars ?? '';
-	const sourceTokens = tokenize(state.project.sourceText, 'source', splitChars);
-	const targetTokens = tokenize(state.project.targetText, 'target', splitChars);
-	const src = fitTokens(sourceTokens, CHAR_BUDGET);
-	const tgt = fitTokens(targetTokens, CHAR_BUDGET);
-	const colorByTokenId = buildTokenColorMap(state.project.links);
+	const lines = state.project.lines;
+	const colorByTokenId = buildTokenColorMap(state.project.connections);
+
+	const line0 = lines[0];
+	const line1 = lines[1];
+
+	const t0 = line0 ? tokenize(line0.rawText, line0.id, splitChars) : [];
+	const t1 = line1 ? tokenize(line1.rawText, line1.id, splitChars) : [];
+
+	const src = fitTokens(t0, CHAR_BUDGET);
+	const tgt = fitTokens(t1, CHAR_BUDGET);
 
 	const sourceLine =
 		src.tokens.length > 0

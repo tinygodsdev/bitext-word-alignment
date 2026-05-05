@@ -5,12 +5,14 @@
 
 	let {
 		tokens,
-		side,
+		lineId,
+		textSizePx,
 		showNumbers,
 		interactive = false
 	}: {
 		tokens: Token[];
-		side: 'source' | 'target';
+		lineId: string;
+		textSizePx: number;
 		showNumbers: boolean;
 		interactive?: boolean;
 	} = $props();
@@ -18,7 +20,7 @@
 	const gap = $derived(settingsStore.settings.gapWordPx);
 </script>
 
-<div class="token-row" data-row={side} role="group">
+<div class="token-row" data-line={lineId} role="group">
 	{#each tokens as t, i (t.id)}
 		{@const nextTok = tokens[i + 1]}
 		<span
@@ -27,7 +29,8 @@
 		>
 			<TokenView
 				token={t}
-				{side}
+				{lineId}
+				{textSizePx}
 				showNumber={showNumbers}
 				index={i}
 				{interactive}

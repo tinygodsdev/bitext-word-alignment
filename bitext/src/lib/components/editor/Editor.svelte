@@ -1,9 +1,8 @@
 <script lang="ts">
 	import { Card } from 'flowbite-svelte';
-	import SentenceField from './SentenceField.svelte';
-	import GlossInputRow from './GlossInputRow.svelte';
+	import LineCard from './LineCard.svelte';
 	import { projectStore } from '$lib/state/project.svelte.js';
-	import { settingsStore } from '$lib/state/settings.svelte.js';
+	import { MAX_LINES } from '$lib/serialization/schema.js';
 </script>
 
 <Card class="w-full max-w-none p-4 sm:p-6" aria-labelledby="editor-heading">
@@ -32,47 +31,26 @@
 		</div>
 	</div>
 	<p class="mb-4 w-full text-base text-gray-600 dark:text-gray-400">
-		Edit the sentences here. To link words, click a word in the preview below, then click the
-		matching word on the other line — the connector will appear. You can link a word to multiple
-		words on the other side. Click a connector to remove it. Click a selected word again to deselect
-		it.
+		Each row is a line of text with its own font and size. In the preview, click a word, then click
+		a word on an <strong>adjacent</strong> line to connect them. Connectors only run between neighboring
+		lines. Click a connector to remove it. Click the same word again to deselect.
 	</p>
-	<div class="grid grid-cols-12 gap-4">
-		<div class="col-span-12 md:col-span-6">
-			<SentenceField
-				label="Source sentence"
-				side="source"
-				rawText={projectStore.sourceTextRaw}
-				tokens={projectStore.sourceTokens}
-				onText={(v) => projectStore.setSourceText(v)}
-			/>
-		</div>
-		<div class="col-span-12 md:col-span-6">
-			<SentenceField
-				label="Target sentence"
-				side="target"
-				rawText={projectStore.targetTextRaw}
-				tokens={projectStore.targetTokens}
-				onText={(v) => projectStore.setTargetText(v)}
-			/>
-		</div>
+	{#each projectStore.lines as line, i (line.id)}
+		<LineCard {line} index={i} total={projectStore.lines.length} />
+	{/each}
+	<div class="mt-2 flex flex-wrap items-center gap-3">
+		<button
+			type="button"
+			class="rounded-none border border-primary-600 bg-primary-600 px-3 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50 dark:border-primary-500 dark:bg-primary-600 dark:hover:bg-primary-500"
+			disabled={projectStore.lines.length >= MAX_LINES}
+			onclick={() => projectStore.addLine()}
+		>
+			Add line
+		</button>
+		{#if projectStore.lines.length >= MAX_LINES}
+			<p class="text-sm text-amber-700 dark:text-amber-400">
+				Soft limit: {MAX_LINES} lines — consider simplifying for shorter share links.
+			</p>
+		{/if}
 	</div>
-	{#if settingsStore.settings.showGloss}
-		<div class="mt-4 grid grid-cols-12 gap-4">
-			<div class="col-span-12 md:col-span-6">
-				<p class="mb-2 text-base text-gray-600 dark:text-gray-400">Source glosses</p>
-				<GlossInputRow
-					tokens={projectStore.sourceTokens}
-					onGloss={(id, v) => projectStore.setSourceGloss(id, v)}
-				/>
-			</div>
-			<div class="col-span-12 md:col-span-6">
-				<p class="mb-2 text-base text-gray-600 dark:text-gray-400">Target glosses</p>
-				<GlossInputRow
-					tokens={projectStore.targetTokens}
-					onGloss={(id, v) => projectStore.setTargetGloss(id, v)}
-				/>
-			</div>
-		</div>
-	{/if}
 </Card>

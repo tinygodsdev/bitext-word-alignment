@@ -1,13 +1,9 @@
 <script lang="ts">
-	import { Label, Range } from 'flowbite-svelte';
+	import { Label } from 'flowbite-svelte';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { selectionStore } from '$lib/state/selection.svelte.js';
-	import {
-		DEFAULT_TOKEN_SPLIT_CHARS,
-		MAX_GLOSS_LINE_GAP_PX,
-		MIN_GLOSS_LINE_GAP_PX
-	} from '$lib/serialization/schema.js';
+	import { DEFAULT_TOKEN_SPLIT_CHARS } from '$lib/serialization/schema.js';
 
 	const s = $derived(settingsStore.settings);
 
@@ -28,50 +24,6 @@
 </script>
 
 <div class="grid grid-cols-12 gap-4">
-	<div class="col-span-12">
-		<div class="flex flex-wrap items-start justify-between gap-3">
-			<div>
-				<h3 class="font-heading text-sm font-semibold text-gray-900 dark:text-white">
-					Interlinear gloss row
-				</h3>
-				<p class="text-base text-gray-600 dark:text-gray-400">
-					Source glosses above the source line, target glosses below the target line (when filled)
-				</p>
-			</div>
-			<Label class="inline-flex cursor-pointer items-center gap-2">
-				<input
-					type="checkbox"
-					class={chk}
-					checked={s.showGloss}
-					onchange={(e) =>
-						settingsStore.patch({ showGloss: (e.currentTarget as HTMLInputElement).checked })}
-				/>
-				<span class="text-sm text-gray-700 dark:text-gray-300">Show</span>
-			</Label>
-		</div>
-	</div>
-	<div class="col-span-12">
-		<Label class="mb-2 block {!s.showGloss ? 'text-gray-400 dark:text-gray-500' : ''}">
-			Gloss ↔ sentence spacing ({s.glossLineGapPx}px)
-		</Label>
-		<p class="mb-2 text-base text-gray-600 dark:text-gray-400">
-			Distance between each gloss row and its sentence. Default ≈ 1.5× gloss line height.
-		</p>
-		<Range
-			appearance="auto"
-			color="indigo"
-			size="lg"
-			min={MIN_GLOSS_LINE_GAP_PX}
-			max={MAX_GLOSS_LINE_GAP_PX}
-			step={1}
-			value={s.glossLineGapPx}
-			disabled={!s.showGloss}
-			oninput={(e) =>
-				settingsStore.patch({
-					glossLineGapPx: Number((e.currentTarget as HTMLInputElement).value)
-				})}
-		/>
-	</div>
 	<div class="col-span-12">
 		<div class="flex flex-wrap items-start justify-between gap-3">
 			<div>

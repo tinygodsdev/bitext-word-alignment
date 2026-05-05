@@ -11,9 +11,10 @@
 	import JsonLd from '$lib/components/seo/JsonLd.svelte';
 	import { Button } from 'flowbite-svelte';
 	import { encodeState } from '$lib/serialization/encode.js';
-	import { SCHEMA_VERSION, type AppStateV1 } from '$lib/serialization/schema.js';
+	import { SCHEMA_VERSION, type AppStateV2 } from '$lib/serialization/schema.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { selectionStore } from '$lib/state/selection.svelte.js';
+	import { layoutExportStore } from '$lib/state/layoutExport.svelte.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { TALLY_FORM_ID } from '$lib/brand.js';
 	import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, SITE_NAME } from '$lib/seo/metadata.js';
@@ -22,28 +23,42 @@
 	let { data }: PageProps = $props();
 
 	let hydrated = $state(false);
+	let previewExpand = $state(false);
 
 	$effect(() => {
 		if (hydrated) return;
 		if (data.initialState) {
-			projectStore.loadSnapshot(data.initialState.project);
+			projectStore.loadSnapshotV2(data.initialState.project);
 			settingsStore.load(data.initialState.settings);
 			projectStore.retokenizeFromSettings();
 		}
 		hydrated = true;
 	});
 
+	$effect(() => {
+		if (!browser) return;
+		if (!previewExpand) return;
+		function onKey(e: KeyboardEvent) {
+			if (e.key === 'Escape') {
+				previewExpand = false;
+				queueMicrotask(() => layoutExportStore.requestRemeasure());
+			}
+		}
+		window.addEventListener('keydown', onKey);
+		return () => window.removeEventListener('keydown', onKey);
+	});
+
 	let urlDebounce: ReturnType<typeof setTimeout> | undefined;
 
 	$effect(() => {
 		if (!browser || !hydrated) return;
-		void projectStore.sourceTokens;
-		void projectStore.targetTokens;
-		void projectStore.links;
+		void projectStore.lines;
+		void projectStore.connections;
+		void projectStore.pairControls;
 		void settingsStore.settings;
 		clearTimeout(urlDebounce);
 		urlDebounce = setTimeout(() => {
-			const state: AppStateV1 = {
+			const state: AppStateV2 = {
 				v: SCHEMA_VERSION,
 				project: projectStore.getSnapshot(),
 				settings: { ...settingsStore.settings }
@@ -77,6 +92,11 @@
 	/** How much to trim from the top and bottom of each example image (CSS length, e.g. %, px). */
 	const EXAMPLES_IMAGE_VERTICAL_CROP = '10%';
 	const examplesImageClipPath = `inset(${EXAMPLES_IMAGE_VERTICAL_CROP} 0 ${EXAMPLES_IMAGE_VERTICAL_CROP} 0)`;
+
+	const siteTheme = $derived(settingsStore.settings.theme);
+	const themeToggleActive = 'bg-primary-600 text-white dark:bg-primary-500';
+	const themeToggleInactive =
+		'bg-transparent text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800';
 </script>
 
 <svelte:head>
@@ -103,31 +123,70 @@
 <JsonLd />
 
 <main class="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-12">
-	<header class="mb-8 text-center">
-		<h1
-			class="font-heading text-3xl font-semibold tracking-tight leading-tight text-gray-900 md:text-4xl dark:text-white"
-		>
-			Word-by-word translation visualizer
-		</h1>
-		<p class="mx-auto mt-3 max-w-2xl text-lg leading-relaxed text-gray-600 dark:text-gray-400">
-			See exactly which word matches which across two translated sentences. Link single words or
-			short phrases, add an optional interlinear gloss, and export a clean image for lessons, posts,
-			or conlang notes.
-			<br />
-			Created by
-			<a
-				href={authorSite}
-				class="font-medium text-primary-700 underline decoration-primary-700/40 underline-offset-2 hover:text-primary-800 hover:decoration-primary-800 dark:text-primary-400 dark:decoration-primary-400/50 dark:hover:text-primary-300"
-				target="_blank"
-				rel="noopener noreferrer">Dani</a
-			>. See other
-			<a
-				href={toolsPage}
-				class="font-medium text-primary-700 underline decoration-primary-700/40 underline-offset-2 hover:text-primary-800 hover:decoration-primary-800 dark:text-primary-400 dark:decoration-primary-400/50 dark:hover:text-primary-300"
-				target="_blank"
-				rel="noopener noreferrer">tools</a
-			> for linguistics and conlanging.
-		</p>
+	<header class="mb-8">
+		<div class="grid gap-6 md:grid-cols-2 md:items-start md:gap-x-10 lg:gap-x-14">
+			<div class="text-center md:text-left">
+				<h1
+					class="font-heading text-2xl font-semibold leading-tight tracking-tight text-gray-900 sm:text-3xl md:text-3xl dark:text-white"
+				>
+					Word-by-word translation visualizer
+				</h1>
+				<div
+					class="mt-4 flex justify-center md:justify-start"
+					role="group"
+					aria-label="Site theme (light or dark)"
+				>
+					<div
+						class="inline-flex overflow-hidden rounded-none border border-gray-300 dark:border-gray-600"
+					>
+						<button
+							type="button"
+							class="border-0 px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-500 {siteTheme ===
+							'light'
+								? themeToggleActive
+								: themeToggleInactive}"
+							onclick={() => settingsStore.patch({ theme: 'light' })}
+						>
+							Light
+						</button>
+						<button
+							type="button"
+							class="border-0 border-l border-gray-300 px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:border-gray-600 dark:focus-visible:outline-primary-500 {siteTheme ===
+							'dark'
+								? themeToggleActive
+								: themeToggleInactive}"
+							onclick={() => settingsStore.patch({ theme: 'dark' })}
+						>
+							Dark
+						</button>
+					</div>
+				</div>
+				<p class="mt-4 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+					Created by
+					<a
+						href={authorSite}
+						class="font-medium text-primary-700 underline decoration-primary-700/40 underline-offset-2 hover:text-primary-800 hover:decoration-primary-800 dark:text-primary-400 dark:decoration-primary-400/50 dark:hover:text-primary-300"
+						target="_blank"
+						rel="noopener noreferrer">Dani</a
+					>. See other
+					<a
+						href={toolsPage}
+						class="font-medium text-primary-700 underline decoration-primary-700/40 underline-offset-2 hover:text-primary-800 hover:decoration-primary-800 dark:text-primary-400 dark:decoration-primary-400/50 dark:hover:text-primary-300"
+						target="_blank"
+						rel="noopener noreferrer">tools</a
+					> for linguistics and conlanging.
+				</p>
+			</div>
+			<div class="text-center md:text-left">
+				<p
+					class="text-base leading-relaxed text-gray-600 dark:text-gray-400 md:pt-0.5 lg:text-[1.05rem]"
+				>
+					See exactly which word matches which across translated lines. Stack multiple lines (e.g.
+					source, IPA, target), link adjacent rows, and export a clean image for lessons, posts, or
+					conlang notes.
+				</p>
+			</div>
+		</div>
 	</header>
 
 	<div class="grid grid-cols-12 gap-6 lg:gap-8">
@@ -146,24 +205,68 @@
 						</h2>
 						{#if selectionStore.showLinkHint()}
 							<p class="max-w-xl text-base text-gray-600 dark:text-gray-400" role="status">
-								Click a word on the other line to create the link.
+								{#if selectionStore.adjacencyHint}
+									Only <strong>adjacent</strong> lines can be linked — choose a word directly above or
+									below.
+								{:else}
+									Click a word on an <strong>adjacent</strong> line to create the link.
+								{/if}
 							</p>
 						{/if}
 					</div>
-					<Button
-						color="light"
-						size="sm"
-						class="shrink-0"
-						disabled={projectStore.links.length === 0}
-						onclick={() => {
-							projectStore.clearAllLinks();
-							selectionStore.clear();
-						}}
-					>
-						Clear all links
-					</Button>
+					<div class="flex shrink-0 flex-wrap items-center gap-2">
+						<Button
+							color="light"
+							size="sm"
+							class="shrink-0"
+							onclick={() => {
+								previewExpand = true;
+								queueMicrotask(() => layoutExportStore.requestRemeasure());
+							}}
+						>
+							Expand
+						</Button>
+						<Button
+							color="light"
+							size="sm"
+							class="shrink-0"
+							disabled={projectStore.connections.length === 0}
+							onclick={() => {
+								projectStore.clearAllConnections();
+								selectionStore.clear();
+							}}
+						>
+							Clear all links
+						</Button>
+					</div>
 				</div>
 				<AlignmentPreview />
+				{#if previewExpand}
+					<div
+						class="fixed inset-0 z-50 flex flex-col bg-black/60 p-4 backdrop-blur-sm md:p-8"
+						role="dialog"
+						aria-modal="true"
+						aria-label="Fullscreen preview"
+					>
+						<div
+							class="relative mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col rounded-none border border-gray-700 bg-gray-900 shadow-xl dark:bg-gray-950"
+						>
+							<button
+								type="button"
+								class="absolute right-3 top-3 z-10 rounded-none border border-gray-600 bg-gray-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700"
+								onclick={() => {
+									previewExpand = false;
+									queueMicrotask(() => layoutExportStore.requestRemeasure());
+								}}
+							>
+								Close
+							</button>
+							<div class="min-h-0 flex-1 overflow-auto p-4 pt-12 md:p-6 md:pt-14">
+								<AlignmentPreview />
+							</div>
+						</div>
+					</div>
+				{/if}
 			</section>
 			<section class="mb-8" aria-labelledby="examples-heading">
 				<details open class="group">

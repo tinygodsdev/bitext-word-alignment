@@ -1,5 +1,5 @@
 import opentype from 'opentype.js';
-import type { VisualSettingsV1 } from '$lib/serialization/schema.js';
+import type { LineV2 } from '$lib/serialization/schema.js';
 import { loadCustomFontBlob } from './custom-fonts.js';
 
 /**
@@ -12,11 +12,8 @@ import { loadCustomFontBlob } from './custom-fonts.js';
  *
  * Leaves Google-font `<text>` alone — those reliably render via their small woff2 data URLs.
  */
-export async function convertCustomFontTextToPaths(
-	svg: string,
-	settings: VisualSettingsV1
-): Promise<string> {
-	const customFamilies = collectCustomFamilies(settings);
+export async function convertCustomFontTextToPaths(svg: string, lines: LineV2[]): Promise<string> {
+	const customFamilies = collectCustomFamiliesFromLines(lines);
 	if (customFamilies.size === 0) return svg;
 
 	const fonts = new Map<string, opentype.Font>();
@@ -29,11 +26,11 @@ export async function convertCustomFontTextToPaths(
 	return rewriteTextElements(svg, fonts);
 }
 
-function collectCustomFamilies(s: VisualSettingsV1): Set<string> {
+function collectCustomFamiliesFromLines(lines: LineV2[]): Set<string> {
 	const names = new Set<string>();
-	if (s.sourceFontSource === 'custom' && s.sourceCustomFontName) names.add(s.sourceCustomFontName);
-	if (s.targetFontSource === 'custom' && s.targetCustomFontName) names.add(s.targetCustomFontName);
-	if (s.glossFontSource === 'custom' && s.glossCustomFontName) names.add(s.glossCustomFontName);
+	for (const line of lines) {
+		if (line.font.source === 'custom' && line.font.customName) names.add(line.font.customName);
+	}
 	return names;
 }
 

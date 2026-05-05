@@ -42,13 +42,13 @@
 				<ColorsTab />
 			</div>
 		</TabItem>
-		<TabItem key="linguistics" title="Linguistics">
+		<TabItem key="linguistics" title="Tokens">
 			{#snippet titleSlot()}
 				<span
 					class="inline-flex items-center justify-center"
-					title="Linguistics — gloss, numbers, tokenization"
+					title="Tokenization — numbers, split rules"
 				>
-					<span class="sr-only">Linguistics</span>
+					<span class="sr-only">Tokens</span>
 					<LanguageOutline class="h-5 w-5 shrink-0" aria-hidden="true" />
 				</span>
 			{/snippet}
@@ -58,7 +58,7 @@
 		</TabItem>
 		<TabItem key="fonts" title="Fonts">
 			{#snippet titleSlot()}
-				<span class="inline-flex items-center justify-center" title="Fonts — typefaces">
+				<span class="inline-flex items-center justify-center" title="Custom fonts library">
 					<span class="sr-only">Fonts</span>
 					<FontFamilyOutline class="h-5 w-5 shrink-0" aria-hidden="true" />
 				</span>

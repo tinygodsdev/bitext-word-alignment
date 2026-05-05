@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import LinkPath from './LinkPath.svelte';
-	import type { Link } from '$lib/domain/alignment.js';
+	import type { Connection } from '$lib/domain/alignment.js';
+	import { canonicalPair, showConnectorsForPair, tokenLineId } from '$lib/domain/lines-helpers.js';
 	import { linkEndpoints, linkPathD } from '$lib/domain/link-geometry.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
@@ -10,11 +11,22 @@
 
 	let {
 		rootEl,
-		links
+		connections
 	}: {
 		rootEl: HTMLElement | null;
-		links: Link[];
+		connections: Connection[];
 	} = $props();
+
+	function shouldDrawPath(conn: Connection): boolean {
+		const lineOrder = projectStore.lines.map((l) => l.id);
+		const pair = canonicalPair(
+			lineOrder,
+			tokenLineId(conn.upperTokenId),
+			tokenLineId(conn.lowerTokenId)
+		);
+		if (!pair) return false;
+		return showConnectorsForPair(projectStore.pairControls, pair.upperLineId, pair.lowerLineId);
+	}
 
 	function measure() {
 		if (!rootEl) return;
@@ -40,40 +52,26 @@
 			};
 		});
 
-		let sourceRowY = 0;
-		let targetRowY = 0;
-		const sr = rootEl.querySelector('[data-row="source"]');
-		const tr = rootEl.querySelector('[data-row="target"]');
-		if (sr) {
-			const b = sr.getBoundingClientRect();
-			sourceRowY = b.top - ro.top + b.height / 2;
-		}
-		if (tr) {
-			const b = tr.getBoundingClientRect();
-			targetRowY = b.top - ro.top + b.height / 2;
-		}
-		let glossSourceRowY: number | null = null;
-		let glossTargetRowY: number | null = null;
-		const gsr = rootEl.querySelector('[data-gloss-row="source"]');
-		if (gsr) {
-			const b = gsr.getBoundingClientRect();
-			glossSourceRowY = b.top - ro.top + b.height / 2;
-		}
-		const gtr = rootEl.querySelector('[data-gloss-row="target"]');
-		if (gtr) {
-			const b = gtr.getBoundingClientRect();
-			glossTargetRowY = b.top - ro.top + b.height / 2;
-		}
+		const lineRowY: Record<string, number> = {};
+		rootEl.querySelectorAll<HTMLElement>('[data-line]').forEach((row) => {
+			const lineId = row.dataset.line;
+			if (!lineId) return;
+			const inner = row.querySelector<HTMLElement>('.token-row');
+			const el = inner ?? row;
+			const b = el.getBoundingClientRect();
+			lineRowY[lineId] = b.top - ro.top + b.height / 2;
+		});
 
 		const style = settingsStore.settings.lineStyle;
-		for (const link of links) {
-			const p1 = tokenLayout[link.sourceId];
-			const p2 = tokenLayout[link.targetId];
+		for (const conn of connections) {
+			if (!shouldDrawPath(conn)) continue;
+			const p1 = tokenLayout[conn.upperTokenId];
+			const p2 = tokenLayout[conn.lowerTokenId];
 			if (!p1 || !p2) continue;
 			const { x1, y1, x2, y2 } = linkEndpoints(p1, p2);
 			const d = linkPathD(x1, y1, x2, y2, style);
-			const color = link.color ?? '#94a3b8';
-			linkPaths.push({ linkId: link.id, color, d });
+			const color = conn.color ?? '#94a3b8';
+			linkPaths.push({ linkId: conn.id, color, d });
 		}
 
 		layoutExportStore.setSnapshot({
@@ -81,32 +79,23 @@
 			height: h,
 			tokenLayout,
 			linkPaths,
-			sourceRowY,
-			targetRowY,
-			glossSourceRowY,
-			glossTargetRowY
+			lineRowY
 		});
 	}
 
 	$effect(() => {
 		if (!rootEl) return;
-		// Track full link list (not only length) so recolors / same-length edits remeasure.
-		for (const l of links) {
-			void l.id;
-			void l.sourceId;
-			void l.targetId;
-			void l.color;
+		for (const c of connections) {
+			void c.id;
+			void c.upperTokenId;
+			void c.lowerTokenId;
+			void c.color;
 		}
+		void projectStore.pairControls;
 		void settingsStore.settings.lineStyle;
-		void settingsStore.settings.glossLineGapPx;
-		void settingsStore.settings.sourceTextSizePx;
-		void settingsStore.settings.targetTextSizePx;
-		void settingsStore.settings.glossTextSizePx;
-		void settingsStore.settings.glossFontFamily;
-		void settingsStore.settings.glossFontSource;
-		void projectStore.sourceTokens;
-		void projectStore.targetTokens;
-		/** Two rAFs: wait for style/layout flush after font or DOM updates. */
+		void projectStore.lines;
+		void settingsStore.settings.gapLinePx;
+		void settingsStore.settings.gapWordPx;
 		function remeasure() {
 			requestAnimationFrame(() => {
 				requestAnimationFrame(() => measure());
@@ -144,30 +133,32 @@
 
 <svg class="preview-svg-layer" aria-hidden="true">
 	<g class="link-hit">
-		{#each links as link (link.id)}
-			{@const p1 = layoutExportStore.tokenLayout[link.sourceId]}
-			{@const p2 = layoutExportStore.tokenLayout[link.targetId]}
-			{#if p1 && p2}
-				{@const pts = linkEndpoints(p1, p2)}
-				{@const d = linkPathD(pts.x1, pts.y1, pts.x2, pts.y2, settingsStore.settings.lineStyle)}
-				{@const col = link.color ?? '#94a3b8'}
-				{@const hi = linkHover.id === link.id}
-				<LinkPath
-					{d}
-					color={col}
-					thickness={hi
-						? settingsStore.settings.lineThickness + 1
-						: settingsStore.settings.lineThickness}
-					opacity={hi ? 1 : settingsStore.settings.lineOpacity}
-					linkId={link.id}
-					onenter={(id) => {
-						linkHover.id = id;
-					}}
-					onleave={() => {
-						linkHover.id = null;
-					}}
-					onclick={(id) => projectStore.removeAlignment(id)}
-				/>
+		{#each connections as conn (conn.id)}
+			{#if shouldDrawPath(conn)}
+				{@const p1 = layoutExportStore.tokenLayout[conn.upperTokenId]}
+				{@const p2 = layoutExportStore.tokenLayout[conn.lowerTokenId]}
+				{#if p1 && p2}
+					{@const pts = linkEndpoints(p1, p2)}
+					{@const d = linkPathD(pts.x1, pts.y1, pts.x2, pts.y2, settingsStore.settings.lineStyle)}
+					{@const col = conn.color ?? '#94a3b8'}
+					{@const hi = linkHover.id === conn.id}
+					<LinkPath
+						{d}
+						color={col}
+						thickness={hi
+							? settingsStore.settings.lineThickness + 1
+							: settingsStore.settings.lineThickness}
+						opacity={hi ? 1 : settingsStore.settings.lineOpacity}
+						linkId={conn.id}
+						onenter={(id) => {
+							linkHover.id = id;
+						}}
+						onleave={() => {
+							linkHover.id = null;
+						}}
+						onclick={(id) => projectStore.removeConnectionById(id)}
+					/>
+				{/if}
 			{/if}
 		{/each}
 	</g>

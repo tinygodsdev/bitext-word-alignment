@@ -1,12 +1,10 @@
 <script lang="ts">
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 
-	type Side = 'source' | 'target';
-
 	let {
 		id,
 		text,
-		side,
+		lineId,
 		selected,
 		linked,
 		highlighted,
@@ -15,13 +13,12 @@
 	}: {
 		id: string;
 		text: string;
-		side: Side;
+		lineId: string;
 		selected: boolean;
 		linked: boolean;
 		highlighted: boolean;
-		/** Line color when colorTokensByLink */
 		linkHex: string | null;
-		onclick?: (id: string, side: Side) => void;
+		onclick?: (id: string, lineId: string) => void;
 	} = $props();
 
 	const useLinkTint = $derived(settingsStore.settings.colorTokensByLink && linkHex);
@@ -54,9 +51,9 @@
 			? `color-mix(in srgb, ${linkHex} 18%, transparent)`
 			: undefined}
 		data-token-id={id}
-		data-side={side}
+		data-line={lineId}
 		aria-pressed={selected}
-		onclick={() => onclick(id, side)}
+		onclick={() => onclick(id, lineId)}
 	>
 		{text}
 	</button>
@@ -69,7 +66,7 @@
 			? `color-mix(in srgb, ${linkHex} 18%, transparent)`
 			: undefined}
 		data-token-id={id}
-		data-side={side}
+		data-line={lineId}
 	>
 		{text}
 	</span>

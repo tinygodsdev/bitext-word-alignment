@@ -7,7 +7,7 @@
 
 	function setPalette(name: PaletteName) {
 		settingsStore.patch({ palette: name });
-		projectStore.recolorAllLinks(name);
+		projectStore.recolorAllConnections(name);
 	}
 
 	const s = $derived(settingsStore.settings);

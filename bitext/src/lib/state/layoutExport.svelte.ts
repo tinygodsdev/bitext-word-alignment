@@ -13,14 +13,11 @@ class LayoutExportStore {
 	height = $state(0);
 	tokenLayout = $state<Record<string, TokenLayout>>({});
 	linkPaths = $state<LinkLayout[]>([]);
-	sourceRowY = $state(0);
-	targetRowY = $state(0);
-	glossSourceRowY = $state<number | null>(null);
-	glossTargetRowY = $state<number | null>(null);
+	/** Vertical center Y of each line’s token row, keyed by line id */
+	lineRowY = $state<Record<string, number>>({});
 	/** Bumped so preview layout is remeasured (e.g. before export) with up-to-date font metrics. */
 	layoutRemeasureTick = $state(0);
 
-	/** Request a fresh token bounding-box snapshot; wait for `tick()` + fonts + rAF before reading layout. */
 	requestRemeasure() {
 		this.layoutRemeasureTick++;
 	}
@@ -30,19 +27,13 @@ class LayoutExportStore {
 		height: number;
 		tokenLayout: Record<string, TokenLayout>;
 		linkPaths: LinkLayout[];
-		sourceRowY: number;
-		targetRowY: number;
-		glossSourceRowY: number | null;
-		glossTargetRowY: number | null;
+		lineRowY: Record<string, number>;
 	}) {
 		this.width = s.width;
 		this.height = s.height;
 		this.tokenLayout = s.tokenLayout;
 		this.linkPaths = s.linkPaths;
-		this.sourceRowY = s.sourceRowY;
-		this.targetRowY = s.targetRowY;
-		this.glossSourceRowY = s.glossSourceRowY;
-		this.glossTargetRowY = s.glossTargetRowY;
+		this.lineRowY = s.lineRowY;
 	}
 }
 

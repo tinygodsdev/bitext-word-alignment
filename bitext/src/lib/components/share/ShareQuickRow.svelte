@@ -5,7 +5,7 @@
 	import CopyLinkButton from './CopyLinkButton.svelte';
 	import ShareDialog from './ShareDialog.svelte';
 	import { encodeState } from '$lib/serialization/encode.js';
-	import { SCHEMA_VERSION, type AppStateV1 } from '$lib/serialization/schema.js';
+	import { SCHEMA_VERSION, type AppStateV2 } from '$lib/serialization/schema.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { getShareUrl } from '$lib/share/url.js';
@@ -16,7 +16,7 @@
 	const shareTitle = 'Word-by-word translation visualizer';
 
 	const shareUrl = $derived.by(() => {
-		const state: AppStateV1 = {
+		const state: AppStateV2 = {
 			v: SCHEMA_VERSION,
 			project: projectStore.getSnapshot(),
 			settings: { ...settingsStore.settings }
@@ -33,7 +33,7 @@
 	);
 
 	async function webShare() {
-		const state: AppStateV1 = {
+		const state: AppStateV2 = {
 			v: SCHEMA_VERSION,
 			project: projectStore.getSnapshot(),
 			settings: { ...settingsStore.settings }
