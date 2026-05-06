@@ -12,6 +12,9 @@ export const SCHEMA_VERSION_V1 = 1 as const;
 
 export const MAX_LINES = 8;
 
+/** Initial text for lines created with “Add line” (prompts editing; user can replace). */
+export const NEW_LINE_HINT_TEXT = 'Type your text here';
+
 export type LineStyle = 'straight' | 'curved';
 export type BackgroundMode = 'light' | 'dark' | 'image';
 export type UiTheme = 'light' | 'dark';

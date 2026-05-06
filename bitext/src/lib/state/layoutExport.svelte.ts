@@ -22,6 +22,19 @@ class LayoutExportStore {
 		this.layoutRemeasureTick++;
 	}
 
+	/** After popovers, flex reflow, or toggling connectors — measure on the next paint frames. */
+	requestRemeasureAfterLayout() {
+		if (typeof window === 'undefined') {
+			this.layoutRemeasureTick++;
+			return;
+		}
+		requestAnimationFrame(() => {
+			requestAnimationFrame(() => {
+				this.layoutRemeasureTick++;
+			});
+		});
+	}
+
 	setSnapshot(s: {
 		width: number;
 		height: number;

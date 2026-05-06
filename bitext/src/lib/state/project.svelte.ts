@@ -19,10 +19,12 @@ import type { Token } from '$lib/domain/tokens.js';
 import {
 	defaultProjectSnapshotV2,
 	MAX_LINES,
+	NEW_LINE_HINT_TEXT,
 	type LineV2,
 	type PairControlV2,
 	type ProjectSnapshotV2
 } from '$lib/serialization/schema.js';
+import { layoutExportStore } from '$lib/state/layoutExport.svelte.js';
 import { settingsStore } from '$lib/state/settings.svelte.js';
 
 function newLineId(): string {
@@ -98,6 +100,7 @@ class ProjectStore {
 			const rest = this.pairControls.filter((p) => !(p.upperLineId === u && p.lowerLineId === lo));
 			this.pairControls = [...rest, { upperLineId: u, lowerLineId: lo, showConnectors: false }];
 		}
+		layoutExportStore.requestRemeasureAfterLayout();
 	}
 
 	pairShowsConnectors(upperLineId: string, lowerLineId: string): boolean {
@@ -112,7 +115,7 @@ class ProjectStore {
 		const id = newLineId();
 		const newLine: LineV2 = {
 			id,
-			rawText: '',
+			rawText: NEW_LINE_HINT_TEXT,
 			font: { family: 'Inter', source: 'google' },
 			textSizePx: 36
 		};
@@ -121,9 +124,10 @@ class ProjectStore {
 				? this.lines.length
 				: Math.max(0, Math.min(this.lines.length, insertIndex));
 		this.lines = [...this.lines.slice(0, idx), newLine, ...this.lines.slice(idx)];
-		this.tokensByLineId = { ...this.tokensByLineId, [id]: [] };
+		this.syncAllTokens();
 		this.prunePairControls();
 		this.pruneInvalidConnections();
+		layoutExportStore.requestRemeasureAfterLayout();
 	}
 
 	removeLine(lineId: string) {
@@ -157,6 +161,7 @@ class ProjectStore {
 		this.lines = next;
 		this.prunePairControls();
 		this.pruneInvalidConnections();
+		layoutExportStore.requestRemeasureAfterLayout();
 	}
 
 	/** Move `lineId` to zero-based index `newIndex` in the line stack (for drag-and-drop). */
@@ -169,6 +174,7 @@ class ProjectStore {
 		this.lines = [...rest.slice(0, j), line, ...rest.slice(j)];
 		this.prunePairControls();
 		this.pruneInvalidConnections();
+		layoutExportStore.requestRemeasureAfterLayout();
 	}
 
 	addConnection(upperTokenId: string, lowerTokenId: string, palette: PaletteName) {
