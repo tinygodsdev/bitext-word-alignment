@@ -91,6 +91,40 @@ export function tokenLineId(tokenId: string): string {
 	return i > 0 ? tokenId.slice(0, i) : tokenId;
 }
 
+/**
+ * While a token is pinned for linking, these are the line ids the user may click on
+ * (that line and its vertical neighbors in the stack).
+ */
+export function lineIsLinkTargetWhilePending(
+	lineIds: string[],
+	pendingLineId: string,
+	rowLineId: string
+): boolean {
+	const i = lineIds.indexOf(pendingLineId);
+	if (i < 0) return false;
+	if (rowLineId === pendingLineId) return true;
+	if (i > 0 && rowLineId === lineIds[i - 1]) return true;
+	if (i + 1 < lineIds.length && rowLineId === lineIds[i + 1]) return true;
+	return false;
+}
+
+/**
+ * While a token is selected for linking (`pendingLineId`), only connectors on the pair(s)
+ * that include that line and a vertically adjacent line are "active"; others are dimmed in the UI.
+ */
+export function connectionIsActiveForPendingSelection(
+	lineIds: string[],
+	conn: Connection,
+	pendingLineId: string
+): boolean {
+	const a = tokenLineId(conn.upperTokenId);
+	const b = tokenLineId(conn.lowerTokenId);
+	return (
+		lineIsLinkTargetWhilePending(lineIds, pendingLineId, a) &&
+		lineIsLinkTargetWhilePending(lineIds, pendingLineId, b)
+	);
+}
+
 /** True when `upper` is directly above `lower` in the current line stack. */
 export function isStackedAdjacentPair(
 	lines: LineV2[],

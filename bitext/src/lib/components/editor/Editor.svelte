@@ -13,22 +13,6 @@
 		>
 			Editor
 		</h2>
-		<div class="flex flex-wrap items-center gap-1">
-			<button
-				type="button"
-				class="shrink-0 rounded-none border-0 bg-transparent px-2 py-1 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:text-gray-400 dark:hover:bg-gray-800/80 dark:hover:text-gray-100 dark:focus-visible:outline-primary-500"
-				onclick={() => projectStore.loadExample('simple')}
-			>
-				Simple example
-			</button>
-			<button
-				type="button"
-				class="shrink-0 rounded-none border-0 bg-transparent px-2 py-1 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:text-gray-400 dark:hover:bg-gray-800/80 dark:hover:text-gray-100 dark:focus-visible:outline-primary-500"
-				onclick={() => projectStore.loadExample('complex')}
-			>
-				Complex example
-			</button>
-		</div>
 	</div>
 	<p class="mb-4 w-full text-base text-gray-600 dark:text-gray-400">
 		Each row is a line of text with its own font and size. In the preview, click a word, then click

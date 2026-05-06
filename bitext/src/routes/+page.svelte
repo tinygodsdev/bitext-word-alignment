@@ -2,6 +2,7 @@
 	import { browser } from '$app/environment';
 	import { page } from '$app/state';
 	import Editor from '$lib/components/editor/Editor.svelte';
+	import LineEditModal from '$lib/components/editor/LineEditModal.svelte';
 	import AlignmentPreview from '$lib/components/preview/AlignmentPreview.svelte';
 	import SettingsPanel from '$lib/components/settings/SettingsPanel.svelte';
 	import ExportCard from '$lib/components/settings/ExportCard.svelte';
@@ -24,6 +25,7 @@
 
 	let hydrated = $state(false);
 	let previewExpand = $state(false);
+	let showClassicEditor = $state(false);
 
 	$effect(() => {
 		if (hydrated) return;
@@ -191,9 +193,11 @@
 
 	<div class="grid grid-cols-12 gap-6 lg:gap-8">
 		<div class="col-span-12 lg:col-span-8 lg:col-start-1 lg:row-start-1">
-			<div class="mb-8">
-				<Editor />
-			</div>
+			{#if showClassicEditor}
+				<div class="mb-8">
+					<Editor />
+				</div>
+			{/if}
 			<section class="mb-8" aria-labelledby="preview-heading">
 				<div class="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
 					<div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
@@ -203,6 +207,22 @@
 						>
 							Preview
 						</h2>
+						<div class="flex flex-wrap items-center gap-1">
+							<button
+								type="button"
+								class="shrink-0 rounded-none border-0 bg-transparent px-2 py-1 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:text-gray-400 dark:hover:bg-gray-800/80 dark:hover:text-gray-100 dark:focus-visible:outline-primary-500"
+								onclick={() => projectStore.loadExample('simple')}
+							>
+								Simple example
+							</button>
+							<button
+								type="button"
+								class="shrink-0 rounded-none border-0 bg-transparent px-2 py-1 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:text-gray-400 dark:hover:bg-gray-800/80 dark:hover:text-gray-100 dark:focus-visible:outline-primary-500"
+								onclick={() => projectStore.loadExample('complex')}
+							>
+								Complex example
+							</button>
+						</div>
 						{#if selectionStore.showLinkHint()}
 							<p class="max-w-xl text-base text-gray-600 dark:text-gray-400" role="status">
 								{#if selectionStore.adjacencyHint}
@@ -215,6 +235,16 @@
 						{/if}
 					</div>
 					<div class="flex shrink-0 flex-wrap items-center gap-2">
+						<button
+							type="button"
+							class="shrink-0 rounded-none border border-gray-300 bg-white px-2 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus-visible:outline-primary-500"
+							onclick={() => {
+								showClassicEditor = !showClassicEditor;
+							}}
+							aria-pressed={showClassicEditor}
+						>
+							{showClassicEditor ? 'Hide classic editor' : 'Show classic editor'}
+						</button>
 						<Button
 							color="light"
 							size="sm"
@@ -240,10 +270,10 @@
 						</Button>
 					</div>
 				</div>
-				<AlignmentPreview />
+				<AlignmentPreview instancePrefix="preview-inline" writesExportLayout={!previewExpand} />
 				{#if previewExpand}
 					<div
-						class="fixed inset-0 z-50 flex flex-col bg-black/60 p-4 backdrop-blur-sm md:p-8"
+						class="fixed inset-0 z-40 flex flex-col bg-black/60 p-4 backdrop-blur-sm md:p-8"
 						role="dialog"
 						aria-modal="true"
 						aria-label="Fullscreen preview"
@@ -262,7 +292,7 @@
 								Close
 							</button>
 							<div class="min-h-0 flex-1 overflow-auto p-4 pt-12 md:p-6 md:pt-14">
-								<AlignmentPreview />
+								<AlignmentPreview instancePrefix="preview-fs" writesExportLayout={previewExpand} />
 							</div>
 						</div>
 					</div>
@@ -357,6 +387,8 @@
 			</div>
 		</div>
 	</div>
+
+	<LineEditModal />
 
 	<footer
 		class="mt-12 border-t border-gray-200 pt-8 text-center text-base leading-relaxed text-gray-600 dark:border-gray-700 dark:text-gray-400"
