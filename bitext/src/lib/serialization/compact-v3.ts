@@ -1,7 +1,6 @@
 import { createConnectionId, type Connection } from '$lib/domain/alignment.js';
-import { tokenize } from '$lib/domain/tokens.js';
+import { tokenize, tokenizeOptionsFromVisualSettings } from '$lib/domain/tokens.js';
 import {
-	DEFAULT_TOKEN_SPLIT_CHARS,
 	SCHEMA_VERSION,
 	clampLineGapPx,
 	clampWordGapPx,
@@ -49,7 +48,8 @@ function roundVisualSettings(s: VisualSettingsV2): VisualSettingsV2 {
 function settingsToCompact(rounded: VisualSettingsV2): CompactSettings3 | undefined {
 	const def = roundVisualSettings(defaultVisualSettingsV2());
 	const o: CompactSettings3 = {};
-	if (rounded.theme !== def.theme) o.th = rounded.theme === 'dark' ? 1 : 0;
+	// Site chrome (`theme`) and preview toolbar visibility (`previewHideChrome`) are local UI only;
+	// they must not affect share URLs or decoded alignment payloads.
 	if (rounded.lineThickness !== def.lineThickness) o.lt = rounded.lineThickness;
 	if (rounded.lineOpacity !== def.lineOpacity) o.lo = rounded.lineOpacity;
 	if (rounded.lineStyle !== def.lineStyle) o.ls = rounded.lineStyle === 'straight' ? 0 : 1;
@@ -57,16 +57,23 @@ function settingsToCompact(rounded: VisualSettingsV2): CompactSettings3 | undefi
 	if (rounded.showNumbers !== def.showNumbers) o.sn = rounded.showNumbers ? 1 : 0;
 	if (rounded.colorTokensByLink !== def.colorTokensByLink) o.ct = rounded.colorTokensByLink ? 1 : 0;
 	if (rounded.tokenSplitChars !== def.tokenSplitChars) o.sp = rounded.tokenSplitChars;
+	if (rounded.tokenSplitPunctuation !== def.tokenSplitPunctuation) {
+		o.pp = rounded.tokenSplitPunctuation ? 1 : 0;
+	}
+	if (rounded.tokenPunctuationChars) o.px = rounded.tokenPunctuationChars;
 	if (rounded.background !== def.background) {
 		o.bg = rounded.background === 'light' ? 0 : rounded.background === 'dark' ? 1 : 2;
 	}
-	return Object.keys(o).length ? sortKeys(o) : undefined;
+	const keysBeforeFinalize = Object.keys(o).length;
+	if (keysBeforeFinalize > 0) {
+		o.mg = rounded.tokenMergeChar;
+	}
+	return keysBeforeFinalize > 0 ? sortKeys(o) : undefined;
 }
 
 function compactToVisualSettings(s: CompactSettings3 | undefined): VisualSettingsV2 {
 	if (!s) return defaultVisualSettingsV2();
 	const raw: Record<string, unknown> = {};
-	if (s.th !== undefined) raw.theme = Number(s.th) === 1 ? 'dark' : 'light';
 	if (s.lt !== undefined) raw.lineThickness = Number(s.lt);
 	if (s.lo !== undefined) raw.lineOpacity = Number(s.lo);
 	if (s.ls !== undefined) raw.lineStyle = Number(s.ls) === 0 ? 'straight' : 'curved';
@@ -74,6 +81,9 @@ function compactToVisualSettings(s: CompactSettings3 | undefined): VisualSetting
 	if (s.sn !== undefined) raw.showNumbers = Number(s.sn) === 1;
 	if (s.ct !== undefined) raw.colorTokensByLink = Number(s.ct) === 1;
 	if (s.sp !== undefined) raw.tokenSplitChars = String(s.sp);
+	if (s.mg !== undefined) raw.tokenMergeChar = String(s.mg);
+	if (s.px !== undefined) raw.tokenPunctuationChars = String(s.px);
+	if (s.pp !== undefined) raw.tokenSplitPunctuation = Number(s.pp) === 1;
 	if (s.bg !== undefined) {
 		const n = Number(s.bg);
 		raw.background = n === 1 ? 'dark' : n === 2 ? 'image' : 'light';
@@ -251,9 +261,9 @@ function pruneConnections(
 ): ProjectSnapshotV2 {
 	const lineOrder = project.lines.map((l) => l.id);
 	const tokenToLine = new Map<string, string>();
-	const split = settings.tokenSplitChars ?? DEFAULT_TOKEN_SPLIT_CHARS;
+	const tz = tokenizeOptionsFromVisualSettings(settings);
 	for (const line of project.lines) {
-		for (const t of tokenize(line.rawText, line.id, split)) {
+		for (const t of tokenize(line.rawText, line.id, tz)) {
 			tokenToLine.set(t.id, line.id);
 		}
 	}

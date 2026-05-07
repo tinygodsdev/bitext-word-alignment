@@ -85,5 +85,5 @@ export function pendingAlignmentColor(
 	const componentBefore = connectedConnectionIds(connections, seedTokens);
 	const used = new Set(connections.map((l) => l.color).filter((c): c is string => Boolean(c)));
 	const inherited = connections.find((l) => componentBefore.has(l.id) && l.color)?.color;
-	return inherited ?? pickUnusedPaletteColor(palette, used);
+	return inherited ?? pickUnusedPaletteColor(palette, used, connections.length);
 }

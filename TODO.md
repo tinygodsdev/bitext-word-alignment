@@ -17,27 +17,28 @@
 Includes bugs and feature requests from the public.
 
 Feature requests - high priority:
-- [ ] Add ability to add more than 2 lines 
+- [x] Add ability to add more than 2 lines 
 - [ ] Improve support for longer sentences - currently non-svg export is low resolution when font is small
-- [ ] add special separator to combine words into a single token - it will be connected with 1 line in the visualization but still be written with a space or spaces
-- [ ] add ability to optionally tokenize punctuation as separate tokens
-- [ ] add transcription line support (probably can be solved by adding more than 2 lines)
+- [x] add special separator to combine words into a single token - it will be connected with 1 line in the visualization but still be written with a space or spaces
+- [x] add ability to optionally tokenize punctuation as separate tokens
+- [x] add transcription line support (probably can be solved by adding more than 2 lines)
 
 Usability improvements - high priority:
 - [ ] Parameter card or other view should move to be next to the editor - currently on small screens you have to scroll back and forth between the editor and the parameters
 
 Bug fixes - high priority:
 - [ ] Reportedly ligatures in custom fonts are not working in the export (but fine in preview) - investigate and fix
-- [ ] When color palette is depleted, it should cycle through the colors - currently uses the last color
+- [x] When color palette is depleted, it should cycle through the colors - currently uses the last color
 
 Advanced features - medium priority:
 - [ ] Ability to create custom color palettes
-- [ ] Maybe parameter-line connection should be reworked to be more flexible - each line should have all the parameters configured separately. 
+- [x] Maybe parameter-line connection should be reworked to be more flexible - each line should have all the parameters configured separately. 
+- [x] Add ability to hide preview controls so that the user can see the entire visualization and screenshot it if needed. In this mode - add the credit to the bottom of the visualization, like in exports.
 
 General interface improvements - medium priority:
 - [ ] Interface languages - add pages for some major languages
 - [ ] Make interface more compact to accomodate more features
-- [ ] Probably add full screen mode for the preview - so that the user would be able to see it all and screenshot if needed - this will partially help if we won't be able to solve ligature problems
+- [x] Probably add full screen mode for the preview - so that the user would be able to see it all and screenshot if needed - this will partially help if we won't be able to solve ligature problems
 
 Considerations:
 - If we support multiple lines with independent parameters, we can deprecate separate gloss row and configuration - it will be just a single new line with the glosses. Then, the user would be able to add transcription and other annotations in the same manner. 

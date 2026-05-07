@@ -10,8 +10,23 @@
 	import ColorsTab from './ColorsTab.svelte';
 	import LinguisticsTab from './LinguisticsTab.svelte';
 	import FontsTab from './FontsTab.svelte';
+	import { settingsNavStore } from '$lib/state/settingsNav.svelte.js';
 
 	let selected = $state('appearance');
+	let lastTokensFocusGeneration = 0;
+
+	$effect(() => {
+		const gen = settingsNavStore.tokensFocusGeneration;
+		if (gen <= lastTokensFocusGeneration) return;
+		lastTokensFocusGeneration = gen;
+		selected = 'linguistics';
+		queueMicrotask(() => {
+			document.getElementById('settings-panel')?.scrollIntoView({
+				behavior: 'smooth',
+				block: 'start'
+			});
+		});
+	});
 </script>
 
 <Card class="max-w-none min-w-0 w-full p-4 sm:p-6">

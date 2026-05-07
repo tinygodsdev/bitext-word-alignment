@@ -16,8 +16,7 @@ import {
 	type AppStateV2,
 	type BackgroundMode,
 	type LineStyle,
-	type ProjectSnapshotV2,
-	type UiTheme
+	type ProjectSnapshotV2
 } from './schema.js';
 import { addAtomicConnections } from '$lib/domain/alignment.js';
 import type { Connection } from '$lib/domain/alignment.js';
@@ -191,25 +190,69 @@ describe('compact v3 encode/decode (current share format)', () => {
 		expect(encodeState(s)).toBe(encodeState(s));
 	});
 
-	it('enum coverage: lineStyle, background, theme', () => {
+	it('preview hide chrome is not part of share wire', () => {
+		const base = migrate({});
+		const hidden: AppStateV2 = {
+			...base,
+			settings: { ...base.settings, previewHideChrome: true }
+		};
+		const shown: AppStateV2 = {
+			...base,
+			settings: { ...base.settings, previewHideChrome: false }
+		};
+		expect(encodeState(hidden)).toBe(encodeState(shown));
+		const decoded = decodeState(encodeState(hidden));
+		expect(decoded.settings.previewHideChrome).toBe(false);
+	});
+
+	it('round-trip: token merge char and punctuation split', () => {
+		const base = migrate({});
+		const s: AppStateV2 = {
+			...base,
+			settings: {
+				...base.settings,
+				tokenMergeChar: '+',
+				tokenSplitPunctuation: true,
+				tokenPunctuationChars: ',;',
+				tokenSplitChars: '.'
+			}
+		};
+		const decoded = decodeState(encodeState(s));
+		expect(decoded.settings.tokenMergeChar).toBe('+');
+		expect(decoded.settings.tokenSplitPunctuation).toBe(true);
+		expect(decoded.settings.tokenPunctuationChars).toBe(',;');
+		expect(decoded.settings.tokenSplitChars).toBe('.');
+	});
+
+	it('enum coverage: lineStyle, background', () => {
 		const base = migrate({});
 		const lineStyles: LineStyle[] = ['straight', 'curved'];
 		const backgrounds: BackgroundMode[] = ['light', 'dark', 'image'];
-		const themes: UiTheme[] = ['light', 'dark'];
 		for (const lineStyle of lineStyles) {
 			for (const background of backgrounds) {
-				for (const theme of themes) {
-					const next: AppStateV2 = {
-						...base,
-						settings: { ...base.settings, lineStyle, background, theme }
-					};
-					const decoded = decodeState(encodeState(next));
-					expect(decoded.settings.lineStyle).toBe(lineStyle);
-					expect(decoded.settings.background).toBe(background);
-					expect(decoded.settings.theme).toBe(theme);
-				}
+				const next: AppStateV2 = {
+					...base,
+					settings: { ...base.settings, lineStyle, background }
+				};
+				const decoded = decodeState(encodeState(next));
+				expect(decoded.settings.lineStyle).toBe(lineStyle);
+				expect(decoded.settings.background).toBe(background);
 			}
 		}
+	});
+
+	it('site theme is not part of share wire', () => {
+		const base = migrate({});
+		const light: AppStateV2 = {
+			...base,
+			settings: { ...base.settings, theme: 'light' }
+		};
+		const dark: AppStateV2 = {
+			...base,
+			settings: { ...base.settings, theme: 'dark' }
+		};
+		expect(encodeState(light)).toBe(encodeState(dark));
+		expect(decodeState(encodeState(dark)).settings.theme).toBe('light');
 	});
 
 	it('reject wrong compact wire version', () => {

@@ -1,7 +1,9 @@
 <script lang="ts">
+	import { LanguageOutline } from 'flowbite-svelte-icons';
 	import { Modal, Button } from 'flowbite-svelte';
-	import { DEFAULT_TOKEN_SPLIT_CHARS } from '$lib/serialization/schema.js';
+	import { editorTokenizationChipValues } from '$lib/domain/tokenization-summary.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
+	import { settingsNavStore } from '$lib/state/settingsNav.svelte.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { selectionStore } from '$lib/state/selection.svelte.js';
 	import { layoutExportStore } from '$lib/state/layoutExport.svelte.js';
@@ -33,6 +35,9 @@
 
 	const tokens = $derived(currentLine ? projectStore.tokensOnLine(currentLine.id) : []);
 	const connections = $derived(projectStore.connections);
+	const tok = $derived(editorTokenizationChipValues(settingsStore.settings));
+	const chipClass =
+		'rounded-none bg-gray-200 px-1.5 py-0.5 font-mono text-[0.8125rem] leading-none text-gray-900 dark:bg-gray-700 dark:text-gray-100';
 
 	const areaClass =
 		'block w-full rounded-none border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-primary-500 dark:focus:ring-primary-500';
@@ -88,12 +93,29 @@
 	size="lg"
 >
 	{#if currentLine}
-		<p class="text-base text-gray-600 dark:text-gray-400">
-			Whitespace splits words. Extra split characters (from Linguistics in settings) also split
-			within the line (currently
-			<code class="rounded-none bg-gray-200 px-1 dark:bg-gray-700"
-				>{settingsStore.settings.tokenSplitChars || DEFAULT_TOKEN_SPLIT_CHARS}</code
-			>). Below is a live preview of tokens.
+		<p
+			class="flex flex-wrap items-start gap-x-2 gap-y-1 text-sm leading-snug text-gray-600 dark:text-gray-400"
+		>
+			<span class="min-w-0 flex-1 [&>span]:mr-1 [&>span]:inline [&>span]:last:mr-0">
+				<span>Whitespace splits words.</span>
+				<span>Extra split characters: <code class={chipClass}>{tok.extraSplitChars}</code>.</span>
+				<span>Join characters: <code class={chipClass}>{tok.joinChars}</code>.</span>
+				<span
+					>Tokenize punctuation: <code class="{chipClass} max-w-[min(100%,24rem)] break-all"
+						>{tok.punctuationChip}</code
+					>.</span
+				>
+				<span>Preview below.</span>
+			</span>
+			<button
+				type="button"
+				class="shrink-0 rounded-none border border-gray-300 bg-gray-50 p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200 dark:focus-visible:outline-gray-400"
+				title="Edit tokenization (Settings → Tokens)"
+				aria-label="Edit tokenization rules"
+				onclick={() => settingsNavStore.focusTokensTab()}
+			>
+				<LanguageOutline class="h-5 w-5" aria-hidden="true" />
+			</button>
 		</p>
 		<label
 			class="my-3 block text-sm font-medium text-gray-900 dark:text-white"

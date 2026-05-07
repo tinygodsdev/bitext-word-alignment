@@ -113,6 +113,7 @@
 		}
 		void projectStore.pairControls;
 		void settingsStore.settings.lineStyle;
+		void settingsStore.settings.previewHideChrome;
 		void projectStore.lines;
 		void writesExportLayout;
 

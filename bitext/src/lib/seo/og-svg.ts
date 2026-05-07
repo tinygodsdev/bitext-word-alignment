@@ -1,6 +1,6 @@
 import { escapeXml } from '$lib/export/xml.js';
 import { ALIGNER_SITE_HOST } from '$lib/brand.js';
-import { tokenize, type Token } from '$lib/domain/tokens.js';
+import { tokenize, tokenizeOptionsFromVisualSettings, type Token } from '$lib/domain/tokens.js';
 import { connectedLinkComponents } from '$lib/domain/link-graph.js';
 import { PALETTES } from '$lib/domain/palettes.js';
 import type { AppStateV2 } from '$lib/serialization/schema.js';
@@ -94,15 +94,15 @@ function renderPlaceholder(x: number, y: number, text: string): string {
 
 /** OG preview: colored tokens from the shared state, no alignment lines. */
 export function buildOgSvg(state: AppStateV2): string {
-	const splitChars = state.settings.tokenSplitChars ?? '';
+	const tz = tokenizeOptionsFromVisualSettings(state.settings);
 	const lines = state.project.lines;
 	const colorByTokenId = buildTokenColorMap(state.project.connections);
 
 	const line0 = lines[0];
 	const line1 = lines[1];
 
-	const t0 = line0 ? tokenize(line0.rawText, line0.id, splitChars) : [];
-	const t1 = line1 ? tokenize(line1.rawText, line1.id, splitChars) : [];
+	const t0 = line0 ? tokenize(line0.rawText, line0.id, tz) : [];
+	const t1 = line1 ? tokenize(line1.rawText, line1.id, tz) : [];
 
 	const src = fitTokens(t0, CHAR_BUDGET);
 	const tgt = fitTokens(t1, CHAR_BUDGET);

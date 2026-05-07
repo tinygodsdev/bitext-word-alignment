@@ -3,7 +3,7 @@ import {
 	createConnectionId,
 	type Connection
 } from '$lib/domain/alignment.js';
-import { tokenize } from '$lib/domain/tokens.js';
+import { tokenize, tokenizeOptionsFromVisualSettings } from '$lib/domain/tokens.js';
 import { PALETTES, type PaletteName } from '$lib/domain/palettes.js';
 
 export const SCHEMA_VERSION = 2 as const;
@@ -34,6 +34,8 @@ export const DEFAULT_WORD_GAP_PX = 14;
 export const MIN_WORD_GAP_PX = 0;
 export const MAX_WORD_GAP_PX = 56;
 export const DEFAULT_TOKEN_SPLIT_CHARS = '.-';
+/** Default join character for new projects; omits from compact when equal. */
+export const DEFAULT_TOKEN_MERGE_CHAR = '+';
 
 export function clampWordGapPx(n: number): number {
 	return Math.max(MIN_WORD_GAP_PX, Math.min(MAX_WORD_GAP_PX, Math.round(n)));
@@ -50,6 +52,35 @@ function normalizeTokenSplitCharsField(input: unknown, fallback: string): string
 		uniq.push(ch);
 	}
 	return uniq.join('').slice(0, 24);
+}
+
+/** First non-whitespace codepoint, or empty (merge disabled). */
+export function normalizeTokenMergeCharField(input: unknown): string {
+	if (input == null || input === '') return '';
+	const raw = typeof input === 'string' ? input : String(input);
+	for (const ch of raw) {
+		if (/\s/u.test(ch)) continue;
+		return ch;
+	}
+	return '';
+}
+
+const MAX_TOKEN_PUNCTUATION_CHARS = 48;
+
+/** Ordered unique codepoints (no whitespace); for custom punctuation-only splits. */
+export function normalizeTokenPunctuationCharsField(input: unknown): string {
+	if (input == null) return '';
+	const raw = typeof input === 'string' ? input : String(input);
+	const out: string[] = [];
+	const seen = new Set<string>();
+	for (const ch of raw) {
+		if (/\s/u.test(ch)) continue;
+		if (seen.has(ch)) continue;
+		seen.add(ch);
+		out.push(ch);
+		if (out.length >= MAX_TOKEN_PUNCTUATION_CHARS) break;
+	}
+	return out.join('');
 }
 
 export interface LineFontV2 {
@@ -98,6 +129,17 @@ export interface VisualSettingsV2 {
 	showNumbers: boolean;
 	colorTokensByLink: boolean;
 	tokenSplitChars: string;
+	/** Single character: joins parts into one alignment token; shown as a space in preview. */
+	tokenMergeChar: string;
+	/** When true, split punctuation into separate tokens (see tokenPunctuationChars). */
+	tokenSplitPunctuation: boolean;
+	/**
+	 * When split punctuation is on: empty → Unicode `\p{P}`; non-empty → only these characters
+	 * count as splittable punctuation.
+	 */
+	tokenPunctuationChars: string;
+	/** Hide preview chrome (line controls, gap sliders, toolbar) and show export-style attribution in-frame. */
+	previewHideChrome: boolean;
 	background: BackgroundMode;
 	backgroundImageDataUrl?: string;
 }
@@ -171,6 +213,10 @@ export function defaultVisualSettingsV2(): VisualSettingsV2 {
 		showNumbers: false,
 		colorTokensByLink: true,
 		tokenSplitChars: DEFAULT_TOKEN_SPLIT_CHARS,
+		tokenMergeChar: DEFAULT_TOKEN_MERGE_CHAR,
+		tokenSplitPunctuation: false,
+		tokenPunctuationChars: '',
+		previewHideChrome: false,
 		background: 'light'
 	};
 }
@@ -241,6 +287,10 @@ export function visualSettingsV1ToV2(v1: VisualSettingsV1): VisualSettingsV2 {
 		showNumbers: v1.showNumbers,
 		colorTokensByLink: v1.colorTokensByLink,
 		tokenSplitChars: v1.tokenSplitChars,
+		tokenMergeChar: '',
+		tokenSplitPunctuation: false,
+		tokenPunctuationChars: '',
+		previewHideChrome: false,
 		background: v1.background,
 		backgroundImageDataUrl: v1.backgroundImageDataUrl
 	};
@@ -255,12 +305,12 @@ export function migrateV1ToV2(
 	settingsV1: VisualSettingsV1
 ): { project: ProjectSnapshotV2; settings: VisualSettingsV2 } {
 	const settings = visualSettingsV1ToV2(settingsV1);
-	const splitChars = settings.tokenSplitChars;
+	const tz = tokenizeOptionsFromVisualSettings(settings);
 	const glossColor = PALETTES[settingsV1.palette][0] ?? '#94a3b8';
 	const wordGap = clampWordGapPx(settingsV1.gapWordPx);
 
-	const sourceTokens = tokenize(project.sourceText, 's', splitChars);
-	const targetTokens = tokenize(project.targetText, 't', splitChars);
+	const sourceTokens = tokenize(project.sourceText, 's', tz);
+	const targetTokens = tokenize(project.targetText, 't', tz);
 
 	const lines: LineV2[] = [];
 	/** Only non-default entries (`showConnectors === false`). */
@@ -318,7 +368,7 @@ export function migrateV1ToV2(
 		};
 		lines.push(gsLine);
 		pairControls.push({ upperLineId: 'gs', lowerLineId: 's', showConnectors: false });
-		const glossTokens = tokenize(gsLine.rawText, 'gs', splitChars);
+		const glossTokens = tokenize(gsLine.rawText, 'gs', tz);
 		const pairs: { upperTokenId: string; lowerTokenId: string }[] = [];
 		const n = Math.min(glossTokens.length, srcIndices.length);
 		for (let i = 0; i < n; i++) {
@@ -356,7 +406,7 @@ export function migrateV1ToV2(
 		};
 		lines.push(gtLine);
 		pairControls.push({ upperLineId: 't', lowerLineId: 'gt', showConnectors: false });
-		const glossTokens = tokenize(gtLine.rawText, 'gt', splitChars);
+		const glossTokens = tokenize(gtLine.rawText, 'gt', tz);
 		const pairs: { upperTokenId: string; lowerTokenId: string }[] = [];
 		const n = Math.min(glossTokens.length, tgtIndices.length);
 		for (let i = 0; i < n; i++) {
@@ -663,6 +713,16 @@ export function normalizeVisualSettingsV2(
 ): VisualSettingsV2 {
 	const d = defaultVisualSettingsV2();
 	if (!raw || typeof raw !== 'object') return d;
+	const mergeNorm = Object.prototype.hasOwnProperty.call(raw, 'tokenMergeChar')
+		? normalizeTokenMergeCharField(raw.tokenMergeChar)
+		: '';
+	let splitNorm = normalizeTokenSplitCharsField(raw.tokenSplitChars, d.tokenSplitChars);
+	if (mergeNorm) {
+		splitNorm = [...splitNorm].filter((c) => c !== mergeNorm).join('');
+	}
+	const punctNorm = Object.prototype.hasOwnProperty.call(raw, 'tokenPunctuationChars')
+		? normalizeTokenPunctuationCharsField(raw.tokenPunctuationChars)
+		: '';
 	return {
 		theme: normalizeUiTheme(String(raw.theme ?? d.theme)),
 		lineThickness:
@@ -682,7 +742,15 @@ export function normalizeVisualSettingsV2(
 		showNumbers: typeof raw.showNumbers === 'boolean' ? raw.showNumbers : d.showNumbers,
 		colorTokensByLink:
 			typeof raw.colorTokensByLink === 'boolean' ? raw.colorTokensByLink : d.colorTokensByLink,
-		tokenSplitChars: normalizeTokenSplitCharsField(raw.tokenSplitChars, d.tokenSplitChars),
+		tokenMergeChar: mergeNorm,
+		tokenSplitPunctuation:
+			typeof raw.tokenSplitPunctuation === 'boolean'
+				? raw.tokenSplitPunctuation
+				: d.tokenSplitPunctuation,
+		tokenPunctuationChars: punctNorm,
+		tokenSplitChars: splitNorm,
+		previewHideChrome:
+			typeof raw.previewHideChrome === 'boolean' ? raw.previewHideChrome : d.previewHideChrome,
 		background:
 			raw.background === 'light' || raw.background === 'dark' || raw.background === 'image'
 				? raw.background

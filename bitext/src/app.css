@@ -123,6 +123,39 @@ html {
 	align-items: stretch;
 }
 
+.preview-frame__attribution {
+	position: relative;
+	z-index: 3;
+	margin-top: 1rem;
+	text-align: center;
+	font-family: var(--font-body, system-ui, sans-serif);
+	font-size: 0.75rem;
+	line-height: 1.4;
+	opacity: 0.72;
+}
+
+.preview-frame--light .preview-frame__attribution {
+	color: #64748b;
+}
+
+.preview-frame--dark .preview-frame__attribution {
+	color: #94a3b8;
+}
+
+.preview-frame__attribution-link {
+	text-decoration: underline;
+	text-underline-offset: 2px;
+	cursor: pointer;
+}
+
+.preview-frame--light .preview-frame__attribution-link {
+	color: #475569;
+}
+
+.preview-frame--dark .preview-frame__attribution-link {
+	color: #cbd5e1;
+}
+
 .preview-gloss-wrap {
 	width: 100%;
 	display: flex;

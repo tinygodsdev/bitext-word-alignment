@@ -26,6 +26,15 @@
 	let hydrated = $state(false);
 	let previewExpand = $state(false);
 
+	function closeFullscreenPreview() {
+		previewExpand = false;
+		queueMicrotask(() => layoutExportStore.requestRemeasure());
+	}
+
+	/** Shared geometry so fullscreen toolbar buttons match despite UA `button` defaults. */
+	const fullscreenPreviewToolbarBtn =
+		'box-border m-0 appearance-none inline-flex h-8 min-h-8 max-h-8 shrink-0 items-center justify-center whitespace-nowrap rounded-none border border-solid px-3 py-0 text-sm font-medium leading-none shadow-sm backdrop-blur-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 dark:focus-visible:outline-primary-400';
+
 	$effect(() => {
 		if (hydrated) return;
 		if (data.initialState) {
@@ -40,10 +49,7 @@
 		if (!browser) return;
 		if (!previewExpand) return;
 		function onKey(e: KeyboardEvent) {
-			if (e.key === 'Escape') {
-				previewExpand = false;
-				queueMicrotask(() => layoutExportStore.requestRemeasure());
-			}
+			if (e.key === 'Escape') closeFullscreenPreview();
 		}
 		window.addEventListener('keydown', onKey);
 		return () => window.removeEventListener('keydown', onKey);
@@ -95,6 +101,7 @@
 	const examplesImageClipPath = `inset(${EXAMPLES_IMAGE_VERTICAL_CROP} 0 ${EXAMPLES_IMAGE_VERTICAL_CROP} 0)`;
 
 	const siteTheme = $derived(settingsStore.settings.theme);
+	const previewHideChrome = $derived(settingsStore.settings.previewHideChrome);
 	const themeToggleActive = 'bg-primary-600 text-white dark:bg-primary-500';
 	const themeToggleInactive =
 		'bg-transparent text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800';
@@ -231,54 +238,88 @@
 							</p>
 						{/if}
 					</div>
-					<div class="flex shrink-0 flex-wrap items-center gap-2">
+					<div class="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2">
 						<Button
 							color="light"
 							size="sm"
 							class="shrink-0"
+							title="Only affects controls inside the preview frame (add line, reorder, line settings, gap sliders). Attribution appears at the bottom when hidden. Layout stays the same."
+							aria-pressed={previewHideChrome}
 							onclick={() => {
-								previewExpand = true;
-								queueMicrotask(() => layoutExportStore.requestRemeasure());
+								settingsStore.patch({ previewHideChrome: !previewHideChrome });
+								layoutExportStore.requestRemeasureAfterLayout();
 							}}
 						>
-							Expand
+							{previewHideChrome ? 'Show controls' : 'Hide controls'}
 						</Button>
-						<Button
-							color="light"
-							size="sm"
-							class="shrink-0"
-							disabled={projectStore.connections.length === 0}
-							onclick={() => {
-								projectStore.clearAllConnections();
-								selectionStore.clear();
-							}}
-						>
-							Clear all links
-						</Button>
+						<div class="flex flex-wrap items-center gap-2">
+							<Button
+								color="light"
+								size="sm"
+								class="shrink-0"
+								onclick={() => {
+									previewExpand = true;
+									queueMicrotask(() => layoutExportStore.requestRemeasure());
+								}}
+							>
+								Expand
+							</Button>
+							<Button
+								color="light"
+								size="sm"
+								class="shrink-0"
+								disabled={projectStore.connections.length === 0}
+								onclick={() => {
+									projectStore.clearAllConnections();
+									selectionStore.clear();
+								}}
+							>
+								Clear all links
+							</Button>
+						</div>
 					</div>
 				</div>
 				<AlignmentPreview instancePrefix="preview-inline" writesExportLayout={!previewExpand} />
 				{#if previewExpand}
 					<div
-						class="fixed inset-0 z-40 flex flex-col bg-black/60 p-4 backdrop-blur-sm md:p-8"
+						class="fixed inset-0 z-40"
 						role="dialog"
 						aria-modal="true"
 						aria-label="Fullscreen preview"
 					>
-						<div
-							class="relative mx-auto flex min-h-0 w-full max-w-none flex-1 flex-col rounded-none border border-gray-700 bg-gray-900 shadow-xl dark:bg-gray-950"
-						>
-							<button
-								type="button"
-								class="absolute right-3 top-3 z-10 rounded-none border border-gray-600 bg-gray-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700"
-								onclick={() => {
-									previewExpand = false;
-									queueMicrotask(() => layoutExportStore.requestRemeasure());
-								}}
+						<button
+							type="button"
+							class="absolute inset-0 cursor-default bg-black/70 backdrop-blur-sm"
+							aria-label="Close fullscreen preview"
+							onclick={closeFullscreenPreview}
+						></button>
+						<div class="relative z-10 box-border pointer-events-none pt-12 pb-3 md:pt-14 md:pb-4">
+							<div
+								class="pointer-events-auto absolute right-3 top-3 z-10 flex flex-wrap items-center justify-end gap-2"
 							>
-								Close
-							</button>
-							<div class="min-h-0 flex-1 overflow-auto p-4 pt-12 md:p-6 md:pt-14">
+								<button
+									type="button"
+									class="{fullscreenPreviewToolbarBtn} border-gray-300 bg-white text-gray-900 hover:bg-gray-100 dark:border-gray-500 dark:bg-gray-200 dark:text-gray-900 dark:hover:bg-gray-300"
+									title="Only affects controls inside the preview frame (add line, reorder, line settings, gap sliders). Attribution appears at the bottom when hidden. Layout stays the same."
+									aria-pressed={previewHideChrome}
+									onclick={() => {
+										settingsStore.patch({ previewHideChrome: !previewHideChrome });
+										layoutExportStore.requestRemeasureAfterLayout();
+									}}
+								>
+									{previewHideChrome ? 'Show controls' : 'Hide controls'}
+								</button>
+								<button
+									type="button"
+									class="{fullscreenPreviewToolbarBtn} border-gray-600 bg-gray-900/90 text-white hover:bg-gray-800 dark:bg-gray-950/90"
+									onclick={closeFullscreenPreview}
+								>
+									Close
+								</button>
+							</div>
+							<div
+								class="pointer-events-auto max-h-[calc(100dvh-3.75rem)] w-full overflow-y-auto overscroll-contain md:max-h-[calc(100dvh-4.5rem)]"
+							>
 								<AlignmentPreview instancePrefix="preview-fs" writesExportLayout={previewExpand} />
 							</div>
 						</div>

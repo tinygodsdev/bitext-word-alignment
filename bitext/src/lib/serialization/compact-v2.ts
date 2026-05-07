@@ -1,7 +1,7 @@
 import { addAtomicLinks, type Connection } from '$lib/domain/alignment.js';
 import { connectedConnectionIds } from '$lib/domain/link-graph.js';
 import { pickUnusedPaletteColor, type PaletteName } from '$lib/domain/palettes.js';
-import { tokenize } from '$lib/domain/tokens.js';
+import { tokenize, tokenizeOptionsFromVisualSettings } from '$lib/domain/tokens.js';
 import {
 	DEFAULT_TOKEN_SPLIT_CHARS,
 	defaultProjectSnapshot,
@@ -63,7 +63,7 @@ function addAlignmentStep(
 	const componentBefore = connectedConnectionIds(links, seedTokens);
 	const used = new Set(links.map((l) => l.color).filter((c): c is string => Boolean(c)));
 	const inherited = links.find((l) => componentBefore.has(l.id) && l.color)?.color;
-	const color = inherited ?? pickUnusedPaletteColor(palette, used);
+	const color = inherited ?? pickUnusedPaletteColor(palette, used, links.length);
 	const pairs: { sourceId: string; targetId: string }[] = [];
 	for (const s of sourceIds) {
 		for (const t of targetIds) {
@@ -325,8 +325,14 @@ function compactToProject(
 	const sourceText = p.st ?? def.sourceText;
 	const targetText = p.tt ?? def.targetText;
 	const splitChars = settings.tokenSplitChars ?? DEFAULT_TOKEN_SPLIT_CHARS;
-	const stoks = tokenize(sourceText, 's', splitChars);
-	const ttoks = tokenize(targetText, 't', splitChars);
+	const tz = tokenizeOptionsFromVisualSettings({
+		tokenSplitChars: splitChars,
+		tokenMergeChar: '',
+		tokenSplitPunctuation: false,
+		tokenPunctuationChars: ''
+	});
+	const stoks = tokenize(sourceText, 's', tz);
+	const ttoks = tokenize(targetText, 't', tz);
 
 	const sourceGlosses = parseSparseGlosses(p.sg, stoks.length);
 	const targetGlosses = parseSparseGlosses(p.tg, ttoks.length);

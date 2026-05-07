@@ -15,7 +15,7 @@ import {
 	isStackedAdjacentPair
 } from '$lib/domain/lines-helpers.js';
 import { PALETTES, type PaletteName } from '$lib/domain/palettes.js';
-import type { Token } from '$lib/domain/tokens.js';
+import { tokenizeOptionsFromVisualSettings, type Token } from '$lib/domain/tokens.js';
 import {
 	clampLineGapPx,
 	clampWordGapPx,
@@ -48,15 +48,15 @@ class ProjectStore {
 		this.loadSnapshotV2(defaultProjectSnapshotV2());
 	}
 
-	private currentSplitChars(): string {
-		return settingsStore.settings.tokenSplitChars;
+	private currentTokenizeOptions() {
+		return tokenizeOptionsFromVisualSettings(settingsStore.settings);
 	}
 
 	private syncAllTokens() {
-		const split = this.currentSplitChars();
+		const opts = this.currentTokenizeOptions();
 		const next: Record<string, Token[]> = {};
 		for (const line of this.lines) {
-			next[line.id] = reconcileLineTokens(this.tokensByLineId[line.id], line, split);
+			next[line.id] = reconcileLineTokens(this.tokensByLineId[line.id], line, opts);
 		}
 		this.tokensByLineId = next;
 	}
@@ -65,7 +65,7 @@ class ProjectStore {
 		this.connections = filterConnectionsByAdjacency(
 			this.connections,
 			this.lines,
-			this.currentSplitChars()
+			this.currentTokenizeOptions()
 		);
 	}
 
@@ -102,10 +102,10 @@ class ProjectStore {
 		this.lines = this.lines.map((l) => (l.id === lineId ? { ...l, rawText: raw } : l));
 		const line = this.lines.find((l) => l.id === lineId);
 		if (!line) return;
-		const split = this.currentSplitChars();
+		const opts = this.currentTokenizeOptions();
 		this.tokensByLineId = {
 			...this.tokensByLineId,
-			[lineId]: reconcileLineTokens(this.tokensByLineId[lineId], line, split)
+			[lineId]: reconcileLineTokens(this.tokensByLineId[lineId], line, opts)
 		};
 		this.pruneInvalidConnections();
 	}
@@ -233,8 +233,8 @@ class ProjectStore {
 	}
 
 	addConnection(upperTokenId: string, lowerTokenId: string, palette: PaletteName) {
-		const split = this.currentSplitChars();
-		const tokenToLine = lineOrderTokenIds(this.lines, split);
+		const opts = this.currentTokenizeOptions();
+		const tokenToLine = lineOrderTokenIds(this.lines, opts);
 		const lineIds = this.lines.map((l) => l.id);
 		const adj = adjacentLineKeys(lineIds);
 		const lu = tokenToLine.get(upperTokenId);

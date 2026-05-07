@@ -10,6 +10,7 @@
 	import { selectionStore } from '$lib/state/selection.svelte.js';
 	import { lineIsLinkTargetWhilePending } from '$lib/domain/lines-helpers.js';
 	import { resolveLineFontCss } from '$lib/fonts/visualization-font.js';
+	import { ALIGNER_SITE_HOST, ALIGNER_SITE_URL } from '$lib/brand.js';
 	import { MAX_LINES } from '$lib/serialization/schema.js';
 
 	let {
@@ -25,6 +26,8 @@
 	let rootEl = $state<HTMLElement | null>(null);
 
 	const bg = $derived(settingsStore.settings.background);
+	const hideChrome = $derived(settingsStore.settings.previewHideChrome);
+	const chromeHiddenLayer = 'invisible pointer-events-none select-none';
 	const connections = $derived(projectStore.connections);
 	const lineIds = $derived(projectStore.lines.map((l) => l.id));
 </script>
@@ -46,7 +49,10 @@
 		<div class="preview-frame__image-overlay"></div>
 	{/if}
 	<div class="preview-stack">
-		<div class="mb-1 flex justify-center">
+		<div
+			class="mb-1 flex justify-center {hideChrome ? chromeHiddenLayer : ''}"
+			aria-hidden={hideChrome ? true : undefined}
+		>
 			<button
 				type="button"
 				class="rounded-none border border-dashed border-gray-400 px-2 py-0.5 text-xs font-medium text-gray-600 hover:border-primary-500 hover:text-primary-700 disabled:opacity-40 dark:border-gray-600 dark:text-gray-400 dark:hover:border-primary-400 dark:hover:text-primary-300"
@@ -67,7 +73,12 @@
 				class:opacity-[0.34]={rowDimmed}
 				style:font-family={resolveLineFontCss(line)}
 			>
-				<LineReorderButtons {line} index={li} total={projectStore.lines.length} />
+				<div
+					class="shrink-0 {hideChrome ? chromeHiddenLayer : ''}"
+					aria-hidden={hideChrome ? true : undefined}
+				>
+					<LineReorderButtons {line} index={li} total={projectStore.lines.length} />
+				</div>
 				<div class="preview-gloss-wrap min-w-0 flex-1">
 					<TokenRow
 						tokens={projectStore.tokensOnLine(line.id)}
@@ -78,20 +89,33 @@
 						interactive={true}
 					/>
 				</div>
-				<LineTrailingActions
-					{line}
-					index={li}
-					total={projectStore.lines.length}
-					{gearDomId}
-					triggeredBy={`#${gearDomId}`}
-				/>
+				<div
+					class="shrink-0 {hideChrome ? chromeHiddenLayer : ''}"
+					aria-hidden={hideChrome ? true : undefined}
+				>
+					<LineTrailingActions
+						{line}
+						index={li}
+						total={projectStore.lines.length}
+						{gearDomId}
+						triggeredBy={`#${gearDomId}`}
+					/>
+				</div>
 			</div>
 			{#if li < projectStore.lines.length - 1}
 				{@const lowerLine = projectStore.lines[li + 1]!}
-				<LinePairGapSlider upperLineId={line.id} lowerLineId={lowerLine.id} />
+				<div
+					class={hideChrome ? chromeHiddenLayer : ''}
+					aria-hidden={hideChrome ? true : undefined}
+				>
+					<LinePairGapSlider upperLineId={line.id} lowerLineId={lowerLine.id} />
+				</div>
 			{/if}
 		{/each}
-		<div class="mt-1 flex justify-center">
+		<div
+			class="mt-1 flex justify-center {hideChrome ? chromeHiddenLayer : ''}"
+			aria-hidden={hideChrome ? true : undefined}
+		>
 			<button
 				type="button"
 				class="rounded-none border border-dashed border-gray-400 px-2 py-0.5 text-xs font-medium text-gray-600 hover:border-primary-500 hover:text-primary-700 disabled:opacity-40 dark:border-gray-600 dark:text-gray-400 dark:hover:border-primary-400 dark:hover:text-primary-300"
@@ -101,6 +125,18 @@
 				+ Add line
 			</button>
 		</div>
+		{#if hideChrome}
+			<p class="preview-frame__attribution">
+				Created with
+				<button
+					type="button"
+					class="preview-frame__attribution-link inline cursor-pointer border-0 bg-transparent p-0 font-inherit underline"
+					onclick={() => window.open(ALIGNER_SITE_URL, '_blank', 'noopener,noreferrer')}
+				>
+					{ALIGNER_SITE_HOST}
+				</button>
+			</p>
+		{/if}
 	</div>
 	<AlignmentSvg {rootEl} {connections} {writesExportLayout} />
 </div>

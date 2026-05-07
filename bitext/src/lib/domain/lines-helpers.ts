@@ -1,11 +1,11 @@
 import type { Connection } from '$lib/domain/alignment.js';
-import { tokenize, reconcile, type Token } from '$lib/domain/tokens.js';
+import { tokenize, reconcile, type Token, type TokenizeOptions } from '$lib/domain/tokens.js';
 import type { LineV2, PairControlV2 } from '$lib/serialization/schema.js';
 
-export function lineOrderTokenIds(lines: LineV2[], splitChars: string): Map<string, string> {
+export function lineOrderTokenIds(lines: LineV2[], opts: TokenizeOptions): Map<string, string> {
 	const m = new Map<string, string>();
 	for (const line of lines) {
-		for (const t of tokenize(line.rawText, line.id, splitChars)) {
+		for (const t of tokenize(line.rawText, line.id, opts)) {
 			m.set(t.id, line.id);
 		}
 	}
@@ -39,9 +39,9 @@ export function tokensAreAdjacentLines(
 export function filterConnectionsByAdjacency(
 	connections: Connection[],
 	lines: LineV2[],
-	splitChars: string
+	opts: TokenizeOptions
 ): Connection[] {
-	const tokenToLine = lineOrderTokenIds(lines, splitChars);
+	const tokenToLine = lineOrderTokenIds(lines, opts);
 	const lineIds = lines.map((l) => l.id);
 	const adj = adjacentLineKeys(lineIds);
 	const tokens = new Set(tokenToLine.keys());
@@ -78,9 +78,9 @@ export function canonicalPair(
 export function reconcileLineTokens(
 	prev: Token[] | undefined,
 	line: LineV2,
-	splitChars: string
+	opts: TokenizeOptions
 ): Token[] {
-	const next = tokenize(line.rawText, line.id, splitChars);
+	const next = tokenize(line.rawText, line.id, opts);
 	if (!prev) return next;
 	return reconcile(prev, next, line.id);
 }
