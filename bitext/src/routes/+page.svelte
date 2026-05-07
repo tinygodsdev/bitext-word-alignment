@@ -25,7 +25,6 @@
 
 	let hydrated = $state(false);
 	let previewExpand = $state(false);
-	let showClassicEditor = $state(false);
 
 	$effect(() => {
 		if (hydrated) return;
@@ -124,7 +123,7 @@
 
 <JsonLd />
 
-<main class="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-12">
+<main class="w-full min-w-0 px-4 pt-4 pb-8 sm:px-6 md:pt-6 md:pb-12 lg:px-10">
 	<header class="mb-8">
 		<div class="grid gap-6 md:grid-cols-2 md:items-start md:gap-x-10 lg:gap-x-14">
 			<div class="text-center md:text-left">
@@ -193,11 +192,9 @@
 
 	<div class="grid grid-cols-12 gap-6 lg:gap-8">
 		<div class="col-span-12 lg:col-span-8 lg:col-start-1 lg:row-start-1">
-			{#if showClassicEditor}
-				<div class="mb-8">
-					<Editor />
-				</div>
-			{/if}
+			<div class="mb-8">
+				<Editor />
+			</div>
 			<section class="mb-8" aria-labelledby="preview-heading">
 				<div class="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
 					<div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
@@ -235,16 +232,6 @@
 						{/if}
 					</div>
 					<div class="flex shrink-0 flex-wrap items-center gap-2">
-						<button
-							type="button"
-							class="shrink-0 rounded-none border border-gray-300 bg-white px-2 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus-visible:outline-primary-500"
-							onclick={() => {
-								showClassicEditor = !showClassicEditor;
-							}}
-							aria-pressed={showClassicEditor}
-						>
-							{showClassicEditor ? 'Hide classic editor' : 'Show classic editor'}
-						</button>
 						<Button
 							color="light"
 							size="sm"
@@ -279,7 +266,7 @@
 						aria-label="Fullscreen preview"
 					>
 						<div
-							class="relative mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col rounded-none border border-gray-700 bg-gray-900 shadow-xl dark:bg-gray-950"
+							class="relative mx-auto flex min-h-0 w-full max-w-none flex-1 flex-col rounded-none border border-gray-700 bg-gray-900 shadow-xl dark:bg-gray-950"
 						>
 							<button
 								type="button"

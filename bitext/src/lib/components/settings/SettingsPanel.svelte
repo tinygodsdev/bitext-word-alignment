@@ -14,7 +14,7 @@
 	let selected = $state('appearance');
 </script>
 
-<Card class="min-w-0 w-full p-4 sm:p-6">
+<Card class="max-w-none min-w-0 w-full p-4 sm:p-6">
 	<h2 class="font-heading mb-4 text-lg font-semibold text-gray-900 dark:text-white">Settings</h2>
 	<Tabs tabStyle="underline" bind:selected class="min-w-0">
 		<TabItem key="appearance" title="Style">

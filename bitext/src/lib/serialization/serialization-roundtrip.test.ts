@@ -43,15 +43,18 @@ function stateV1(partial: {
 function projKey(project: ProjectSnapshotV2): string {
 	const lines = project.lines.map(
 		(l) =>
-			`${l.id}:${l.rawText}:${l.textSizePx}:${l.font.source}:${l.font.family}:${l.font.customName ?? ''}`
+			`${l.id}:${l.rawText}:${l.textSizePx}:${l.gapWordPx}:${l.font.source}:${l.font.family}:${l.font.customName ?? ''}`
 	);
 	const pcs = project.pairControls
 		.map((p) => `${p.upperLineId}/${p.lowerLineId}:${p.showConnectors}`)
 		.sort();
+	const gaps = project.linePairGaps
+		.map((g) => `${g.upperLineId}/${g.lowerLineId}:${g.gapPx}`)
+		.sort();
 	const conns = project.connections
 		.map((c) => `${c.upperTokenId}<->${c.lowerTokenId}:${c.color ?? ''}`)
 		.sort();
-	return JSON.stringify({ lines, pcs, conns });
+	return JSON.stringify({ lines, pcs, gaps, conns });
 }
 
 function expectProjectEquivalent(a: ProjectSnapshotV2, b: ProjectSnapshotV2): void {
@@ -86,19 +89,22 @@ describe('compact v3 encode/decode (current share format)', () => {
 				id: 'a',
 				rawText: 'one two',
 				font: { family: 'Inter', source: 'google' as const },
-				textSizePx: 30
+				textSizePx: 30,
+				gapWordPx: 5
 			},
 			{
 				id: 'l-deadbeef',
 				rawText: 'mid',
 				font: { family: 'Lora', source: 'google' as const },
-				textSizePx: 24
+				textSizePx: 24,
+				gapWordPx: 5
 			},
 			{
 				id: 'b',
 				rawText: 'un deux',
 				font: { family: 'Inter', source: 'google' as const },
-				textSizePx: 30
+				textSizePx: 30,
+				gapWordPx: 5
 			}
 		];
 		let connections: Connection[] = [];
@@ -117,9 +123,10 @@ describe('compact v3 encode/decode (current share format)', () => {
 			project: {
 				lines,
 				connections,
+				linePairGaps: [],
 				pairControls: [{ upperLineId: 'a', lowerLineId: 'l-deadbeef', showConnectors: false }]
 			},
-			settings: { ...base.settings, palette: 'vivid', gapWordPx: 5 }
+			settings: { ...base.settings, palette: 'vivid' }
 		};
 		const decoded = decodeState(encodeState(s));
 		expectStateEquivalent(decoded, s);

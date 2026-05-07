@@ -3,6 +3,11 @@
 @import 'flowbite/src/themes/default.css';
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Reserve scrollbar width so horizontal padding stays visually symmetric when scrollbars appear */
+html {
+	scrollbar-gutter: stable;
+}
+
 /*
  * Central theme: edit primary scale + app shell here.
  * Flowbite plugin forms/range use --color-brand*; Flowbite Svelte uses Tailwind `primary-*` for buttons/tabs.
@@ -77,7 +82,6 @@
 .preview-frame {
 	position: relative;
 	width: 100%;
-	max-width: 64rem;
 	margin-inline: auto;
 	border-radius: 0;
 	border: 1px solid var(--color-card-border);

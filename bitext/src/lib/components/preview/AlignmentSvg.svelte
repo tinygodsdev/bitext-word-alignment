@@ -52,7 +52,10 @@
 		const tokenLayout: Record<string, TokenLayout> = {};
 		const linkPaths: { linkId: string; color: string; d: string }[] = [];
 
-		rootEl.querySelectorAll<HTMLElement>('[data-token-id]').forEach((el) => {
+		// Scope to `.token-row` so unrelated DOM that re-uses `data-token-id` / `data-line`
+		// (e.g. the line settings popover content, which mounts inside this `rootEl`)
+		// cannot overwrite layout entries for real preview tokens / rows.
+		rootEl.querySelectorAll<HTMLElement>('.token-row [data-token-id]').forEach((el) => {
 			const id = el.dataset.tokenId;
 			if (!id) return;
 			const b = el.getBoundingClientRect();
@@ -69,12 +72,10 @@
 		});
 
 		const lineRowY: Record<string, number> = {};
-		rootEl.querySelectorAll<HTMLElement>('[data-line]').forEach((row) => {
+		rootEl.querySelectorAll<HTMLElement>('.token-row[data-line]').forEach((row) => {
 			const lineId = row.dataset.line;
 			if (!lineId) return;
-			const inner = row.querySelector<HTMLElement>('.token-row');
-			const el = inner ?? row;
-			const b = el.getBoundingClientRect();
+			const b = row.getBoundingClientRect();
 			lineRowY[lineId] = b.top - ro.top + b.height / 2;
 		});
 
@@ -113,14 +114,14 @@
 		void projectStore.pairControls;
 		void settingsStore.settings.lineStyle;
 		void projectStore.lines;
-		void settingsStore.settings.gapLinePx;
-		void settingsStore.settings.gapWordPx;
 		void writesExportLayout;
+
 		function remeasure() {
 			requestAnimationFrame(() => {
 				requestAnimationFrame(() => measure());
 			});
 		}
+
 		const ro = new ResizeObserver(() => {
 			remeasure();
 		});

@@ -1,5 +1,5 @@
 <section
-	class="mt-10 max-w-3xl space-y-3 leading-relaxed text-gray-700 dark:text-gray-300"
+	class="mt-10 w-full max-w-none space-y-3 leading-relaxed text-gray-700 dark:text-gray-300"
 	aria-labelledby="seo-sections"
 >
 	<h2 id="seo-sections" class="sr-only font-heading">Guides</h2>

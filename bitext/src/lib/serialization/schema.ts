@@ -18,12 +18,26 @@ export const NEW_LINE_HINT_TEXT = 'Type your text here';
 export type LineStyle = 'straight' | 'curved';
 export type BackgroundMode = 'light' | 'dark' | 'image';
 export type UiTheme = 'light' | 'dark';
-export const MIN_LINE_GAP_PX = 40;
+/** Minimum vertical gap between adjacent lines (preview + export). Keep ≥ ~12 so connectors stay usable. */
+export const MIN_LINE_GAP_PX = 12;
 export const MAX_LINE_GAP_PX = 156;
+/** Default vertical gap between adjacent lines when no per-pair override exists. */
+export const DEFAULT_LINE_GAP_PX = 120;
+
+export function clampLineGapPx(n: number): number {
+	return Math.max(MIN_LINE_GAP_PX, Math.min(MAX_LINE_GAP_PX, Math.round(n)));
+}
 
 export const MIN_TEXT_SIZE_PX = 12;
 export const MAX_TEXT_SIZE_PX = 64;
+export const DEFAULT_WORD_GAP_PX = 14;
+export const MIN_WORD_GAP_PX = 0;
+export const MAX_WORD_GAP_PX = 56;
 export const DEFAULT_TOKEN_SPLIT_CHARS = '.-';
+
+export function clampWordGapPx(n: number): number {
+	return Math.max(MIN_WORD_GAP_PX, Math.min(MAX_WORD_GAP_PX, Math.round(n)));
+}
 
 function normalizeTokenSplitCharsField(input: unknown, fallback: string): string {
 	const raw = typeof input === 'string' ? input : fallback;
@@ -49,6 +63,8 @@ export interface LineV2 {
 	rawText: string;
 	font: LineFontV2;
 	textSizePx: number;
+	/** Horizontal gap between word tokens on this line (px). */
+	gapWordPx: number;
 }
 
 export interface PairControlV2 {
@@ -58,16 +74,23 @@ export interface PairControlV2 {
 	showConnectors: boolean;
 }
 
+/** Vertical gap (px) between two stacked adjacent lines (`upper` above `lower`). Sparse: omit when `gapPx === DEFAULT_LINE_GAP_PX`. */
+export interface LinePairGapV2 {
+	upperLineId: string;
+	lowerLineId: string;
+	gapPx: number;
+}
+
 export interface ProjectSnapshotV2 {
 	lines: LineV2[];
 	pairControls: PairControlV2[];
+	/** Per-adjacent-pair vertical gaps; only non-default entries need to be stored. */
+	linePairGaps: LinePairGapV2[];
 	connections: Connection[];
 }
 
 export interface VisualSettingsV2 {
 	theme: UiTheme;
-	gapWordPx: number;
-	gapLinePx: number;
 	lineThickness: number;
 	lineOpacity: number;
 	lineStyle: LineStyle;
@@ -141,8 +164,6 @@ export function normalizeUiTheme(theme: string): UiTheme {
 export function defaultVisualSettingsV2(): VisualSettingsV2 {
 	return {
 		theme: 'light',
-		gapWordPx: 14,
-		gapLinePx: 120,
 		lineThickness: 3,
 		lineOpacity: 1,
 		lineStyle: 'curved',
@@ -213,8 +234,6 @@ export const defaultProjectSnapshot = defaultProjectSnapshotV1;
 export function visualSettingsV1ToV2(v1: VisualSettingsV1): VisualSettingsV2 {
 	return {
 		theme: normalizeUiTheme(String(v1.theme)),
-		gapWordPx: v1.gapWordPx,
-		gapLinePx: v1.gapLinePx,
 		lineThickness: v1.lineThickness,
 		lineOpacity: v1.lineOpacity,
 		lineStyle: v1.lineStyle,
@@ -238,6 +257,7 @@ export function migrateV1ToV2(
 	const settings = visualSettingsV1ToV2(settingsV1);
 	const splitChars = settings.tokenSplitChars;
 	const glossColor = PALETTES[settingsV1.palette][0] ?? '#94a3b8';
+	const wordGap = clampWordGapPx(settingsV1.gapWordPx);
 
 	const sourceTokens = tokenize(project.sourceText, 's', splitChars);
 	const targetTokens = tokenize(project.targetText, 't', splitChars);
@@ -255,7 +275,8 @@ export function migrateV1ToV2(
 			source: settingsV1.sourceFontSource,
 			customName: settingsV1.sourceCustomFontName
 		},
-		textSizePx: settingsV1.sourceTextSizePx
+		textSizePx: settingsV1.sourceTextSizePx,
+		gapWordPx: wordGap
 	};
 	const tgtLine: LineV2 = {
 		id: 't',
@@ -265,7 +286,8 @@ export function migrateV1ToV2(
 			source: settingsV1.targetFontSource,
 			customName: settingsV1.targetCustomFontName
 		},
-		textSizePx: settingsV1.targetTextSizePx
+		textSizePx: settingsV1.targetTextSizePx,
+		gapWordPx: wordGap
 	};
 
 	const hasSourceGloss =
@@ -291,7 +313,8 @@ export function migrateV1ToV2(
 				source: settingsV1.glossFontSource,
 				customName: settingsV1.glossCustomFontName
 			},
-			textSizePx: settingsV1.glossTextSizePx
+			textSizePx: settingsV1.glossTextSizePx,
+			gapWordPx: wordGap
 		};
 		lines.push(gsLine);
 		pairControls.push({ upperLineId: 'gs', lowerLineId: 's', showConnectors: false });
@@ -328,7 +351,8 @@ export function migrateV1ToV2(
 				source: settingsV1.glossFontSource,
 				customName: settingsV1.glossCustomFontName
 			},
-			textSizePx: settingsV1.glossTextSizePx
+			textSizePx: settingsV1.glossTextSizePx,
+			gapWordPx: wordGap
 		};
 		lines.push(gtLine);
 		pairControls.push({ upperLineId: 't', lowerLineId: 'gt', showConnectors: false });
@@ -344,8 +368,20 @@ export function migrateV1ToV2(
 		connections = addAtomicConnections(connections, pairs, glossColor);
 	}
 
+	const lineGap = clampLineGapPx(settingsV1.gapLinePx);
+	const linePairGaps: LinePairGapV2[] = [];
+	for (let i = 0; i < lines.length - 1; i++) {
+		if (lineGap !== DEFAULT_LINE_GAP_PX) {
+			linePairGaps.push({
+				upperLineId: lines[i]!.id,
+				lowerLineId: lines[i + 1]!.id,
+				gapPx: lineGap
+			});
+		}
+	}
+
 	return {
-		project: { lines, pairControls, connections },
+		project: { lines, pairControls, linePairGaps, connections },
 		settings
 	};
 }
@@ -512,9 +548,11 @@ export function migrate(raw: unknown): AppStateV2 {
 		const project = o.project as ProjectSnapshotV2 | undefined;
 		const settingsRaw = o.settings as Record<string, unknown> | undefined;
 		if (project?.lines && Array.isArray(project.lines) && settingsRaw) {
+			const legacyWordGap = legacyGapWordPxFromSettingsRaw(settingsRaw);
+			const legacyLineGap = legacyGapLinePxFromSettingsRaw(settingsRaw);
 			return {
 				v: SCHEMA_VERSION,
-				project: project as ProjectSnapshotV2,
+				project: normalizeProjectSnapshotV2(project, legacyWordGap, legacyLineGap),
 				settings: normalizeVisualSettingsV2(settingsRaw)
 			};
 		}
@@ -548,22 +586,85 @@ function clampOpacity(o: number): number {
 	return Math.max(0.2, Math.min(1, o));
 }
 
+/** Old saves stored a global word gap under `settings.gapWordPx`; merge into lines when missing. */
+export function legacyGapWordPxFromSettingsRaw(
+	raw: Record<string, unknown> | undefined
+): number | undefined {
+	if (!raw || typeof raw !== 'object') return undefined;
+	const v = raw.gapWordPx;
+	return typeof v === 'number' && Number.isFinite(v) ? clampWordGapPx(v) : undefined;
+}
+
+/** Old saves stored a global line gap under `settings.gapLinePx`; seed per-pair gaps when missing. */
+export function legacyGapLinePxFromSettingsRaw(
+	raw: Record<string, unknown> | undefined
+): number | undefined {
+	if (!raw || typeof raw !== 'object') return undefined;
+	const v = raw.gapLinePx;
+	return typeof v === 'number' && Number.isFinite(v) ? clampLineGapPx(v) : undefined;
+}
+
+/** Normalize lines (word gap), pair gaps (vertical space between adjacent lines), and clone controls/connections. */
+export function normalizeProjectSnapshotV2(
+	project: Omit<ProjectSnapshotV2, 'linePairGaps'> & { linePairGaps?: LinePairGapV2[] },
+	legacySettingsGapWordPx?: number,
+	legacySettingsGapLinePx?: number
+): ProjectSnapshotV2 {
+	const linesNorm = project.lines.map((l) => {
+		const fromLine =
+			typeof l.gapWordPx === 'number' && Number.isFinite(l.gapWordPx)
+				? clampWordGapPx(l.gapWordPx)
+				: undefined;
+		const gapWordPx = fromLine ?? legacySettingsGapWordPx ?? DEFAULT_WORD_GAP_PX;
+		return { ...l, font: { ...l.font }, gapWordPx };
+	});
+
+	const lineIds = linesNorm.map((l) => l.id);
+	const rawGapsIn = Array.isArray(project.linePairGaps) ? project.linePairGaps : [];
+	const gapMap = new Map<string, number>();
+	for (const g of rawGapsIn) {
+		if (
+			g &&
+			typeof g.upperLineId === 'string' &&
+			typeof g.lowerLineId === 'string' &&
+			typeof g.gapPx === 'number' &&
+			Number.isFinite(g.gapPx)
+		) {
+			gapMap.set(`${g.upperLineId}\0${g.lowerLineId}`, clampLineGapPx(g.gapPx));
+		}
+	}
+
+	const linePairGaps: LinePairGapV2[] = [];
+	for (let i = 0; i < lineIds.length - 1; i++) {
+		const u = lineIds[i]!;
+		const lo = lineIds[i + 1]!;
+		const key = `${u}\0${lo}`;
+		const fromPair = gapMap.get(key);
+		const effective =
+			fromPair ??
+			(legacySettingsGapLinePx !== undefined
+				? clampLineGapPx(legacySettingsGapLinePx)
+				: DEFAULT_LINE_GAP_PX);
+		if (effective !== DEFAULT_LINE_GAP_PX) {
+			linePairGaps.push({ upperLineId: u, lowerLineId: lo, gapPx: effective });
+		}
+	}
+
+	return {
+		lines: linesNorm,
+		pairControls: project.pairControls.map((p) => ({ ...p })),
+		linePairGaps,
+		connections: project.connections.map((c) => ({ ...c }))
+	};
+}
+
 export function normalizeVisualSettingsV2(
 	raw: Record<string, unknown> | undefined
 ): VisualSettingsV2 {
 	const d = defaultVisualSettingsV2();
 	if (!raw || typeof raw !== 'object') return d;
-	const gapLinePx =
-		typeof raw.gapLinePx === 'number'
-			? Math.max(MIN_LINE_GAP_PX, Math.min(MAX_LINE_GAP_PX, raw.gapLinePx))
-			: d.gapLinePx;
 	return {
 		theme: normalizeUiTheme(String(raw.theme ?? d.theme)),
-		gapWordPx:
-			typeof raw.gapWordPx === 'number' && Number.isFinite(raw.gapWordPx)
-				? raw.gapWordPx
-				: d.gapWordPx,
-		gapLinePx,
 		lineThickness:
 			typeof raw.lineThickness === 'number' && Number.isFinite(raw.lineThickness)
 				? Math.max(1, Math.min(8, Math.round(raw.lineThickness)))

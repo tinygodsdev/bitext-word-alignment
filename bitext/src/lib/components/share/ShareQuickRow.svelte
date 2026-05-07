@@ -50,7 +50,7 @@
 		'inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-none border-0 bg-transparent text-primary-600 transition-colors hover:bg-primary-50 hover:text-primary-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:text-primary-400 dark:hover:bg-primary-900/40 dark:hover:text-primary-300';
 </script>
 
-<Card class="mt-0 w-full p-4 sm:p-6">
+<Card class="mt-0 max-w-none w-full p-4 sm:p-6">
 	<h2 class="font-heading mb-2 text-lg font-semibold text-gray-900 dark:text-white">Share</h2>
 	<p class="text-base text-gray-600 dark:text-gray-400 {browser ? 'mb-3' : 'mb-4'}">
 		Copy a link with your alignment in the URL, or share to social media.

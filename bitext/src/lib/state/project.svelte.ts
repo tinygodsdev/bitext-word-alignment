@@ -17,9 +17,15 @@ import {
 import { PALETTES, type PaletteName } from '$lib/domain/palettes.js';
 import type { Token } from '$lib/domain/tokens.js';
 import {
+	clampLineGapPx,
+	clampWordGapPx,
+	DEFAULT_LINE_GAP_PX,
+	DEFAULT_WORD_GAP_PX,
 	defaultProjectSnapshotV2,
 	MAX_LINES,
 	NEW_LINE_HINT_TEXT,
+	normalizeProjectSnapshotV2,
+	type LinePairGapV2,
 	type LineV2,
 	type PairControlV2,
 	type ProjectSnapshotV2
@@ -34,6 +40,7 @@ function newLineId(): string {
 class ProjectStore {
 	lines = $state<LineV2[]>([]);
 	pairControls = $state<PairControlV2[]>([]);
+	linePairGaps = $state<LinePairGapV2[]>([]);
 	connections = $state<Connection[]>([]);
 	tokensByLineId = $state<Record<string, Token[]>>({});
 
@@ -62,6 +69,31 @@ class ProjectStore {
 		);
 	}
 
+	/** Resolved vertical gap (px) between two adjacent stacked lines. */
+	lineGapPxBetween(upperLineId: string, lowerLineId: string): number {
+		void this.lines;
+		void this.linePairGaps;
+		const lineIds = this.lines.map((l) => l.id);
+		const pair = canonicalPair(lineIds, upperLineId, lowerLineId);
+		if (!pair) return DEFAULT_LINE_GAP_PX;
+		const hit = this.linePairGaps.find(
+			(p) => p.upperLineId === pair.upperLineId && p.lowerLineId === pair.lowerLineId
+		);
+		return hit ? clampLineGapPx(hit.gapPx) : DEFAULT_LINE_GAP_PX;
+	}
+
+	setLinePairGap(upperLineId: string, lowerLineId: string, gapPx: number) {
+		const lineIds = this.lines.map((l) => l.id);
+		const pair = canonicalPair(lineIds, upperLineId, lowerLineId);
+		if (!pair) return;
+		const px = clampLineGapPx(gapPx);
+		const rest = this.linePairGaps.filter(
+			(p) => !(p.upperLineId === pair.upperLineId && p.lowerLineId === pair.lowerLineId)
+		);
+		this.linePairGaps = px === DEFAULT_LINE_GAP_PX ? rest : [...rest, { ...pair, gapPx: px }];
+		layoutExportStore.requestRemeasureAfterLayout();
+	}
+
 	tokensOnLine(lineId: string): Token[] {
 		return this.tokensByLineId[lineId] ?? [];
 	}
@@ -78,13 +110,25 @@ class ProjectStore {
 		this.pruneInvalidConnections();
 	}
 
-	updateLineStyle(lineId: string, patch: Partial<Pick<LineV2, 'font' | 'textSizePx'>>) {
+	updateLineStyle(
+		lineId: string,
+		patch: Partial<Pick<LineV2, 'font' | 'textSizePx' | 'gapWordPx'>>
+	) {
 		this.lines = this.lines.map((l) => {
 			if (l.id !== lineId) return l;
 			const font = patch.font ? { ...l.font, ...patch.font } : l.font;
 			const textSizePx = patch.textSizePx ?? l.textSizePx;
-			return { ...l, font, textSizePx };
+			const gapWordPx =
+				patch.gapWordPx !== undefined ? clampWordGapPx(patch.gapWordPx) : l.gapWordPx;
+			return { ...l, font, textSizePx, gapWordPx };
 		});
+		if (
+			patch.gapWordPx !== undefined ||
+			patch.textSizePx !== undefined ||
+			patch.font !== undefined
+		) {
+			layoutExportStore.requestRemeasureAfterLayout();
+		}
 	}
 
 	setPairShowConnectors(upperLineId: string, lowerLineId: string, show: boolean) {
@@ -113,16 +157,18 @@ class ProjectStore {
 	addLine(insertIndex?: number) {
 		if (this.lines.length >= MAX_LINES) return;
 		const id = newLineId();
-		const newLine: LineV2 = {
-			id,
-			rawText: NEW_LINE_HINT_TEXT,
-			font: { family: 'Inter', source: 'google' },
-			textSizePx: 36
-		};
 		const idx =
 			insertIndex === undefined
 				? this.lines.length
 				: Math.max(0, Math.min(this.lines.length, insertIndex));
+		const template = this.lines[idx] ?? this.lines[idx - 1];
+		const newLine: LineV2 = {
+			id,
+			rawText: NEW_LINE_HINT_TEXT,
+			font: { family: 'Inter', source: 'google' },
+			textSizePx: 36,
+			gapWordPx: template?.gapWordPx ?? DEFAULT_WORD_GAP_PX
+		};
 		this.lines = [...this.lines.slice(0, idx), newLine, ...this.lines.slice(idx)];
 		this.syncAllTokens();
 		this.prunePairControls();
@@ -140,6 +186,9 @@ class ProjectStore {
 		this.pairControls = this.pairControls.filter(
 			(p) => p.upperLineId !== lineId && p.lowerLineId !== lineId
 		);
+		this.linePairGaps = this.linePairGaps.filter(
+			(p) => p.upperLineId !== lineId && p.lowerLineId !== lineId
+		);
 		this.syncAllTokens();
 		this.prunePairControls();
 		this.pruneInvalidConnections();
@@ -149,6 +198,12 @@ class ProjectStore {
 		this.pairControls = this.pairControls.filter((p) =>
 			isStackedAdjacentPair(this.lines, p.upperLineId, p.lowerLineId)
 		);
+		const lineIds = this.lines.map((l) => l.id);
+		this.linePairGaps = this.linePairGaps.filter((g) => {
+			const iu = lineIds.indexOf(g.upperLineId);
+			const il = lineIds.indexOf(g.lowerLineId);
+			return iu >= 0 && il === iu + 1;
+		});
 	}
 
 	moveLine(lineId: string, direction: -1 | 1) {
@@ -228,14 +283,17 @@ class ProjectStore {
 		return {
 			lines: this.lines.map((l) => ({ ...l, font: { ...l.font } })),
 			pairControls: this.pairControls.map((p) => ({ ...p })),
+			linePairGaps: this.linePairGaps.map((g) => ({ ...g })),
 			connections: this.connections.map((c) => ({ ...c }))
 		};
 	}
 
 	loadSnapshotV2(s: ProjectSnapshotV2) {
-		this.lines = s.lines.map((l) => ({ ...l, font: { ...l.font } }));
-		this.pairControls = s.pairControls.map((p) => ({ ...p }));
-		this.connections = s.connections.map((c) => ({ ...c }));
+		const n = normalizeProjectSnapshotV2(s, undefined);
+		this.lines = n.lines.map((l) => ({ ...l, font: { ...l.font } }));
+		this.pairControls = n.pairControls.map((p) => ({ ...p }));
+		this.linePairGaps = n.linePairGaps.map((g) => ({ ...g }));
+		this.connections = n.connections.map((c) => ({ ...c }));
 		this.syncAllTokens();
 		this.pruneInvalidConnections();
 	}
@@ -254,21 +312,25 @@ class ProjectStore {
 						id: 's',
 						rawText: 'Hello world',
 						font: { family: 'Inter', source: 'google' },
-						textSizePx: 36
+						textSizePx: 36,
+						gapWordPx: DEFAULT_WORD_GAP_PX
 					},
 					{
 						id: 't',
 						rawText: 'Bonjour le monde',
 						font: { family: 'Inter', source: 'google' },
-						textSizePx: 36
+						textSizePx: 36,
+						gapWordPx: DEFAULT_WORD_GAP_PX
 					}
 				],
 				pairControls: [],
+				linePairGaps: [],
 				connections: []
 			});
 			this.addConnection('s-0', 't-0', palette);
 			this.addConnection('s-1', 't-1', palette);
 			this.addConnection('s-1', 't-2', palette);
+			layoutExportStore.requestRemeasureAfterLayout();
 			return;
 		}
 		this.loadSnapshotV2({
@@ -277,28 +339,33 @@ class ProjectStore {
 					id: 's',
 					rawText: 'Merhaba dünya',
 					font: { family: 'Inter', source: 'google' },
-					textSizePx: 34
+					textSizePx: 34,
+					gapWordPx: DEFAULT_WORD_GAP_PX
 				},
 				{
 					id: 'ipa',
 					rawText: 'meɾˈhaba dyzˈnja',
 					font: { family: 'Noto Sans', source: 'google' },
-					textSizePx: 28
+					textSizePx: 28,
+					gapWordPx: DEFAULT_WORD_GAP_PX
 				},
 				{
 					id: 't',
 					rawText: 'Hello world',
 					font: { family: 'Inter', source: 'google' },
-					textSizePx: 34
+					textSizePx: 34,
+					gapWordPx: DEFAULT_WORD_GAP_PX
 				}
 			],
 			pairControls: [],
+			linePairGaps: [],
 			connections: []
 		});
 		this.addConnection('s-0', 'ipa-0', palette);
 		this.addConnection('s-1', 'ipa-1', palette);
 		this.addConnection('ipa-0', 't-0', palette);
 		this.addConnection('ipa-1', 't-1', palette);
+		layoutExportStore.requestRemeasureAfterLayout();
 	}
 }
 

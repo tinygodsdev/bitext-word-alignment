@@ -4,6 +4,7 @@
 	import PreviewFontLoader from './PreviewFontLoader.svelte';
 	import LineReorderButtons from './LineReorderButtons.svelte';
 	import LineTrailingActions from './LineTrailingActions.svelte';
+	import LinePairGapSlider from './LinePairGapSlider.svelte';
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { selectionStore } from '$lib/state/selection.svelte.js';
@@ -23,7 +24,6 @@
 
 	let rootEl = $state<HTMLElement | null>(null);
 
-	const gapLine = $derived(settingsStore.settings.gapLinePx);
 	const bg = $derived(settingsStore.settings.background);
 	const connections = $derived(projectStore.connections);
 	const lineIds = $derived(projectStore.lines.map((l) => l.id));
@@ -66,7 +66,6 @@
 				class="preview-token-line flex items-center gap-3 transition-opacity duration-150"
 				class:opacity-[0.34]={rowDimmed}
 				style:font-family={resolveLineFontCss(line)}
-				style:margin-bottom={li < projectStore.lines.length - 1 ? `${gapLine}px` : '0'}
 			>
 				<LineReorderButtons {line} index={li} total={projectStore.lines.length} />
 				<div class="preview-gloss-wrap min-w-0 flex-1">
@@ -74,6 +73,7 @@
 						tokens={projectStore.tokensOnLine(line.id)}
 						lineId={line.id}
 						textSizePx={line.textSizePx}
+						gapWordPx={line.gapWordPx}
 						showNumbers={settingsStore.settings.showNumbers}
 						interactive={true}
 					/>
@@ -86,6 +86,10 @@
 					triggeredBy={`#${gearDomId}`}
 				/>
 			</div>
+			{#if li < projectStore.lines.length - 1}
+				{@const lowerLine = projectStore.lines[li + 1]!}
+				<LinePairGapSlider upperLineId={line.id} lowerLineId={lowerLine.id} />
+			{/if}
 		{/each}
 		<div class="mt-1 flex justify-center">
 			<button

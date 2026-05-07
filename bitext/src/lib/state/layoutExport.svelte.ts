@@ -30,7 +30,9 @@ class LayoutExportStore {
 		}
 		requestAnimationFrame(() => {
 			requestAnimationFrame(() => {
-				this.layoutRemeasureTick++;
+				requestAnimationFrame(() => {
+					this.layoutRemeasureTick++;
+				});
 			});
 		});
 	}

@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { Label, Range } from 'flowbite-svelte';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
-	import { MAX_LINE_GAP_PX, MIN_LINE_GAP_PX } from '$lib/serialization/schema.js';
 
 	const s = $derived(settingsStore.settings);
 
@@ -13,72 +12,6 @@
 </script>
 
 <div class="grid grid-cols-12 gap-4">
-	<div class="col-span-12 md:col-span-6">
-		<Label for="settings-background" class="mb-2">Background</Label>
-		<select
-			id="settings-background"
-			class={sel}
-			value={s.background}
-			onchange={(e) =>
-				settingsStore.patch({
-					background: (e.currentTarget as HTMLSelectElement).value as 'light' | 'dark' | 'image'
-				})}
-		>
-			<option value="light">Light</option>
-			<option value="dark">Dark</option>
-			<option value="image">Image</option>
-		</select>
-	</div>
-	{#if s.background === 'image'}
-		<div class="col-span-12">
-			<Label for="settings-bg-file" class="mb-2">Background image</Label>
-			<input
-				id="settings-bg-file"
-				type="file"
-				accept="image/*"
-				class={fileInputClass}
-				onchange={async (e) => {
-					const f = (e.currentTarget as HTMLInputElement).files?.[0];
-					if (!f) return;
-					const dataUrl = await new Promise<string>((res, rej) => {
-						const r = new FileReader();
-						r.onload = () => res(String(r.result));
-						r.onerror = () => rej(new Error('read'));
-						r.readAsDataURL(f);
-					});
-					settingsStore.patch({ backgroundImageDataUrl: dataUrl });
-				}}
-			/>
-		</div>
-	{/if}
-	<div class="col-span-12 md:col-span-6">
-		<Label class="mb-2">Word gap ({s.gapWordPx}px)</Label>
-		<Range
-			appearance="auto"
-			color="indigo"
-			size="lg"
-			min={0}
-			max={32}
-			step={1}
-			value={s.gapWordPx}
-			oninput={(e) =>
-				settingsStore.patch({ gapWordPx: Number((e.currentTarget as HTMLInputElement).value) })}
-		/>
-	</div>
-	<div class="col-span-12 md:col-span-6">
-		<Label class="mb-2">Line gap ({s.gapLinePx}px)</Label>
-		<Range
-			appearance="auto"
-			color="indigo"
-			size="lg"
-			min={MIN_LINE_GAP_PX}
-			max={MAX_LINE_GAP_PX}
-			step={1}
-			value={s.gapLinePx}
-			oninput={(e) =>
-				settingsStore.patch({ gapLinePx: Number((e.currentTarget as HTMLInputElement).value) })}
-		/>
-	</div>
 	<div class="col-span-12 md:col-span-6">
 		<Label class="mb-2">Line thickness ({s.lineThickness}px)</Label>
 		<Range
@@ -112,6 +45,22 @@
 		/>
 	</div>
 	<div class="col-span-12 md:col-span-6">
+		<Label for="settings-background" class="mb-2">Background</Label>
+		<select
+			id="settings-background"
+			class={sel}
+			value={s.background}
+			onchange={(e) =>
+				settingsStore.patch({
+					background: (e.currentTarget as HTMLSelectElement).value as 'light' | 'dark' | 'image'
+				})}
+		>
+			<option value="light">Light</option>
+			<option value="dark">Dark</option>
+			<option value="image">Image</option>
+		</select>
+	</div>
+	<div class="col-span-12 md:col-span-6">
 		<Label for="settings-line-style" class="mb-2">Line style</Label>
 		<select
 			id="settings-line-style"
@@ -126,4 +75,26 @@
 			<option value="curved">Curved</option>
 		</select>
 	</div>
+	{#if s.background === 'image'}
+		<div class="col-span-12">
+			<Label for="settings-bg-file" class="mb-2">Background image</Label>
+			<input
+				id="settings-bg-file"
+				type="file"
+				accept="image/*"
+				class={fileInputClass}
+				onchange={async (e) => {
+					const f = (e.currentTarget as HTMLInputElement).files?.[0];
+					if (!f) return;
+					const dataUrl = await new Promise<string>((res, rej) => {
+						const r = new FileReader();
+						r.onload = () => res(String(r.result));
+						r.onerror = () => rej(new Error('read'));
+						r.readAsDataURL(f);
+					});
+					settingsStore.patch({ backgroundImageDataUrl: dataUrl });
+				}}
+			/>
+		</div>
+	{/if}
 </div>
