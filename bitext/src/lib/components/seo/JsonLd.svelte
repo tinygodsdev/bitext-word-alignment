@@ -36,7 +36,7 @@
 				name: 'Can I align phrases, not just single words?',
 				acceptedAnswer: {
 					'@type': 'Answer',
-					text: 'Yes. Select several words on one side before clicking the matching word or phrase on the other. The tool supports one-to-one, one-to-many, and many-to-many links, which often reflects real translations better than a strict one-word mapping.'
+					text: 'Yes. Each link joins two word-sized boxes on neighboring lines. You can add several links from the same word to different partners (one-to-many or many-to-one) by clicking that word again and choosing another match on the adjacent row. To treat two written words as a single box—for example a fixed expression—use the join character under Settings → Tokens.'
 				}
 			},
 			{
@@ -44,7 +44,7 @@
 				name: 'Is this a full machine translator?',
 				acceptedAnswer: {
 					'@type': 'Answer',
-					text: 'No. You provide both sentences — the tool does not translate them for you. The value is in the visualization and the manual control over which words count as matches.'
+					text: 'No. You type or paste the text yourself—the app does not translate it for you. The value is in the visualization and the manual control over which words count as matches.'
 				}
 			},
 			{
@@ -52,7 +52,7 @@
 				name: 'Can I export the alignment as an image?',
 				acceptedAnswer: {
 					'@type': 'Answer',
-					text: 'Yes. PNG, SVG, PDF, and a self-contained HTML file are all supported, along with a shareable link that encodes both sentences, every connector, and your visual settings.'
+					text: 'Yes. PNG, SVG, PDF, and a self-contained HTML file are all supported, along with a shareable link that encodes every line of text, every connector, and your visual settings.'
 				}
 			}
 		]

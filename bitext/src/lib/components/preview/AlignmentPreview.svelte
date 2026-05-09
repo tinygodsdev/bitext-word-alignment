@@ -26,6 +26,7 @@
 	let rootEl = $state<HTMLElement | null>(null);
 
 	const bg = $derived(settingsStore.settings.background);
+	const previewDark = $derived(bg === 'dark');
 	const hideChrome = $derived(settingsStore.settings.previewHideChrome);
 	const chromeHiddenLayer = 'invisible pointer-events-none select-none';
 	const connections = $derived(projectStore.connections);
@@ -67,7 +68,9 @@
 		>
 			<button
 				type="button"
-				class="rounded-none border border-dashed border-gray-400 px-2 py-0.5 text-xs font-medium text-gray-600 hover:border-primary-500 hover:text-primary-700 disabled:opacity-40 dark:border-gray-600 dark:text-gray-400 dark:hover:border-primary-400 dark:hover:text-primary-300"
+				class="rounded-none border border-dashed px-2 py-0.5 text-xs font-medium disabled:opacity-40 {previewDark
+					? 'border-gray-600 text-gray-400 hover:border-primary-400 hover:text-primary-300'
+					: 'border-gray-400 text-gray-600 hover:border-primary-500 hover:text-primary-700'}"
 				disabled={projectStore.lines.length >= MAX_LINES}
 				onclick={() => projectStore.addLine(0)}
 			>
@@ -89,7 +92,7 @@
 					class="shrink-0 {hideChrome ? chromeHiddenLayer : ''}"
 					aria-hidden={hideChrome ? true : undefined}
 				>
-					<LineReorderButtons {line} index={li} total={projectStore.lines.length} />
+					<LineReorderButtons {line} index={li} total={projectStore.lines.length} {previewDark} />
 				</div>
 				<div class="preview-gloss-wrap min-w-0 flex-1">
 					<TokenRow
@@ -112,6 +115,7 @@
 						total={projectStore.lines.length}
 						{gearDomId}
 						triggeredBy={`#${gearDomId}`}
+						{previewDark}
 					/>
 				</div>
 			</div>
@@ -121,7 +125,7 @@
 					class={hideChrome ? chromeHiddenLayer : ''}
 					aria-hidden={hideChrome ? true : undefined}
 				>
-					<LinePairGapSlider upperLineId={line.id} lowerLineId={lowerLine.id} />
+					<LinePairGapSlider upperLineId={line.id} lowerLineId={lowerLine.id} {previewDark} />
 				</div>
 			{/if}
 		{/each}
@@ -131,7 +135,9 @@
 		>
 			<button
 				type="button"
-				class="rounded-none border border-dashed border-gray-400 px-2 py-0.5 text-xs font-medium text-gray-600 hover:border-primary-500 hover:text-primary-700 disabled:opacity-40 dark:border-gray-600 dark:text-gray-400 dark:hover:border-primary-400 dark:hover:text-primary-300"
+				class="rounded-none border border-dashed px-2 py-0.5 text-xs font-medium disabled:opacity-40 {previewDark
+					? 'border-gray-600 text-gray-400 hover:border-primary-400 hover:text-primary-300'
+					: 'border-gray-400 text-gray-600 hover:border-primary-500 hover:text-primary-700'}"
 				disabled={projectStore.lines.length >= MAX_LINES}
 				onclick={() => projectStore.addLine()}
 			>

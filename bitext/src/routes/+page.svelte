@@ -160,9 +160,9 @@
 				<p
 					class="mt-4 max-w-prose text-base leading-relaxed text-gray-600 dark:text-gray-400 lg:text-[1.05rem]"
 				>
-					See exactly which word matches which across translated lines. Stack multiple lines (e.g.
-					source, IPA, target), link adjacent rows, and export a clean image for lessons, posts, or
-					conlang notes.
+					See exactly which word matches which across stacked lines. Add rows for glosses or IPA if you
+					need them, click a word then its match on the line above or below, and export or share the
+					diagram—great for lessons, posts, or conlang notes.
 				</p>
 				<p class="mt-4 max-w-prose text-sm leading-relaxed text-gray-600 dark:text-gray-400">
 					Created by

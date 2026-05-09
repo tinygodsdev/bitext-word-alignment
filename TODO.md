@@ -31,12 +31,12 @@ Bug fixes - high priority:
 - [x] When color palette is depleted, it should cycle through the colors - currently uses the last color
 
 Advanced features - medium priority:
-- [ ] Ability to create custom color palettes
+
 - [x] Maybe parameter-line connection should be reworked to be more flexible - each line should have all the parameters configured separately. 
 - [x] Add ability to hide preview controls so that the user can see the entire visualization and screenshot it if needed. In this mode - add the credit to the bottom of the visualization, like in exports.
 
 General interface improvements - medium priority:
-- [ ] Interface languages - add pages for some major languages
+
 - [x] Make interface more compact to accomodate more features
 - [x] Probably add full screen mode for the preview - so that the user would be able to see it all and screenshot if needed - this will partially help if we won't be able to solve ligature problems
 - [x] Create privacy policy page and link to it from the footer. We don't collect any data, but we should have a page for it. We use Google Analytics, Google Ads (probably in the future) and Tally for feedback.
@@ -46,3 +46,9 @@ Considerations:
 - If we support multiple lines with independent parameters, we can deprecate separate gloss row and configuration - it will be just a single new line with the glosses. Then, the user would be able to add transcription and other annotations in the same manner. 
 - In case of adding multiple lines, additional lines after the first 2 should be optional. 
 - The ultimate fix for pdf export would be to use external resource like gotenberg. We can set up a server with it, but preferably this is to be avoided since it will add costs to support it. 
+
+
+Version 2.1:
+
+- [ ] Interface languages - add pages for some major languages
+- [ ] Ability to create custom color palettes

@@ -5,10 +5,12 @@
 
 	let {
 		upperLineId,
-		lowerLineId
+		lowerLineId,
+		previewDark = false
 	}: {
 		upperLineId: string;
 		lowerLineId: string;
+		previewDark?: boolean;
 	} = $props();
 
 	const gapPx = $derived.by(() => {
@@ -32,7 +34,8 @@
 		<!-- No right spacer: match full row width so controls align with the pencil/gear column edge -->
 		<div class="flex min-w-0 flex-1 justify-end bg-transparent">
 			<div class="pointer-events-auto flex items-center gap-1.5 bg-transparent">
-				<span class="shrink-0 tabular-nums text-[10px] text-gray-500 dark:text-gray-400"
+				<span
+					class="shrink-0 tabular-nums text-[10px] {previewDark ? 'text-gray-400' : 'text-gray-500'}"
 					>{gapPx}px</span
 				>
 				<Range
@@ -43,7 +46,7 @@
 					max={MAX_LINE_GAP_PX}
 					step={1}
 					value={gapPx}
-					class="line-gap-range !h-1 !w-[7rem] shrink-0 !rounded-none !bg-transparent py-0 shadow-none dark:!bg-transparent"
+					class="line-gap-range !h-1 !w-[7rem] shrink-0 !rounded-none !bg-transparent py-0 shadow-none"
 					oninput={(e) =>
 						projectStore.setLinePairGap(
 							upperLineId,
