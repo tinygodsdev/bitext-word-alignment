@@ -22,12 +22,17 @@
 	} = $props();
 
 	const useLinkTint = $derived(settingsStore.settings.colorTokensByLink && linkHex);
+	const markBg = $derived(settingsStore.settings.tokenLinkColorMode === 'background');
+	const editorSurf = $derived(settingsStore.settings.theme === 'dark' ? '#1f2937' : '#ffffff');
 
 	const chipClass = $derived.by(() => {
 		const base =
 			'inline-flex items-center rounded-none border px-2 py-0.5 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 dark:focus:ring-offset-gray-900';
 		if (selected) {
 			return `${base} border-transparent bg-primary-600 text-white dark:bg-primary-500`;
+		}
+		if (useLinkTint && markBg) {
+			return `${base} border-gray-300 text-gray-800 dark:border-gray-600 dark:text-gray-100`;
 		}
 		if (useLinkTint) {
 			return `${base} border-gray-300 bg-white/80 dark:border-gray-600 dark:bg-gray-800/80`;
@@ -45,10 +50,12 @@
 	<button
 		type="button"
 		class="{chipClass} {highlighted ? hiClass : ''}"
-		style:border-color={useLinkTint && linkHex ? linkHex : undefined}
-		style:color={useLinkTint && linkHex ? linkHex : undefined}
+		style:border-color={useLinkTint && linkHex && !markBg ? linkHex : undefined}
+		style:color={useLinkTint && linkHex && !markBg ? linkHex : undefined}
 		style:background={useLinkTint && linkHex
-			? `color-mix(in srgb, ${linkHex} 18%, transparent)`
+			? markBg
+				? `color-mix(in srgb, ${linkHex} 28%, ${editorSurf})`
+				: `color-mix(in srgb, ${linkHex} 18%, transparent)`
 			: undefined}
 		data-token-id={id}
 		data-line={lineId}
@@ -60,10 +67,12 @@
 {:else}
 	<span
 		class="{chipClass} {highlighted ? hiClass : ''}"
-		style:border-color={useLinkTint && linkHex ? linkHex : undefined}
-		style:color={useLinkTint && linkHex ? linkHex : undefined}
+		style:border-color={useLinkTint && linkHex && !markBg ? linkHex : undefined}
+		style:color={useLinkTint && linkHex && !markBg ? linkHex : undefined}
 		style:background={useLinkTint && linkHex
-			? `color-mix(in srgb, ${linkHex} 18%, transparent)`
+			? markBg
+				? `color-mix(in srgb, ${linkHex} 28%, ${editorSurf})`
+				: `color-mix(in srgb, ${linkHex} 18%, transparent)`
 			: undefined}
 		data-token-id={id}
 		data-line={lineId}

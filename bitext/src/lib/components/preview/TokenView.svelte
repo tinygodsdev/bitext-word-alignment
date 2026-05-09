@@ -33,8 +33,17 @@
 	const pending = $derived(selectionStore.pending);
 	const conn = $derived.by(() => primaryConnectionForToken(connections, token.id));
 
+	const linkBgMode = $derived(
+		settingsStore.settings.colorTokensByLink &&
+			settingsStore.settings.tokenLinkColorMode === 'background'
+	);
+
+	const previewSurfaceHex = $derived(
+		settingsStore.settings.background === 'dark' ? '#1e1e1e' : '#ffffff'
+	);
+
 	const textColor = $derived.by(() => {
-		if (!settingsStore.settings.colorTokensByLink || !conn?.color) return null;
+		if (!settingsStore.settings.colorTokensByLink || !conn?.color || linkBgMode) return null;
 		return conn.color;
 	});
 
@@ -64,7 +73,19 @@
 		return pendingAlignmentColor(connections, [upperTok], [lowerTok], palette);
 	});
 
-	const displayColor = $derived(accentColor ?? textColor ?? undefined);
+	const linkFillBackground = $derived.by(() => {
+		if (!settingsStore.settings.colorTokensByLink || !linkBgMode) return null;
+		const surf = previewSurfaceHex;
+		if (interactive && accentColor != null && (isPinned || hovering)) {
+			return `color-mix(in srgb, ${accentColor} ${isPinned ? 48 : 38}%, ${surf})`;
+		}
+		if (conn?.color) {
+			return `color-mix(in srgb, ${conn.color} 28%, ${surf})`;
+		}
+		return null;
+	});
+
+	const displayColor = $derived(linkBgMode ? undefined : (accentColor ?? textColor ?? undefined));
 
 	function onClick() {
 		if (!interactive) return;
@@ -78,13 +99,14 @@
 		class="token-view token-view--clickable"
 		class:token-view--join-before={joinTightStart}
 		class:token-view--join-after={joinTightEnd}
-		class:token-view--colored={textColor && !accentColor}
-		class:token-view--accent-sel={accentColor !== null && isPinned}
-		class:token-view--accent-hover={accentColor !== null && !isPinned}
+		class:token-view--colored={!linkBgMode && textColor && !accentColor}
+		class:token-view--accent-sel={!linkBgMode && accentColor !== null && isPinned}
+		class:token-view--accent-hover={!linkBgMode && accentColor !== null && !isPinned}
 		data-token-id={token.id}
 		data-line={lineId}
 		style:font-size="{textSizePx}px"
 		style:--token-accent={accentColor ?? 'transparent'}
+		style:background={linkFillBackground ?? undefined}
 		style:color={displayColor}
 		onclick={onClick}
 		onmouseenter={() => {
@@ -104,11 +126,12 @@
 		class="token-view"
 		class:token-view--join-before={joinTightStart}
 		class:token-view--join-after={joinTightEnd}
-		class:token-view--colored={textColor}
+		class:token-view--colored={!linkBgMode && !!textColor}
 		data-token-id={token.id}
 		data-line={lineId}
 		style:font-size="{textSizePx}px"
-		style:color={textColor ?? undefined}
+		style:background={linkFillBackground ?? undefined}
+		style:color={linkBgMode ? undefined : (textColor ?? undefined)}
 	>
 		{#if showNumber}
 			<span class="token-view__num">{index + 1}</span>

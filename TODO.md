@@ -24,7 +24,7 @@ Feature requests - high priority:
 - [x] add transcription line support (probably can be solved by adding more than 2 lines)
 
 Usability improvements - high priority:
-- [ ] Parameter card or other view should move to be next to the editor - currently on small screens you have to scroll back and forth between the editor and the parameters
+- [x] Parameter card or other view should move to be next to the editor - currently on small screens you have to scroll back and forth between the editor and the parameters
 
 Bug fixes - high priority:
 - [ ] Reportedly ligatures in custom fonts are not working in the export (but fine in preview) - investigate and fix
@@ -37,8 +37,10 @@ Advanced features - medium priority:
 
 General interface improvements - medium priority:
 - [ ] Interface languages - add pages for some major languages
-- [ ] Make interface more compact to accomodate more features
+- [x] Make interface more compact to accomodate more features
 - [x] Probably add full screen mode for the preview - so that the user would be able to see it all and screenshot if needed - this will partially help if we won't be able to solve ligature problems
+- [x] Create privacy policy page and link to it from the footer. We don't collect any data, but we should have a page for it. We use Google Analytics, Google Ads (probably in the future) and Tally for feedback.
+- [x] Add alternative color marking - don't color the text, color the background of the token. This should correctly work on dark mode as well. The mode can be changed in the settings (probably in colors tab).
 
 Considerations:
 - If we support multiple lines with independent parameters, we can deprecate separate gloss row and configuration - it will be just a single new line with the glosses. Then, the user would be able to add transcription and other annotations in the same manner. 

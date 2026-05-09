@@ -52,6 +52,31 @@
 			<span class="text-sm text-gray-700 dark:text-gray-300">Enabled</span>
 		</Label>
 	</div>
+	{#if s.colorTokensByLink}
+		<div class="mb-4">
+			<p class="mb-2 text-sm font-medium text-gray-800 dark:text-gray-200">Apply link color to</p>
+			<div class="flex flex-wrap gap-2">
+				<button
+					type="button"
+					class="{paletteBtnBase} {s.tokenLinkColorMode === 'text'
+						? 'border-primary-600 bg-primary-600 text-white shadow-sm dark:border-primary-500 dark:bg-primary-600'
+						: 'border-gray-300 bg-white text-gray-800 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700/80'}"
+					onclick={() => settingsStore.patch({ tokenLinkColorMode: 'text' })}
+				>
+					Text
+				</button>
+				<button
+					type="button"
+					class="{paletteBtnBase} {s.tokenLinkColorMode === 'background'
+						? 'border-primary-600 bg-primary-600 text-white shadow-sm dark:border-primary-500 dark:bg-primary-600'
+						: 'border-gray-300 bg-white text-gray-800 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700/80'}"
+					onclick={() => settingsStore.patch({ tokenLinkColorMode: 'background' })}
+				>
+					Background
+				</button>
+			</div>
+		</div>
+	{/if}
 	<p class="mb-4 text-base text-gray-600 dark:text-gray-400">
 		New links pick the next unused color from the palette. Changing the palette recolors every
 		existing link.

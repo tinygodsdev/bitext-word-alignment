@@ -3,6 +3,7 @@
 	import { CogSolid, PenSolid } from 'flowbite-svelte-icons';
 	import LineSettingsPopover from '$lib/components/editor/LineSettingsPopover.svelte';
 	import { editorUiStore } from '$lib/state/editorUi.svelte.js';
+	import { viewportStore } from '$lib/state/viewport.svelte.js';
 
 	let {
 		line,
@@ -37,8 +38,15 @@
 		id={gearDomId}
 		class="rounded-none border border-gray-300 bg-white p-1.5 text-gray-700 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus-visible:outline-primary-500"
 		aria-label="Line settings"
+		onclick={() => {
+			if (viewportStore.isNarrow) {
+				editorUiStore.openLineSettings(line.id);
+			}
+		}}
 	>
 		<CogSolid class="h-4 w-4" />
 	</button>
-	<LineSettingsPopover {line} {index} {total} {triggeredBy} />
+	{#if !viewportStore.isNarrow}
+		<LineSettingsPopover {line} {index} {total} {triggeredBy} />
+	{/if}
 </div>

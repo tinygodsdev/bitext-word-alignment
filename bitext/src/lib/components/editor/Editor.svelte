@@ -15,10 +15,10 @@
 </script>
 
 <section class="mb-8" aria-labelledby="line-editor-heading">
-	<div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+	<div class="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
 		<button
 			type="button"
-			class="flex items-center gap-2 rounded-none border-0 bg-transparent p-0 text-left text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:text-white dark:focus-visible:outline-primary-500"
+			class="flex shrink-0 items-center gap-2 rounded-none border-0 bg-transparent p-0 text-left text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:text-white dark:focus-visible:outline-primary-500"
 			onclick={() => (editorExpanded = !editorExpanded)}
 			aria-expanded={editorExpanded}
 			aria-controls="editor-collapsible"
@@ -37,42 +37,46 @@
 					clip-rule="evenodd"
 				/>
 			</svg>
-			<span id="line-editor-heading" class="font-heading text-lg font-semibold">Line editor</span>
+			<span id="line-editor-heading" class="font-heading text-lg font-semibold leading-snug">
+				Line editor
+			</span>
 		</button>
+		<div
+			class="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-x-2 gap-y-1 sm:flex-nowrap sm:justify-end"
+		>
+			<p
+				class="m-0 max-w-full text-right text-sm leading-snug text-gray-600 dark:text-gray-400 [&>span]:mr-1 [&>span]:inline [&>span]:last:mr-0"
+			>
+				<span>Whitespace splits words.</span>
+				<span>Extra split: <code class={chipClass}>{tok.extraSplitChars}</code>.</span>
+				<span>Join: <code class={chipClass}>{tok.joinChars}</code>.</span>
+				<span
+					>Punctuation: <code class="{chipClass} max-w-[min(100vw-4rem,24rem)] break-all"
+						>{tok.punctuationChip}</code
+					>.</span
+				>
+			</p>
+			<button
+				type="button"
+				class="shrink-0 rounded-none border-0 bg-transparent p-1 text-gray-500 transition-colors hover:text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:text-gray-400 dark:hover:text-gray-100 dark:focus-visible:outline-primary-500"
+				title="Edit tokenization (Settings → Tokens)"
+				aria-label="Edit tokenization rules"
+				onclick={() => settingsNavStore.focusTokensTab()}
+			>
+				<LanguageOutline class="h-5 w-5" aria-hidden="true" />
+			</button>
+		</div>
 	</div>
 
 	{#if editorExpanded}
 		<div id="editor-collapsible">
-			<p
-				class="mb-3 flex w-full flex-wrap items-start gap-x-2 gap-y-1 text-sm leading-snug text-gray-600 dark:text-gray-400"
-			>
-				<span class="min-w-0 flex-1 [&>span]:mr-1 [&>span]:inline [&>span]:last:mr-0">
-					<span>Whitespace splits words.</span>
-					<span>Extra split characters: <code class={chipClass}>{tok.extraSplitChars}</code>.</span>
-					<span>Join characters: <code class={chipClass}>{tok.joinChars}</code>.</span>
-					<span
-						>Tokenize punctuation: <code class="{chipClass} max-w-[min(100%,24rem)] break-all"
-							>{tok.punctuationChip}</code
-						>.</span
-					>
-				</span>
-				<button
-					type="button"
-					class="shrink-0 rounded-none border border-gray-300 bg-gray-50 p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200 dark:focus-visible:outline-gray-400"
-					title="Edit tokenization (Settings → Tokens)"
-					aria-label="Edit tokenization rules"
-					onclick={() => settingsNavStore.focusTokensTab()}
-				>
-					<LanguageOutline class="h-5 w-5" aria-hidden="true" />
-				</button>
-			</p>
 			{#each projectStore.lines as line, i (line.id)}
 				<LineCard {line} index={i} />
 			{/each}
 			<div class="mt-2 flex flex-wrap items-center gap-3">
 				<button
 					type="button"
-					class="rounded-none border border-primary-600 bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50 dark:border-primary-500 dark:bg-primary-600 dark:hover:bg-primary-500"
+					class="rounded-none border border-gray-300 bg-transparent px-3 py-1.5 text-sm font-medium text-gray-800 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:text-gray-100 dark:hover:bg-gray-800/80"
 					disabled={projectStore.lines.length >= MAX_LINES}
 					onclick={() => projectStore.addLine()}
 				>

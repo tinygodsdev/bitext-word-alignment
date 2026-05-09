@@ -42,7 +42,7 @@ function stateV1(partial: {
 function projKey(project: ProjectSnapshotV2): string {
 	const lines = project.lines.map(
 		(l) =>
-			`${l.id}:${l.rawText}:${l.textSizePx}:${l.gapWordPx}:${l.font.source}:${l.font.family}:${l.font.customName ?? ''}`
+			`${l.id}:${l.rawText}:${l.textSizePx}:${l.gapWordPx}:${l.font.source}:${l.font.family}:${l.font.customName ?? ''}:${l.rtl ? 1 : 0}`
 	);
 	const pcs = project.pairControls
 		.map((p) => `${p.upperLineId}/${p.lowerLineId}:${p.showConnectors}`)
@@ -222,6 +222,29 @@ describe('compact v3 encode/decode (current share format)', () => {
 		expect(decoded.settings.tokenSplitPunctuation).toBe(true);
 		expect(decoded.settings.tokenPunctuationChars).toBe(',;');
 		expect(decoded.settings.tokenSplitChars).toBe('.');
+	});
+
+	it('round-trip: token link color mode (background)', () => {
+		const base = migrate({});
+		const s: AppStateV2 = {
+			...base,
+			settings: { ...base.settings, tokenLinkColorMode: 'background' }
+		};
+		const decoded = decodeState(encodeState(s));
+		expect(decoded.settings.tokenLinkColorMode).toBe('background');
+	});
+
+	it('round-trip: line RTL flag in compact share wire', () => {
+		const base = migrate({});
+		const line = base.project.lines[0]!;
+		const rtlLine = { ...line, rtl: true as const };
+		const s: AppStateV2 = {
+			...base,
+			project: { ...base.project, lines: [rtlLine, base.project.lines[1]!] }
+		};
+		const decoded = decodeState(encodeState(s));
+		expect(decoded.project.lines[0]?.rtl).toBe(true);
+		expect(decoded.project.lines[1]?.rtl).toBeFalsy();
 	});
 
 	it('enum coverage: lineStyle, background', () => {

@@ -30,8 +30,18 @@
 </script>
 
 <Card class="max-w-none min-w-0 w-full p-4 sm:p-6">
-	<h2 class="font-heading mb-4 text-lg font-semibold text-gray-900 dark:text-white">Settings</h2>
-	<Tabs tabStyle="underline" bind:selected class="min-w-0">
+	<h2
+		id="settings-heading"
+		class="font-heading mb-4 text-lg font-semibold text-gray-900 dark:text-white"
+	>
+		Settings
+	</h2>
+	<Tabs
+		tabStyle="underline"
+		bind:selected
+		class="min-w-0"
+		contentClass="mt-0 rounded-none bg-transparent p-0 pt-4 dark:bg-transparent"
+	>
 		<TabItem key="appearance" title="Style">
 			{#snippet titleSlot()}
 				<span
@@ -42,9 +52,7 @@
 					<AdjustmentsHorizontalSolid class="h-5 w-5 shrink-0" aria-hidden="true" />
 				</span>
 			{/snippet}
-			<div class="min-h-48 pt-4">
-				<AppearanceTab />
-			</div>
+			<AppearanceTab />
 		</TabItem>
 		<TabItem key="colors" title="Colors">
 			{#snippet titleSlot()}
@@ -53,9 +61,7 @@
 					<PaletteSolid class="h-5 w-5 shrink-0" aria-hidden="true" />
 				</span>
 			{/snippet}
-			<div class="min-h-48 pt-4">
-				<ColorsTab />
-			</div>
+			<ColorsTab />
 		</TabItem>
 		<TabItem key="linguistics" title="Tokens">
 			{#snippet titleSlot()}
@@ -67,9 +73,7 @@
 					<LanguageOutline class="h-5 w-5 shrink-0" aria-hidden="true" />
 				</span>
 			{/snippet}
-			<div class="min-h-48 pt-4">
-				<LinguisticsTab />
-			</div>
+			<LinguisticsTab />
 		</TabItem>
 		<TabItem key="fonts" title="Fonts">
 			{#snippet titleSlot()}
@@ -78,9 +82,7 @@
 					<FontFamilyOutline class="h-5 w-5 shrink-0" aria-hidden="true" />
 				</span>
 			{/snippet}
-			<div class="min-h-48 pt-4">
-				<FontsTab />
-			</div>
+			<FontsTab />
 		</TabItem>
 	</Tabs>
 </Card>

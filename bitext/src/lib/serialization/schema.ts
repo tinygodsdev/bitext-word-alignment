@@ -17,6 +17,8 @@ export const NEW_LINE_HINT_TEXT = 'Type your text here';
 
 export type LineStyle = 'straight' | 'curved';
 export type BackgroundMode = 'light' | 'dark' | 'image';
+/** How link colors apply to tokens when “match token color to links” is on. */
+export type TokenLinkColorMode = 'text' | 'background';
 export type UiTheme = 'light' | 'dark';
 /** Minimum vertical gap between adjacent lines (preview + export). Keep ≥ ~12 so connectors stay usable. */
 export const MIN_LINE_GAP_PX = 12;
@@ -96,6 +98,11 @@ export interface LineV2 {
 	textSizePx: number;
 	/** Horizontal gap between word tokens on this line (px). */
 	gapWordPx: number;
+	/**
+	 * When true, the preview/editor token row uses right-to-left direction (Hebrew, Arabic, etc.).
+	 * Token order and ids stay in logical “first word → last word” order; only layout mirrors.
+	 */
+	rtl?: boolean;
 }
 
 export interface PairControlV2 {
@@ -128,6 +135,8 @@ export interface VisualSettingsV2 {
 	palette: PaletteName;
 	showNumbers: boolean;
 	colorTokensByLink: boolean;
+	/** When colorTokensByLink: tint token text vs token background (preview, chips, exports). */
+	tokenLinkColorMode: TokenLinkColorMode;
 	tokenSplitChars: string;
 	/** Single character: joins parts into one alignment token; shown as a space in preview. */
 	tokenMergeChar: string;
@@ -212,6 +221,7 @@ export function defaultVisualSettingsV2(): VisualSettingsV2 {
 		palette: 'pastel',
 		showNumbers: false,
 		colorTokensByLink: true,
+		tokenLinkColorMode: 'text',
 		tokenSplitChars: DEFAULT_TOKEN_SPLIT_CHARS,
 		tokenMergeChar: DEFAULT_TOKEN_MERGE_CHAR,
 		tokenSplitPunctuation: false,
@@ -286,6 +296,7 @@ export function visualSettingsV1ToV2(v1: VisualSettingsV1): VisualSettingsV2 {
 		palette: v1.palette,
 		showNumbers: v1.showNumbers,
 		colorTokensByLink: v1.colorTokensByLink,
+		tokenLinkColorMode: 'text',
 		tokenSplitChars: v1.tokenSplitChars,
 		tokenMergeChar: '',
 		tokenSplitPunctuation: false,
@@ -666,7 +677,10 @@ export function normalizeProjectSnapshotV2(
 				? clampWordGapPx(l.gapWordPx)
 				: undefined;
 		const gapWordPx = fromLine ?? legacySettingsGapWordPx ?? DEFAULT_WORD_GAP_PX;
-		return { ...l, font: { ...l.font }, gapWordPx };
+		const { rtl, ...rest } = l;
+		const lineOut: LineV2 = { ...rest, font: { ...l.font }, gapWordPx };
+		if (rtl) lineOut.rtl = true;
+		return lineOut;
 	});
 
 	const lineIds = linesNorm.map((l) => l.id);
@@ -742,6 +756,10 @@ export function normalizeVisualSettingsV2(
 		showNumbers: typeof raw.showNumbers === 'boolean' ? raw.showNumbers : d.showNumbers,
 		colorTokensByLink:
 			typeof raw.colorTokensByLink === 'boolean' ? raw.colorTokensByLink : d.colorTokensByLink,
+		tokenLinkColorMode:
+			raw.tokenLinkColorMode === 'background' || raw.tokenLinkColorMode === 'text'
+				? raw.tokenLinkColorMode
+				: d.tokenLinkColorMode,
 		tokenMergeChar: mergeNorm,
 		tokenSplitPunctuation:
 			typeof raw.tokenSplitPunctuation === 'boolean'

@@ -56,6 +56,9 @@ function settingsToCompact(rounded: VisualSettingsV2): CompactSettings3 | undefi
 	if (rounded.palette !== def.palette) o.pl = rounded.palette;
 	if (rounded.showNumbers !== def.showNumbers) o.sn = rounded.showNumbers ? 1 : 0;
 	if (rounded.colorTokensByLink !== def.colorTokensByLink) o.ct = rounded.colorTokensByLink ? 1 : 0;
+	if (rounded.tokenLinkColorMode !== def.tokenLinkColorMode) {
+		o.lb = rounded.tokenLinkColorMode === 'background' ? 1 : 0;
+	}
 	if (rounded.tokenSplitChars !== def.tokenSplitChars) o.sp = rounded.tokenSplitChars;
 	if (rounded.tokenSplitPunctuation !== def.tokenSplitPunctuation) {
 		o.pp = rounded.tokenSplitPunctuation ? 1 : 0;
@@ -80,6 +83,7 @@ function compactToVisualSettings(s: CompactSettings3 | undefined): VisualSetting
 	if (s.pl !== undefined) raw.palette = String(s.pl);
 	if (s.sn !== undefined) raw.showNumbers = Number(s.sn) === 1;
 	if (s.ct !== undefined) raw.colorTokensByLink = Number(s.ct) === 1;
+	if (s.lb !== undefined) raw.tokenLinkColorMode = Number(s.lb) === 1 ? 'background' : 'text';
 	if (s.sp !== undefined) raw.tokenSplitChars = String(s.sp);
 	if (s.mg !== undefined) raw.tokenMergeChar = String(s.mg);
 	if (s.px !== undefined) raw.tokenPunctuationChars = String(s.px);
@@ -93,8 +97,8 @@ function compactToVisualSettings(s: CompactSettings3 | undefined): VisualSetting
 
 function encodeLines(lines: LineV2[]): string {
 	return lines
-		.map((l) =>
-			[
+		.map((l) => {
+			const cols = [
 				l.id,
 				encodeURIComponent(l.rawText),
 				l.font.family,
@@ -102,8 +106,10 @@ function encodeLines(lines: LineV2[]): string {
 				l.font.customName ? encodeURIComponent(l.font.customName) : '',
 				String(l.textSizePx),
 				String(l.gapWordPx)
-			].join('\t')
-		)
+			];
+			if (l.rtl) cols.push('1');
+			return cols.join('\t');
+		})
 		.join('|');
 }
 
@@ -119,6 +125,7 @@ function decodeLines(encoded: string): LineV2[] {
 		const cnEnc = parts[4];
 		const sz = parts[5];
 		const gwRaw = parts[6];
+		const rtlRaw = parts[7];
 		if (!id || !family) continue;
 		const customName = cnEnc ? decodeURIComponent(cnEnc) : undefined;
 		const parsedGw = gwRaw !== undefined && gwRaw !== '' ? Number(gwRaw) : undefined;
@@ -126,6 +133,8 @@ function decodeLines(encoded: string): LineV2[] {
 			parsedGw !== undefined && Number.isFinite(parsedGw)
 				? clampWordGapPx(parsedGw)
 				: DEFAULT_WORD_GAP_PX;
+		const rtl =
+			rtlRaw !== undefined && rtlRaw !== '' && (Number(rtlRaw) === 1 || rtlRaw === 'true');
 		out.push({
 			id,
 			rawText: decodeURIComponent(rawEnc ?? ''),
@@ -135,7 +144,8 @@ function decodeLines(encoded: string): LineV2[] {
 				...(customName ? { customName } : {})
 			},
 			textSizePx: Math.max(12, Math.min(64, Number(sz) || 36)),
-			gapWordPx
+			gapWordPx,
+			...(rtl ? { rtl: true } : {})
 		});
 	}
 	return out;
@@ -219,7 +229,8 @@ function lineEquals(a: LineV2 | undefined, b: LineV2 | undefined): boolean {
 		a.gapWordPx === b.gapWordPx &&
 		a.font.family === b.font.family &&
 		a.font.source === b.font.source &&
-		a.font.customName === b.font.customName
+		a.font.customName === b.font.customName &&
+		(a.rtl ?? false) === (b.rtl ?? false)
 	);
 }
 

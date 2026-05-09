@@ -32,6 +32,7 @@ import {
 } from '$lib/serialization/schema.js';
 import { layoutExportStore } from '$lib/state/layoutExport.svelte.js';
 import { settingsStore } from '$lib/state/settings.svelte.js';
+import { findExample, type ExampleId } from '$lib/state/examples.js';
 
 function newLineId(): string {
 	return `l-${Math.random().toString(16).slice(2, 10)}`;
@@ -112,7 +113,7 @@ class ProjectStore {
 
 	updateLineStyle(
 		lineId: string,
-		patch: Partial<Pick<LineV2, 'font' | 'textSizePx' | 'gapWordPx'>>
+		patch: Partial<Pick<LineV2, 'font' | 'textSizePx' | 'gapWordPx' | 'rtl'>>
 	) {
 		this.lines = this.lines.map((l) => {
 			if (l.id !== lineId) return l;
@@ -120,12 +121,17 @@ class ProjectStore {
 			const textSizePx = patch.textSizePx ?? l.textSizePx;
 			const gapWordPx =
 				patch.gapWordPx !== undefined ? clampWordGapPx(patch.gapWordPx) : l.gapWordPx;
-			return { ...l, font, textSizePx, gapWordPx };
+			const nextRtl = patch.rtl !== undefined ? (patch.rtl ? true : undefined) : l.rtl;
+			const out: LineV2 = { ...l, font, textSizePx, gapWordPx };
+			if (nextRtl) out.rtl = true;
+			else delete out.rtl;
+			return out;
 		});
 		if (
 			patch.gapWordPx !== undefined ||
 			patch.textSizePx !== undefined ||
-			patch.font !== undefined
+			patch.font !== undefined ||
+			patch.rtl !== undefined
 		) {
 			layoutExportStore.requestRemeasureAfterLayout();
 		}
@@ -169,6 +175,7 @@ class ProjectStore {
 			textSizePx: 36,
 			gapWordPx: template?.gapWordPx ?? DEFAULT_WORD_GAP_PX
 		};
+		if (template?.rtl) newLine.rtl = true;
 		this.lines = [...this.lines.slice(0, idx), newLine, ...this.lines.slice(idx)];
 		this.syncAllTokens();
 		this.prunePairControls();
@@ -303,68 +310,18 @@ class ProjectStore {
 		this.pruneInvalidConnections();
 	}
 
-	loadExample(kind: 'simple' | 'complex' = 'simple') {
+	loadExample(kind: ExampleId = 'simple') {
 		const palette = settingsStore.settings.palette;
-		if (kind === 'simple') {
-			this.loadSnapshotV2({
-				lines: [
-					{
-						id: 's',
-						rawText: 'Hello world',
-						font: { family: 'Inter', source: 'google' },
-						textSizePx: 36,
-						gapWordPx: DEFAULT_WORD_GAP_PX
-					},
-					{
-						id: 't',
-						rawText: 'Bonjour le monde',
-						font: { family: 'Inter', source: 'google' },
-						textSizePx: 36,
-						gapWordPx: DEFAULT_WORD_GAP_PX
-					}
-				],
-				pairControls: [],
-				linePairGaps: [],
-				connections: []
-			});
-			this.addConnection('s-0', 't-0', palette);
-			this.addConnection('s-1', 't-1', palette);
-			this.addConnection('s-1', 't-2', palette);
-			layoutExportStore.requestRemeasureAfterLayout();
-			return;
-		}
+		const example = findExample(kind);
 		this.loadSnapshotV2({
-			lines: [
-				{
-					id: 's',
-					rawText: 'Merhaba dünya',
-					font: { family: 'Inter', source: 'google' },
-					textSizePx: 34,
-					gapWordPx: DEFAULT_WORD_GAP_PX
-				},
-				{
-					id: 'ipa',
-					rawText: 'meɾˈhaba dyzˈnja',
-					font: { family: 'Noto Sans', source: 'google' },
-					textSizePx: 28,
-					gapWordPx: DEFAULT_WORD_GAP_PX
-				},
-				{
-					id: 't',
-					rawText: 'Hello world',
-					font: { family: 'Inter', source: 'google' },
-					textSizePx: 34,
-					gapWordPx: DEFAULT_WORD_GAP_PX
-				}
-			],
+			lines: example.lines.map((l) => ({ ...l, font: { ...l.font } })),
 			pairControls: [],
 			linePairGaps: [],
 			connections: []
 		});
-		this.addConnection('s-0', 'ipa-0', palette);
-		this.addConnection('s-1', 'ipa-1', palette);
-		this.addConnection('ipa-0', 't-0', palette);
-		this.addConnection('ipa-1', 't-1', palette);
+		for (const [upper, lower] of example.connections) {
+			this.addConnection(upper, lower, palette);
+		}
 		layoutExportStore.requestRemeasureAfterLayout();
 	}
 }

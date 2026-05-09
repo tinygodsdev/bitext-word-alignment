@@ -48,6 +48,18 @@
 	{#if bg === 'image' && settingsStore.settings.backgroundImageDataUrl}
 		<div class="preview-frame__image-overlay"></div>
 	{/if}
+	{#if selectionStore.showLinkHint()}
+		<p
+			class="preview-frame__link-hint pointer-events-none absolute left-3 top-3 z-30 max-w-[min(calc(100%-1.5rem),15rem)] px-2 py-1 text-xs leading-snug"
+			role="status"
+		>
+			{#if selectionStore.adjacencyHint}
+				Only <strong>adjacent</strong> lines can be linked — choose a word directly above or below.
+			{:else}
+				Click a word on an <strong>adjacent</strong> line to create the link.
+			{/if}
+		</p>
+	{/if}
 	<div class="preview-stack">
 		<div
 			class="mb-1 flex justify-center {hideChrome ? chromeHiddenLayer : ''}"
@@ -87,6 +99,7 @@
 						gapWordPx={line.gapWordPx}
 						showNumbers={settingsStore.settings.showNumbers}
 						interactive={true}
+						rtl={Boolean(line.rtl)}
 					/>
 				</div>
 				<div

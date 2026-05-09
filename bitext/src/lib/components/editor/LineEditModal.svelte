@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { LanguageOutline } from 'flowbite-svelte-icons';
-	import { Modal, Button } from 'flowbite-svelte';
+	import { Modal, Button, Label } from 'flowbite-svelte';
 	import { editorTokenizationChipValues } from '$lib/domain/tokenization-summary.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { settingsNavStore } from '$lib/state/settingsNav.svelte.js';
@@ -123,17 +123,35 @@
 		>
 		<textarea
 			id="line-edit-textarea"
-			class="{areaClass} mb-4"
+			class="{areaClass} mb-3"
 			rows={4}
 			placeholder=" "
 			value={currentLine.rawText}
+			dir={currentLine.rtl ? 'rtl' : 'ltr'}
 			oninput={(e) =>
 				projectStore.setLineText(currentLine.id, (e.currentTarget as HTMLTextAreaElement).value)}
 		></textarea>
+		<div class="mb-4">
+			<Label
+				class="inline-flex cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-gray-300"
+			>
+				<input
+					type="checkbox"
+					class="peer h-4 w-4 rounded border-gray-300 bg-gray-100 text-primary-600 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:focus:ring-primary-600"
+					checked={Boolean(currentLine.rtl)}
+					onchange={(e) =>
+						projectStore.updateLineStyle(currentLine.id, {
+							rtl: (e.currentTarget as HTMLInputElement).checked
+						})}
+				/>
+				<span>Right-to-left row (Hebrew, Arabic, …)</span>
+			</Label>
+		</div>
 		<div
 			class="flex min-h-[2.5rem] flex-wrap items-center gap-x-2 gap-y-1.5"
 			role="group"
 			aria-label="Token preview"
+			dir={currentLine.rtl ? 'rtl' : 'ltr'}
 		>
 			{#each tokens as t (t.id)}
 				<TokenChip

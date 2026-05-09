@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { LineV2 } from '$lib/serialization/schema.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
+	import { ButtonGroup, Input, InputAddon } from 'flowbite-svelte';
 
 	let {
 		line,
@@ -9,9 +10,6 @@
 		line: LineV2;
 		index: number;
 	} = $props();
-
-	const inputClass =
-		'block h-9 w-full min-w-0 flex-1 rounded-none border border-gray-300 bg-gray-50 px-2 text-sm text-gray-900 placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-primary-500 dark:focus:ring-primary-500';
 
 	function onDragStart(e: DragEvent) {
 		e.dataTransfer?.setData('text/plain', line.id);
@@ -29,10 +27,14 @@
 		if (!draggedId || draggedId === line.id) return;
 		projectStore.moveLineToIndex(draggedId, index);
 	}
+
+	function toggleLineDir() {
+		projectStore.updateLineStyle(line.id, { rtl: !line.rtl });
+	}
 </script>
 
 <div
-	class="mb-1.5 flex w-full flex-nowrap items-center gap-2"
+	class="mb-1.5 flex w-full flex-nowrap items-center gap-x-2"
 	ondragover={onDragOver}
 	ondrop={onDrop}
 	role="group"
@@ -53,13 +55,32 @@
 			Line {index + 1}
 		</span>
 	</div>
-	<label class="sr-only" for="line-{line.id}">Line {index + 1} text</label>
-	<input
-		type="text"
-		id="line-{line.id}"
-		class={inputClass}
-		placeholder=" "
-		value={line.rawText}
-		oninput={(e) => projectStore.setLineText(line.id, (e.currentTarget as HTMLInputElement).value)}
-	/>
+
+	<ButtonGroup class="w-full min-w-32 flex-1 basis-48 sm:basis-auto">
+		<label class="sr-only" for="line-{line.id}">Line {index + 1} text</label>
+		<Input
+			id="line-{line.id}"
+			type="text"
+			placeholder=" "
+			value={line.rawText}
+			dir={line.rtl ? 'rtl' : 'ltr'}
+			class="min-w-0 flex-1"
+			oninput={(e) =>
+				projectStore.setLineText(line.id, (e.currentTarget as HTMLInputElement).value)}
+		/>
+		<InputAddon
+			class="rounded-e-none! border-gray-300! bg-gray-50! px-2! dark:border-gray-600! dark:bg-gray-700!"
+		>
+			<button
+				type="button"
+				class="min-w-9 cursor-pointer select-none border-0 bg-transparent p-0 text-center text-[10px] font-medium tracking-wide text-gray-600 uppercase hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 dark:text-gray-400 dark:hover:text-gray-100 dark:focus-visible:ring-primary-400 dark:focus-visible:ring-offset-gray-800"
+				title="Row direction — click to switch LTR / RTL"
+				aria-label={line.rtl ? 'Right-to-left; switch to LTR' : 'Left-to-right; switch to RTL'}
+				aria-pressed={line.rtl}
+				onclick={toggleLineDir}
+			>
+				{line.rtl ? 'RTL' : 'LTR'}
+			</button>
+		</InputAddon>
+	</ButtonGroup>
 </div>

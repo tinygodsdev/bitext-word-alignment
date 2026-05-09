@@ -4,12 +4,41 @@ import type { TokenLayout } from '$lib/types/layout.js';
 import type { Connection } from '$lib/domain/alignment.js';
 import { primaryConnectionForToken } from '$lib/domain/alignment.js';
 import { canonicalPair, showConnectorsForPair, tokenLineId } from '$lib/domain/lines-helpers.js';
-import type { PairControlV2 } from '$lib/serialization/schema.js';
+import type { PairControlV2, TokenLinkColorMode } from '$lib/serialization/schema.js';
 import { linkEndpoints, linkPathD } from '$lib/domain/link-geometry.js';
 import { escapeXml } from './xml.js';
 
 const ATTRIBUTION_FOOTER_PX = 28;
 const ATTRIBUTION_FONT = '"Google Sans", sans-serif';
+
+function parseHexRgb(hex: string): [number, number, number] | null {
+	let h = hex.replace(/^#/u, '').replace(/[^0-9a-fA-F]/gu, '');
+	if (h.length === 3) {
+		h = h
+			.split('')
+			.map((c) => c + c)
+			.join('');
+	}
+	if (!/^[0-9a-fA-F]{6}$/u.test(h)) return null;
+	return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+
+function byteHex(n: number): string {
+	const x = Math.max(0, Math.min(255, Math.round(n)));
+	return x.toString(16).padStart(2, '0');
+}
+
+/** Linear blend toward canvas background (aligned with preview token background tint). */
+function mixLinkBackground(linkHex: string, canvasHex: string, linkWeight = 0.28): string {
+	const a = parseHexRgb(linkHex);
+	const b = parseHexRgb(canvasHex);
+	if (!a || !b) return linkHex;
+	const t = Math.max(0, Math.min(1, linkWeight));
+	const r = a[0] * t + b[0] * (1 - t);
+	const g = a[1] * t + b[1] * (1 - t);
+	const bl = a[2] * t + b[2] * (1 - t);
+	return `#${byteHex(r)}${byteHex(g)}${byteHex(bl)}`;
+}
 
 function shouldRenderConnectionPath(
 	conn: Connection,
@@ -32,6 +61,7 @@ export function buildStandaloneSvgString(args: {
 	backgroundColor: string;
 	defaultTextColor: string;
 	colorTokensByLink: boolean;
+	tokenLinkColorMode?: TokenLinkColorMode;
 	lineStyle: 'straight' | 'curved';
 	lineThickness: number;
 	lineOpacity: number;
@@ -56,6 +86,7 @@ export function buildStandaloneSvgString(args: {
 		backgroundColor,
 		defaultTextColor,
 		colorTokensByLink,
+		tokenLinkColorMode = 'text',
 		lineStyle,
 		lineThickness,
 		lineOpacity,
@@ -99,19 +130,34 @@ export function buildStandaloneSvgString(args: {
 		);
 	}
 
+	const tokenRects: string[] = [];
 	const texts: string[] = [];
 
 	function tokenFill(tokenId: string): string {
 		if (!colorTokensByLink) return defaultTextColor;
 		const link = primaryConnectionForToken(connections, tokenId);
 		if (!link?.color) return defaultTextColor;
+		if (tokenLinkColorMode === 'background') return defaultTextColor;
 		return link.color;
+	}
+
+	function tokenBgHex(tokenId: string): string | null {
+		if (!colorTokensByLink || tokenLinkColorMode !== 'background') return null;
+		const link = primaryConnectionForToken(connections, tokenId);
+		if (!link?.color) return null;
+		return mixLinkBackground(link.color, backgroundColor, 0.28);
 	}
 
 	function pushTokenText(t: Token, fontFamily: string, sizePx: number) {
 		const box = tokenLayout[t.id];
 		if (!box) return;
 		const fill = tokenFill(t.id);
+		const bg = tokenBgHex(t.id);
+		if (bg) {
+			tokenRects.push(
+				`<rect x="${box.x}" y="${box.y}" width="${box.w}" height="${box.h}" fill="${escapeXml(bg)}"/>`
+			);
+		}
 		texts.push(
 			`<text fill="${escapeXml(fill)}" font-family="${escapeXml(fontFamily)}" font-size="${sizePx}" font-weight="500" text-anchor="middle" dominant-baseline="central" transform="translate(${box.cx},${box.cy})">${escapeXml(t.text)}</text>`
 		);
@@ -143,5 +189,5 @@ export function buildStandaloneSvgString(args: {
 </g>`
 		: '';
 
-	return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${exportHeight}" viewBox="0 0 ${width} ${exportHeight}">${fontDefs}${bgRect}${paths.join('')}${texts.join('')}${cornerQr}${attribution}</svg>`;
+	return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${exportHeight}" viewBox="0 0 ${width} ${exportHeight}">${fontDefs}${bgRect}${tokenRects.join('')}${paths.join('')}${texts.join('')}${cornerQr}${attribution}</svg>`;
 }

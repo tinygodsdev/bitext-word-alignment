@@ -115,6 +115,27 @@ html {
 	background: color-mix(in srgb, #1e1e1e 82%, transparent);
 }
 
+/* Floating link hint — no panel chrome; halo keeps text readable on busy previews */
+.preview-frame__link-hint {
+	margin: 0;
+	border: none;
+	background: none;
+	box-shadow: none;
+	color: #374151;
+	text-shadow:
+		0 0 6px #fff,
+		0 0 14px #fff,
+		0 1px 2px rgb(255 255 255 / 0.95);
+}
+
+.preview-frame--dark .preview-frame__link-hint {
+	color: #e5e7eb;
+	text-shadow:
+		0 0 8px rgb(0 0 0 / 0.85),
+		0 0 18px rgb(0 0 0 / 0.75),
+		0 1px 3px rgb(0 0 0 / 0.9);
+}
+
 .preview-stack {
 	position: relative;
 	z-index: 1;

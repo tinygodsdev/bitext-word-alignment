@@ -64,6 +64,7 @@
 			backgroundColor: exportBackgroundColor(),
 			defaultTextColor: exportTextColor(),
 			colorTokensByLink: s.colorTokensByLink,
+			tokenLinkColorMode: s.tokenLinkColorMode,
 			lineStyle: s.lineStyle,
 			lineThickness: s.lineThickness,
 			lineOpacity: s.lineOpacity,

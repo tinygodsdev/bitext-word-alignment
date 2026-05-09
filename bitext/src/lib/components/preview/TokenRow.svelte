@@ -8,7 +8,8 @@
 		textSizePx,
 		gapWordPx,
 		showNumbers,
-		interactive = false
+		interactive = false,
+		rtl = false
 	}: {
 		tokens: Token[];
 		lineId: string;
@@ -16,10 +17,12 @@
 		gapWordPx: number;
 		showNumbers: boolean;
 		interactive?: boolean;
+		/** Visual row direction; token order and ids stay logical LTR. */
+		rtl?: boolean;
 	} = $props();
 </script>
 
-<div class="token-row" data-line={lineId} role="group">
+<div class="token-row" data-line={lineId} role="group" dir={rtl ? 'rtl' : 'ltr'}>
 	{#each tokens as t, i (t.id)}
 		{@const nextTok = tokens[i + 1]}
 		<span

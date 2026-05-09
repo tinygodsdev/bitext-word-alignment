@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import Editor from '$lib/components/editor/Editor.svelte';
 	import LineEditModal from '$lib/components/editor/LineEditModal.svelte';
+	import LineSettingsSheet from '$lib/components/editor/LineSettingsSheet.svelte';
 	import AlignmentPreview from '$lib/components/preview/AlignmentPreview.svelte';
 	import SettingsPanel from '$lib/components/settings/SettingsPanel.svelte';
 	import ExportCard from '$lib/components/settings/ExportCard.svelte';
@@ -11,12 +12,14 @@
 	import SeoSections from '$lib/components/seo/SeoSections.svelte';
 	import JsonLd from '$lib/components/seo/JsonLd.svelte';
 	import { Button } from 'flowbite-svelte';
+	import { resolve } from '$app/paths';
 	import { encodeState } from '$lib/serialization/encode.js';
 	import { SCHEMA_VERSION, type AppStateV2 } from '$lib/serialization/schema.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { selectionStore } from '$lib/state/selection.svelte.js';
 	import { layoutExportStore } from '$lib/state/layoutExport.svelte.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
+	import { EXAMPLES, type ExampleId } from '$lib/state/examples.js';
 	import { TALLY_FORM_ID } from '$lib/brand.js';
 	import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, SITE_NAME } from '$lib/seo/metadata.js';
 	import type { PageProps } from './$types';
@@ -102,9 +105,24 @@
 
 	const siteTheme = $derived(settingsStore.settings.theme);
 	const previewHideChrome = $derived(settingsStore.settings.previewHideChrome);
-	const themeToggleActive = 'bg-primary-600 text-white dark:bg-primary-500';
-	const themeToggleInactive =
-		'bg-transparent text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800';
+
+	let loadExampleDetailsEl = $state<HTMLDetailsElement | null>(null);
+
+	function pickExample(kind: ExampleId) {
+		projectStore.loadExample(kind);
+		if (loadExampleDetailsEl) loadExampleDetailsEl.open = false;
+	}
+
+	const themeIconBtn =
+		'box-border m-0 inline-flex h-9 w-9 shrink-0 items-center justify-center border-0 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:focus-visible:outline-gray-400';
+	const themeIconActive = `${themeIconBtn} bg-gray-200 text-gray-900 dark:bg-gray-600 dark:text-gray-100`;
+	const themeIconIdle = `${themeIconBtn} bg-transparent text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800`;
+
+	const exampleDropdownBtn =
+		'inline-flex list-none cursor-pointer items-center gap-1 rounded-none border border-gray-300 bg-white px-2.5 py-1 text-sm font-medium text-gray-800 shadow-sm marker:hidden outline-none hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-primary-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700/80 dark:focus-visible:ring-primary-500 [&::-webkit-details-marker]:hidden';
+
+	const exampleDropdownItem =
+		'block w-full border-0 bg-transparent px-3 py-2 text-left text-sm text-gray-800 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-700/80';
 </script>
 
 <svelte:head>
@@ -131,45 +149,22 @@
 <JsonLd />
 
 <main class="w-full min-w-0 px-4 pt-4 pb-8 sm:px-6 md:pt-6 md:pb-12 lg:px-10">
-	<header class="mb-8">
-		<div class="grid gap-6 md:grid-cols-2 md:items-start md:gap-x-10 lg:gap-x-14">
-			<div class="text-center md:text-left">
+	<header class="mb-8 border-b border-gray-200 pb-8 dark:border-gray-700">
+		<div class="flex flex-wrap items-start justify-between gap-x-8 gap-y-4">
+			<div class="min-w-0 max-w-3xl flex-1 text-left">
 				<h1
-					class="font-heading text-2xl font-semibold leading-tight tracking-tight text-gray-900 sm:text-3xl md:text-3xl dark:text-white"
+					class="font-heading text-2xl font-semibold leading-tight tracking-tight text-gray-900 sm:text-3xl dark:text-white"
 				>
 					Word-by-word translation visualizer
 				</h1>
-				<div
-					class="mt-4 flex justify-center md:justify-start"
-					role="group"
-					aria-label="Site theme (light or dark)"
+				<p
+					class="mt-4 max-w-prose text-base leading-relaxed text-gray-600 dark:text-gray-400 lg:text-[1.05rem]"
 				>
-					<div
-						class="inline-flex overflow-hidden rounded-none border border-gray-300 dark:border-gray-600"
-					>
-						<button
-							type="button"
-							class="border-0 px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-500 {siteTheme ===
-							'light'
-								? themeToggleActive
-								: themeToggleInactive}"
-							onclick={() => settingsStore.patch({ theme: 'light' })}
-						>
-							Light
-						</button>
-						<button
-							type="button"
-							class="border-0 border-l border-gray-300 px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:border-gray-600 dark:focus-visible:outline-primary-500 {siteTheme ===
-							'dark'
-								? themeToggleActive
-								: themeToggleInactive}"
-							onclick={() => settingsStore.patch({ theme: 'dark' })}
-						>
-							Dark
-						</button>
-					</div>
-				</div>
-				<p class="mt-4 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+					See exactly which word matches which across translated lines. Stack multiple lines (e.g.
+					source, IPA, target), link adjacent rows, and export a clean image for lessons, posts, or
+					conlang notes.
+				</p>
+				<p class="mt-4 max-w-prose text-sm leading-relaxed text-gray-600 dark:text-gray-400">
 					Created by
 					<a
 						href={authorSite}
@@ -185,14 +180,63 @@
 					> for linguistics and conlanging.
 				</p>
 			</div>
-			<div class="text-center md:text-left">
-				<p
-					class="text-base leading-relaxed text-gray-600 dark:text-gray-400 md:pt-0.5 lg:text-[1.05rem]"
+			<div class="flex shrink-0 flex-wrap items-center justify-end gap-2">
+				<div
+					class="inline-flex overflow-hidden rounded-none border border-gray-300 dark:border-gray-600"
+					role="group"
+					aria-label="Site theme (light or dark)"
 				>
-					See exactly which word matches which across translated lines. Stack multiple lines (e.g.
-					source, IPA, target), link adjacent rows, and export a clean image for lessons, posts, or
-					conlang notes.
-				</p>
+					<button
+						type="button"
+						class={siteTheme === 'light' ? themeIconActive : themeIconIdle}
+						aria-pressed={siteTheme === 'light'}
+						title="Light theme"
+						onclick={() => settingsStore.patch({ theme: 'light' })}
+					>
+						<span class="sr-only">Light theme</span>
+						<svg
+							class="h-5 w-5"
+							xmlns="http://www.w3.org/2000/svg"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke-width="1.5"
+							stroke="currentColor"
+							aria-hidden="true"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
+							/>
+						</svg>
+					</button>
+					<button
+						type="button"
+						class="{siteTheme === 'dark'
+							? themeIconActive
+							: themeIconIdle} border-l border-gray-300 dark:border-gray-600"
+						aria-pressed={siteTheme === 'dark'}
+						title="Dark theme"
+						onclick={() => settingsStore.patch({ theme: 'dark' })}
+					>
+						<span class="sr-only">Dark theme</span>
+						<svg
+							class="h-5 w-5"
+							xmlns="http://www.w3.org/2000/svg"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke-width="1.5"
+							stroke="currentColor"
+							aria-hidden="true"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"
+							/>
+						</svg>
+					</button>
+				</div>
 			</div>
 		</div>
 	</header>
@@ -204,39 +248,46 @@
 			</div>
 			<section class="mb-8" aria-labelledby="preview-heading">
 				<div class="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-					<div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
+					<div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2">
 						<h2
 							id="preview-heading"
 							class="font-heading shrink-0 text-lg font-semibold text-gray-900 dark:text-white"
 						>
 							Preview
 						</h2>
-						<div class="flex flex-wrap items-center gap-1">
-							<button
-								type="button"
-								class="shrink-0 rounded-none border-0 bg-transparent px-2 py-1 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:text-gray-400 dark:hover:bg-gray-800/80 dark:hover:text-gray-100 dark:focus-visible:outline-primary-500"
-								onclick={() => projectStore.loadExample('simple')}
+						<details bind:this={loadExampleDetailsEl} class="group relative shrink-0">
+							<summary class={exampleDropdownBtn}>
+								Load example
+								<svg
+									class="h-4 w-4 shrink-0 text-gray-500 transition-transform group-open:rotate-180 dark:text-gray-400"
+									viewBox="0 0 20 20"
+									fill="currentColor"
+									aria-hidden="true"
+								>
+									<path
+										fill-rule="evenodd"
+										d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z"
+										clip-rule="evenodd"
+									/>
+								</svg>
+							</summary>
+							<div
+								class="absolute left-0 top-full z-20 mt-1 min-w-[16rem] border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-600 dark:bg-gray-800"
+								role="menu"
+								aria-label="Example projects"
 							>
-								Simple example
-							</button>
-							<button
-								type="button"
-								class="shrink-0 rounded-none border-0 bg-transparent px-2 py-1 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:text-gray-400 dark:hover:bg-gray-800/80 dark:hover:text-gray-100 dark:focus-visible:outline-primary-500"
-								onclick={() => projectStore.loadExample('complex')}
-							>
-								Complex example
-							</button>
-						</div>
-						{#if selectionStore.showLinkHint()}
-							<p class="max-w-xl text-base text-gray-600 dark:text-gray-400" role="status">
-								{#if selectionStore.adjacencyHint}
-									Only <strong>adjacent</strong> lines can be linked — choose a word directly above or
-									below.
-								{:else}
-									Click a word on an <strong>adjacent</strong> line to create the link.
-								{/if}
-							</p>
-						{/if}
+								{#each EXAMPLES as ex (ex.id)}
+									<button
+										type="button"
+										class={exampleDropdownItem}
+										role="menuitem"
+										onclick={() => pickExample(ex.id)}
+									>
+										{ex.label}
+									</button>
+								{/each}
+							</div>
+						</details>
 					</div>
 					<div class="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2">
 						<Button
@@ -417,6 +468,7 @@
 	</div>
 
 	<LineEditModal />
+	<LineSettingsSheet />
 
 	<footer
 		class="mt-12 border-t border-gray-200 pt-8 text-center text-base leading-relaxed text-gray-600 dark:border-gray-700 dark:text-gray-400"
@@ -436,6 +488,13 @@
 				rel="noopener noreferrer">tools</a
 			> for linguistics and conlanging.
 		</p>
-		<p class="mt-2 text-gray-500 dark:text-gray-500">© {year} Dani Polani</p>
+		<p class="mt-2 text-gray-500 dark:text-gray-500">
+			© {year} Dani Polani ·
+			<a
+				href={resolve('/privacy')}
+				class="text-gray-600 underline decoration-gray-400/50 underline-offset-2 hover:text-gray-900 hover:decoration-gray-500/60 dark:text-gray-400 dark:decoration-gray-500/50 dark:hover:text-gray-200 dark:hover:decoration-gray-400/60"
+				>Privacy policy</a
+			>
+		</p>
 	</footer>
 </main>
