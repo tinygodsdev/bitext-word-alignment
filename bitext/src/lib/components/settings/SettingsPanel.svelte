@@ -2,21 +2,48 @@
 	import {
 		AdjustmentsHorizontalSolid,
 		FontFamilyOutline,
-		LanguageOutline,
-		PaletteSolid
+		PaletteSolid,
+		SplitCellsOutline
 	} from 'flowbite-svelte-icons';
 	import { Card, TabItem, Tabs } from 'flowbite-svelte';
 	import AppearanceTab from './AppearanceTab.svelte';
 	import ColorsTab from './ColorsTab.svelte';
 	import LinguisticsTab from './LinguisticsTab.svelte';
 	import FontsTab from './FontsTab.svelte';
+	import { settingsNavStore } from '$lib/state/settingsNav.svelte.js';
 
 	let selected = $state('appearance');
+	let lastTokensFocusGeneration = 0;
+
+	$effect(() => {
+		const gen = settingsNavStore.tokensFocusGeneration;
+		if (gen <= lastTokensFocusGeneration) return;
+		lastTokensFocusGeneration = gen;
+		selected = 'linguistics';
+		queueMicrotask(() => {
+			document.getElementById('settings-panel')?.scrollIntoView({
+				behavior: 'smooth',
+				block: 'start'
+			});
+		});
+	});
 </script>
 
-<Card class="min-w-0 w-full p-4 sm:p-6">
-	<h2 class="font-heading mb-4 text-lg font-semibold text-gray-900 dark:text-white">Settings</h2>
-	<Tabs tabStyle="underline" bind:selected class="min-w-0">
+<Card class="max-w-none min-w-0 w-full p-4 sm:p-6">
+	<h2
+		id="settings-heading"
+		class="font-heading mb-4 text-lg font-semibold text-gray-900 dark:text-white"
+	>
+		Settings
+	</h2>
+	<Tabs
+		tabStyle="underline"
+		bind:selected
+		class="min-w-0"
+		classes={{
+			content: 'mt-0 rounded-none bg-transparent p-0 pt-4 dark:bg-transparent'
+		}}
+	>
 		<TabItem key="appearance" title="Style">
 			{#snippet titleSlot()}
 				<span
@@ -27,9 +54,7 @@
 					<AdjustmentsHorizontalSolid class="h-5 w-5 shrink-0" aria-hidden="true" />
 				</span>
 			{/snippet}
-			<div class="min-h-48 pt-4">
-				<AppearanceTab />
-			</div>
+			<AppearanceTab />
 		</TabItem>
 		<TabItem key="colors" title="Colors">
 			{#snippet titleSlot()}
@@ -38,34 +63,28 @@
 					<PaletteSolid class="h-5 w-5 shrink-0" aria-hidden="true" />
 				</span>
 			{/snippet}
-			<div class="min-h-48 pt-4">
-				<ColorsTab />
-			</div>
+			<ColorsTab />
 		</TabItem>
-		<TabItem key="linguistics" title="Linguistics">
+		<TabItem key="linguistics" title="Tokens">
 			{#snippet titleSlot()}
 				<span
 					class="inline-flex items-center justify-center"
-					title="Linguistics — gloss, numbers, tokenization"
+					title="Tokenization — numbers, split rules"
 				>
-					<span class="sr-only">Linguistics</span>
-					<LanguageOutline class="h-5 w-5 shrink-0" aria-hidden="true" />
+					<span class="sr-only">Tokens</span>
+					<SplitCellsOutline class="h-5 w-5 shrink-0" aria-hidden="true" />
 				</span>
 			{/snippet}
-			<div class="min-h-48 pt-4">
-				<LinguisticsTab />
-			</div>
+			<LinguisticsTab />
 		</TabItem>
 		<TabItem key="fonts" title="Fonts">
 			{#snippet titleSlot()}
-				<span class="inline-flex items-center justify-center" title="Fonts — typefaces">
+				<span class="inline-flex items-center justify-center" title="Custom fonts library">
 					<span class="sr-only">Fonts</span>
 					<FontFamilyOutline class="h-5 w-5 shrink-0" aria-hidden="true" />
 				</span>
 			{/snippet}
-			<div class="min-h-48 pt-4">
-				<FontsTab />
-			</div>
+			<FontsTab />
 		</TabItem>
 	</Tabs>
 </Card>

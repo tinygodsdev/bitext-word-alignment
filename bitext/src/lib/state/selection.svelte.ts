@@ -1,69 +1,51 @@
-import { SvelteSet } from 'svelte/reactivity';
 import { projectStore } from '$lib/state/project.svelte.js';
 import { settingsStore } from '$lib/state/settings.svelte.js';
 
 class SelectionStore {
-	selectedSource = $state(new SvelteSet<string>());
-	selectedTarget = $state(new SvelteSet<string>());
+	pending: { lineId: string; tokenId: string } | null = $state(null);
+	/** Shown when user clicks a non-adjacent line while a token is pending */
+	adjacencyHint = $state(false);
 
-	private setSingleSelection(side: 'source' | 'target', tokenId: string) {
-		if (side === 'source') {
-			this.selectedSource = new SvelteSet([tokenId]);
-			this.selectedTarget = new SvelteSet();
-		} else {
-			this.selectedSource = new SvelteSet();
-			this.selectedTarget = new SvelteSet([tokenId]);
-		}
-	}
-
-	private syncSet(side: 'source' | 'target', next: SvelteSet<string>) {
-		if (side === 'source') {
-			this.selectedSource = next;
-		} else {
-			this.selectedTarget = next;
-		}
-	}
-
-	/** Preview mode: first click selects one token, second click on other side creates link immediately. */
-	previewTokenClick(side: 'source' | 'target', tokenId: string) {
-		const own = side === 'source' ? this.selectedSource : this.selectedTarget;
-		const other = side === 'source' ? this.selectedTarget : this.selectedSource;
-
-		// Clicking the already-selected token unselects it.
-		if (own.size === 1 && own.has(tokenId) && other.size === 0) {
-			this.clear();
+	/** First click pins a token; second click on adjacent line creates a connection; same line changes pin. */
+	previewTokenClick(lineId: string, tokenId: string) {
+		this.adjacencyHint = false;
+		const cur = this.pending;
+		if (!cur) {
+			this.pending = { lineId, tokenId };
 			return;
 		}
-
-		// First step of a quick 1→1 interaction.
-		if (other.size === 0) {
-			this.setSingleSelection(side, tokenId);
+		if (cur.lineId === lineId && cur.tokenId === tokenId) {
+			this.pending = null;
 			return;
 		}
-
-		// Second step (click on opposite side) commits immediately.
-		this.syncSet(side, new SvelteSet([tokenId]));
-		this.commitLink();
+		if (cur.lineId === lineId) {
+			this.pending = { lineId, tokenId };
+			return;
+		}
+		const lineIds = projectStore.lines.map((l) => l.id);
+		const ia = lineIds.indexOf(cur.lineId);
+		const ib = lineIds.indexOf(lineId);
+		if (ia < 0 || ib < 0 || Math.abs(ia - ib) !== 1) {
+			this.adjacencyHint = true;
+			this.pending = { lineId, tokenId };
+			return;
+		}
+		const palette = settingsStore.settings.palette;
+		if (ia < ib) {
+			projectStore.addConnection(cur.tokenId, tokenId, palette);
+		} else {
+			projectStore.addConnection(tokenId, cur.tokenId, palette);
+		}
+		this.pending = null;
 	}
 
 	clear() {
-		this.selectedSource = new SvelteSet();
-		this.selectedTarget = new SvelteSet();
-	}
-
-	commitLink() {
-		const src = [...this.selectedSource];
-		const tgt = [...this.selectedTarget];
-		if (src.length === 0 || tgt.length === 0) return;
-		projectStore.addAlignment(src, tgt, settingsStore.settings.palette);
-		this.clear();
+		this.pending = null;
+		this.adjacencyHint = false;
 	}
 
 	showLinkHint(): boolean {
-		return (
-			(this.selectedSource.size >= 1 && this.selectedTarget.size === 0) ||
-			(this.selectedSource.size === 0 && this.selectedTarget.size >= 1)
-		);
+		return this.pending != null;
 	}
 }
 

@@ -1,39 +1,177 @@
-import { createLinkId, type Link } from '$lib/domain/alignment.js';
-import type { PaletteName } from '$lib/domain/palettes.js';
+import {
+	addAtomicConnections,
+	createConnectionId,
+	type Connection
+} from '$lib/domain/alignment.js';
+import { tokenize, tokenizeOptionsFromVisualSettings } from '$lib/domain/tokens.js';
+import { PALETTES, type PaletteName } from '$lib/domain/palettes.js';
 
-export const SCHEMA_VERSION = 1 as const;
+export const SCHEMA_VERSION = 2 as const;
+/** @deprecated Legacy share payloads only */
+export const SCHEMA_VERSION_V1 = 1 as const;
+
+export const MAX_LINES = 8;
+
+/** Initial text for lines created with “Add line” (prompts editing; user can replace). */
+export const NEW_LINE_HINT_TEXT = 'Type your text here';
 
 export type LineStyle = 'straight' | 'curved';
-export type BackgroundMode = 'light' | 'dark' | 'image';
-export type UiTheme = 'light' | 'dark';
-export const MIN_LINE_GAP_PX = 40;
-/** Previous cap was 120px; +30% headroom for large layouts */
-export const MAX_LINE_GAP_PX = 156;
+export type BackgroundMode = 'light' | 'dark';
 
-export const MIN_TEXT_SIZE_PX = 12;
-/** Was 36→47; allow large on-screen preview (e.g. demos) */
-export const MAX_TEXT_SIZE_PX = 64;
-export const MIN_GLOSS_LINE_GAP_PX = 0;
-export const MAX_GLOSS_LINE_GAP_PX = 80;
-export const DEFAULT_TOKEN_SPLIT_CHARS = '.-';
-
-/** Normalize theme from shared `?data=` payloads to BeerCSS body class `light` | `dark`. */
-export function normalizeUiTheme(theme: string): UiTheme {
-	const t = theme.toLowerCase();
-	// Older snapshots used extra strings that always meant a dark UI.
-	if (t === 'dark' || t === 'synthwave' || t === 'dracula' || t === 'night') return 'dark';
+/** Map legacy / invalid values to the preview background enum (image mode removed). */
+export function normalizePreviewBackground(mode: unknown): BackgroundMode {
+	if (mode === 'dark') return 'dark';
 	return 'light';
 }
+/** How link colors apply to tokens when “match token color to links” is on. */
+export type TokenLinkColorMode = 'text' | 'background';
+export type UiTheme = 'light' | 'dark';
+/** Minimum vertical gap between adjacent lines (preview + export). Keep ≥ ~12 so connectors stay usable. */
+export const MIN_LINE_GAP_PX = 12;
+export const MAX_LINE_GAP_PX = 156;
+/** Default vertical gap between adjacent lines when no per-pair override exists. */
+export const DEFAULT_LINE_GAP_PX = 120;
 
+export function clampLineGapPx(n: number): number {
+	return Math.max(MIN_LINE_GAP_PX, Math.min(MAX_LINE_GAP_PX, Math.round(n)));
+}
+
+export const MIN_TEXT_SIZE_PX = 12;
+export const MAX_TEXT_SIZE_PX = 64;
+export const DEFAULT_WORD_GAP_PX = 14;
+export const MIN_WORD_GAP_PX = 0;
+export const MAX_WORD_GAP_PX = 56;
+export const DEFAULT_TOKEN_SPLIT_CHARS = '.-|';
+/** Default join character for new projects; omits from compact when equal. */
+export const DEFAULT_TOKEN_MERGE_CHAR = '+';
+
+export function clampWordGapPx(n: number): number {
+	return Math.max(MIN_WORD_GAP_PX, Math.min(MAX_WORD_GAP_PX, Math.round(n)));
+}
+
+function normalizeTokenSplitCharsField(input: unknown, fallback: string): string {
+	const raw = typeof input === 'string' ? input : fallback;
+	const uniq: string[] = [];
+	const seen = new Set<string>();
+	for (const ch of raw) {
+		if (/\s/u.test(ch)) continue;
+		if (seen.has(ch)) continue;
+		seen.add(ch);
+		uniq.push(ch);
+	}
+	return uniq.join('').slice(0, 24);
+}
+
+/** First non-whitespace codepoint, or empty (merge disabled). */
+export function normalizeTokenMergeCharField(input: unknown): string {
+	if (input == null || input === '') return '';
+	const raw = typeof input === 'string' ? input : String(input);
+	for (const ch of raw) {
+		if (/\s/u.test(ch)) continue;
+		return ch;
+	}
+	return '';
+}
+
+const MAX_TOKEN_PUNCTUATION_CHARS = 48;
+
+/** Ordered unique codepoints (no whitespace); for custom punctuation-only splits. */
+export function normalizeTokenPunctuationCharsField(input: unknown): string {
+	if (input == null) return '';
+	const raw = typeof input === 'string' ? input : String(input);
+	const out: string[] = [];
+	const seen = new Set<string>();
+	for (const ch of raw) {
+		if (/\s/u.test(ch)) continue;
+		if (seen.has(ch)) continue;
+		seen.add(ch);
+		out.push(ch);
+		if (out.length >= MAX_TOKEN_PUNCTUATION_CHARS) break;
+	}
+	return out.join('');
+}
+
+export interface LineFontV2 {
+	family: string;
+	source: 'google' | 'custom';
+	customName?: string;
+}
+
+export interface LineV2 {
+	id: string;
+	rawText: string;
+	font: LineFontV2;
+	textSizePx: number;
+	/** Horizontal gap between word tokens on this line (px). */
+	gapWordPx: number;
+	/**
+	 * When true, the preview/editor token row uses right-to-left direction (Hebrew, Arabic, etc.).
+	 * Token order and ids stay in logical “first word → last word” order; only layout mirrors.
+	 */
+	rtl?: boolean;
+}
+
+export interface PairControlV2 {
+	upperLineId: string;
+	lowerLineId: string;
+	/** When false, connector paths are not drawn between this adjacent pair (data + coloring unchanged). */
+	showConnectors: boolean;
+}
+
+/** Vertical gap (px) between two stacked adjacent lines (`upper` above `lower`). Sparse: omit when `gapPx === DEFAULT_LINE_GAP_PX`. */
+export interface LinePairGapV2 {
+	upperLineId: string;
+	lowerLineId: string;
+	gapPx: number;
+}
+
+export interface ProjectSnapshotV2 {
+	lines: LineV2[];
+	pairControls: PairControlV2[];
+	/** Per-adjacent-pair vertical gaps; only non-default entries need to be stored. */
+	linePairGaps: LinePairGapV2[];
+	connections: Connection[];
+}
+
+export interface VisualSettingsV2 {
+	theme: UiTheme;
+	lineThickness: number;
+	lineOpacity: number;
+	lineStyle: LineStyle;
+	palette: PaletteName;
+	showNumbers: boolean;
+	colorTokensByLink: boolean;
+	/** When colorTokensByLink: tint token text vs token background (preview, chips, exports). */
+	tokenLinkColorMode: TokenLinkColorMode;
+	tokenSplitChars: string;
+	/** Single character: joins parts into one alignment token; shown as a space in preview. */
+	tokenMergeChar: string;
+	/** When true, split punctuation into separate tokens (see tokenPunctuationChars). */
+	tokenSplitPunctuation: boolean;
+	/**
+	 * When split punctuation is on: empty → Unicode `\p{P}`; non-empty → only these characters
+	 * count as splittable punctuation.
+	 */
+	tokenPunctuationChars: string;
+	/** Hide preview chrome (line controls, gap sliders, toolbar) and show export-style attribution in-frame. */
+	previewHideChrome: boolean;
+	background: BackgroundMode;
+}
+
+export interface AppStateV2 {
+	v: typeof SCHEMA_VERSION;
+	project: ProjectSnapshotV2;
+	settings: VisualSettingsV2;
+}
+
+/** @deprecated v1 — for compact-v2 decode bridge only */
 export interface VisualSettingsV1 {
 	theme: UiTheme;
 	sourceTextSizePx: number;
 	targetTextSizePx: number;
-	/** Interlinear gloss (preview, editor, export) — independent of line sizes. */
 	glossTextSizePx: number;
 	gapWordPx: number;
 	gapLinePx: number;
-	/** Vertical gap between a gloss row and its sentence line (preview + export layout). */
 	glossLineGapPx: number;
 	lineThickness: number;
 	lineOpacity: number;
@@ -41,43 +179,76 @@ export interface VisualSettingsV1 {
 	palette: PaletteName;
 	showGloss: boolean;
 	showNumbers: boolean;
-	/** Visualization font for the source line */
 	sourceFontFamily: string;
-	/** Visualization font for the target line */
 	targetFontFamily: string;
 	sourceFontSource: 'google' | 'custom';
 	targetFontSource: 'google' | 'custom';
-	/** Interlinear glosses (independent of source/target line script fonts) */
 	glossFontFamily: string;
 	glossFontSource: 'google' | 'custom';
 	sourceCustomFontName?: string;
 	targetCustomFontName?: string;
 	glossCustomFontName?: string;
-	/** Tint token text (preview + editor chips) with link colors */
 	colorTokensByLink: boolean;
-	/** Extra one-char separators besides whitespace for tokenization. */
 	tokenSplitChars: string;
 	background: BackgroundMode;
-	/** Client-only; omitted when encoding share URL */
-	backgroundImageDataUrl?: string;
 }
 
+/** @deprecated v1 */
 export interface ProjectSnapshotV1 {
 	sourceText: string;
 	targetText: string;
-	/** Parallel arrays aligned with tokenize order — optional gloss per index */
 	sourceGlosses: (string | null)[];
 	targetGlosses: (string | null)[];
-	links: Link[];
+	/** Decoded connections (upper/lower); legacy JSON may use sourceId/targetId until normalized */
+	links: Connection[];
 }
 
+/** @deprecated v1 */
 export interface AppStateV1 {
-	v: typeof SCHEMA_VERSION;
+	v: typeof SCHEMA_VERSION_V1;
 	project: ProjectSnapshotV1;
 	settings: VisualSettingsV1;
 }
 
-export function defaultVisualSettings(): VisualSettingsV1 {
+export function normalizeUiTheme(theme: string): UiTheme {
+	const t = theme.toLowerCase();
+	if (t === 'dark' || t === 'synthwave' || t === 'dracula' || t === 'night') return 'dark';
+	return 'light';
+}
+
+export function defaultVisualSettingsV2(): VisualSettingsV2 {
+	return {
+		theme: 'light',
+		lineThickness: 3,
+		lineOpacity: 1,
+		lineStyle: 'curved',
+		palette: 'pastel',
+		showNumbers: false,
+		colorTokensByLink: true,
+		tokenLinkColorMode: 'text',
+		tokenSplitChars: DEFAULT_TOKEN_SPLIT_CHARS,
+		tokenMergeChar: DEFAULT_TOKEN_MERGE_CHAR,
+		tokenSplitPunctuation: false,
+		tokenPunctuationChars: '',
+		previewHideChrome: false,
+		background: 'light'
+	};
+}
+
+export function defaultProjectSnapshotV2(): ProjectSnapshotV2 {
+	return migrateV1ToV2(defaultProjectSnapshotV1(), defaultVisualSettingsV1()).project;
+}
+
+export function defaultAppStateV2(): AppStateV2 {
+	return {
+		v: SCHEMA_VERSION,
+		project: defaultProjectSnapshotV2(),
+		settings: defaultVisualSettingsV2()
+	};
+}
+
+/** v1 defaults (for migration input only) */
+export function defaultVisualSettingsV1(): VisualSettingsV1 {
 	const size = 36;
 	return {
 		theme: 'light',
@@ -86,7 +257,7 @@ export function defaultVisualSettings(): VisualSettingsV1 {
 		glossTextSizePx: Math.max(12, Math.round(0.75 * size)),
 		gapWordPx: 14,
 		gapLinePx: 120,
-		glossLineGapPx: MIN_GLOSS_LINE_GAP_PX,
+		glossLineGapPx: 0,
 		lineThickness: 3,
 		lineOpacity: 1,
 		lineStyle: 'curved',
@@ -105,7 +276,7 @@ export function defaultVisualSettings(): VisualSettingsV1 {
 	};
 }
 
-export function defaultProjectSnapshot(): ProjectSnapshotV1 {
+export function defaultProjectSnapshotV1(): ProjectSnapshotV1 {
 	return {
 		sourceText: 'Hello world',
 		targetText: 'Bonjour le monde',
@@ -115,28 +286,227 @@ export function defaultProjectSnapshot(): ProjectSnapshotV1 {
 	};
 }
 
+/** @deprecated use defaultVisualSettingsV1 */
+export const defaultVisualSettings = defaultVisualSettingsV1;
+/** @deprecated use defaultProjectSnapshotV1 */
+export const defaultProjectSnapshot = defaultProjectSnapshotV1;
+
+export function visualSettingsV1ToV2(v1: VisualSettingsV1): VisualSettingsV2 {
+	return {
+		theme: normalizeUiTheme(String(v1.theme)),
+		lineThickness: v1.lineThickness,
+		lineOpacity: v1.lineOpacity,
+		lineStyle: v1.lineStyle,
+		palette: v1.palette,
+		showNumbers: v1.showNumbers,
+		colorTokensByLink: v1.colorTokensByLink,
+		tokenLinkColorMode: 'text',
+		tokenSplitChars: v1.tokenSplitChars,
+		tokenMergeChar: '',
+		tokenSplitPunctuation: false,
+		tokenPunctuationChars: '',
+		previewHideChrome: false,
+		background: normalizePreviewBackground(v1.background)
+	};
+}
+
+/**
+ * Build v2 project + settings from legacy v1 snapshot.
+ * Preserves token ids `s-*` and `t-*` for source/target lines. Optional gloss lines `gs` / `gt`.
+ */
+export function migrateV1ToV2(
+	project: ProjectSnapshotV1,
+	settingsV1: VisualSettingsV1
+): { project: ProjectSnapshotV2; settings: VisualSettingsV2 } {
+	const settings = visualSettingsV1ToV2(settingsV1);
+	const tz = tokenizeOptionsFromVisualSettings(settings);
+	const glossColor = PALETTES[settingsV1.palette][0] ?? '#94a3b8';
+	const wordGap = clampWordGapPx(settingsV1.gapWordPx);
+
+	const sourceTokens = tokenize(project.sourceText, 's', tz);
+	const targetTokens = tokenize(project.targetText, 't', tz);
+
+	const lines: LineV2[] = [];
+	/** Only non-default entries (`showConnectors === false`). */
+	const pairControls: PairControlV2[] = [];
+	let connections = normalizeProjectConnections(project.links);
+
+	const srcLine: LineV2 = {
+		id: 's',
+		rawText: project.sourceText,
+		font: {
+			family: settingsV1.sourceFontFamily,
+			source: settingsV1.sourceFontSource,
+			customName: settingsV1.sourceCustomFontName
+		},
+		textSizePx: settingsV1.sourceTextSizePx,
+		gapWordPx: wordGap
+	};
+	const tgtLine: LineV2 = {
+		id: 't',
+		rawText: project.targetText,
+		font: {
+			family: settingsV1.targetFontFamily,
+			source: settingsV1.targetFontSource,
+			customName: settingsV1.targetCustomFontName
+		},
+		textSizePx: settingsV1.targetTextSizePx,
+		gapWordPx: wordGap
+	};
+
+	const hasSourceGloss =
+		settingsV1.showGloss && project.sourceGlosses.some((g) => (g?.trim() ?? '').length > 0);
+	const hasTargetGloss =
+		settingsV1.showGloss && project.targetGlosses.some((g) => (g?.trim() ?? '').length > 0);
+
+	if (hasSourceGloss) {
+		const parts: string[] = [];
+		const srcIndices: number[] = [];
+		for (let i = 0; i < sourceTokens.length; i++) {
+			const g = project.sourceGlosses[i]?.trim() ?? '';
+			if (g) {
+				srcIndices.push(i);
+				parts.push(g);
+			}
+		}
+		const gsLine: LineV2 = {
+			id: 'gs',
+			rawText: parts.join(' '),
+			font: {
+				family: settingsV1.glossFontFamily,
+				source: settingsV1.glossFontSource,
+				customName: settingsV1.glossCustomFontName
+			},
+			textSizePx: settingsV1.glossTextSizePx,
+			gapWordPx: wordGap
+		};
+		lines.push(gsLine);
+		pairControls.push({ upperLineId: 'gs', lowerLineId: 's', showConnectors: false });
+		const glossTokens = tokenize(gsLine.rawText, 'gs', tz);
+		const pairs: { upperTokenId: string; lowerTokenId: string }[] = [];
+		const n = Math.min(glossTokens.length, srcIndices.length);
+		for (let i = 0; i < n; i++) {
+			pairs.push({
+				upperTokenId: glossTokens[i]!.id,
+				lowerTokenId: sourceTokens[srcIndices[i]!]!.id
+			});
+		}
+		connections = addAtomicConnections(connections, pairs, glossColor);
+	}
+
+	lines.push(srcLine);
+	lines.push(tgtLine);
+
+	if (hasTargetGloss) {
+		const parts: string[] = [];
+		const tgtIndices: number[] = [];
+		for (let i = 0; i < targetTokens.length; i++) {
+			const g = project.targetGlosses[i]?.trim() ?? '';
+			if (g) {
+				tgtIndices.push(i);
+				parts.push(g);
+			}
+		}
+		const gtLine: LineV2 = {
+			id: 'gt',
+			rawText: parts.join(' '),
+			font: {
+				family: settingsV1.glossFontFamily,
+				source: settingsV1.glossFontSource,
+				customName: settingsV1.glossCustomFontName
+			},
+			textSizePx: settingsV1.glossTextSizePx,
+			gapWordPx: wordGap
+		};
+		lines.push(gtLine);
+		pairControls.push({ upperLineId: 't', lowerLineId: 'gt', showConnectors: false });
+		const glossTokens = tokenize(gtLine.rawText, 'gt', tz);
+		const pairs: { upperTokenId: string; lowerTokenId: string }[] = [];
+		const n = Math.min(glossTokens.length, tgtIndices.length);
+		for (let i = 0; i < n; i++) {
+			pairs.push({
+				upperTokenId: targetTokens[tgtIndices[i]!]!.id,
+				lowerTokenId: glossTokens[i]!.id
+			});
+		}
+		connections = addAtomicConnections(connections, pairs, glossColor);
+	}
+
+	const lineGap = clampLineGapPx(settingsV1.gapLinePx);
+	const linePairGaps: LinePairGapV2[] = [];
+	for (let i = 0; i < lines.length - 1; i++) {
+		if (lineGap !== DEFAULT_LINE_GAP_PX) {
+			linePairGaps.push({
+				upperLineId: lines[i]!.id,
+				lowerLineId: lines[i + 1]!.id,
+				gapPx: lineGap
+			});
+		}
+	}
+
+	return {
+		project: { lines, pairControls, linePairGaps, connections },
+		settings
+	};
+}
+
+/** Decode connections from share URLs / snapshots: upper/lower or legacy source/target. */
+export function normalizeProjectConnections(raw: unknown): Connection[] {
+	if (!Array.isArray(raw)) return [];
+	const out: Connection[] = [];
+	for (const item of raw) {
+		if (!item || typeof item !== 'object') continue;
+		const o = item as Record<string, unknown>;
+		const upper =
+			(typeof o.upperTokenId === 'string' && o.upperTokenId) ||
+			(typeof o.sourceId === 'string' && o.sourceId) ||
+			null;
+		const lower =
+			(typeof o.lowerTokenId === 'string' && o.lowerTokenId) ||
+			(typeof o.targetId === 'string' && o.targetId) ||
+			null;
+		if (typeof o.id === 'string' && upper && lower) {
+			out.push({
+				id: o.id,
+				upperTokenId: upper,
+				lowerTokenId: lower,
+				color: typeof o.color === 'string' ? o.color : undefined
+			});
+			continue;
+		}
+		const sIds = o.sourceIds;
+		const tIds = o.targetIds;
+		if (Array.isArray(sIds) && Array.isArray(tIds)) {
+			const color = typeof o.color === 'string' ? o.color : '#94a3b8';
+			for (const s of sIds) {
+				for (const t of tIds) {
+					out.push({
+						id: createConnectionId(),
+						upperTokenId: String(s),
+						lowerTokenId: String(t),
+						color
+					});
+				}
+			}
+		}
+	}
+	return out;
+}
+
 /** Merge decoded JSON into VisualSettingsV1 (handles legacy single-font fields). */
 export function normalizeVisualSettings(
 	raw: Record<string, unknown> | undefined
 ): VisualSettingsV1 {
-	const d = defaultVisualSettings();
+	const d = defaultVisualSettingsV1();
 	if (!raw || typeof raw !== 'object') return d;
 	const legacyFamily = typeof raw.fontFamily === 'string' ? raw.fontFamily : undefined;
 	const legacySource =
 		raw.fontSource === 'google' || raw.fontSource === 'custom' ? raw.fontSource : undefined;
 	const legacyCustom = typeof raw.customFontName === 'string' ? raw.customFontName : undefined;
-	const normalizedSplitChars = (() => {
-		const input = typeof raw.tokenSplitChars === 'string' ? raw.tokenSplitChars : d.tokenSplitChars;
-		const uniq: string[] = [];
-		const seen = new Set<string>();
-		for (const ch of input) {
-			if (/\s/u.test(ch)) continue;
-			if (seen.has(ch)) continue;
-			seen.add(ch);
-			uniq.push(ch);
-		}
-		return uniq.join('').slice(0, 24);
-	})();
+	const normalizedSplitChars = normalizeTokenSplitCharsField(
+		raw.tokenSplitChars,
+		d.tokenSplitChars
+	);
 
 	const { textSizePx: _legacyTextSize, ...rawRest } = raw;
 
@@ -172,7 +542,7 @@ export function normalizeVisualSettings(
 		)
 	);
 
-	return {
+	const out = {
 		...d,
 		...rawRest,
 		sourceTextSizePx,
@@ -222,73 +592,46 @@ export function normalizeVisualSettings(
 				: d.gapLinePx,
 		glossLineGapPx:
 			typeof rawRest.glossLineGapPx === 'number'
-				? Math.max(MIN_GLOSS_LINE_GAP_PX, Math.min(MAX_GLOSS_LINE_GAP_PX, rawRest.glossLineGapPx))
-				: d.glossLineGapPx
+				? Math.max(0, Math.min(80, rawRest.glossLineGapPx))
+				: d.glossLineGapPx,
+		background: normalizePreviewBackground(rawRest.background ?? d.background)
 	} as VisualSettingsV1;
-}
-
-/** Decode `links` from share URLs: atomic pairs, or legacy bipartite `{ sourceIds, targetIds }`. */
-export function normalizeProjectLinks(raw: unknown): Link[] {
-	if (!Array.isArray(raw)) return [];
-	const out: Link[] = [];
-	for (const item of raw) {
-		if (!item || typeof item !== 'object') continue;
-		const o = item as Record<string, unknown>;
-		if (
-			typeof o.id === 'string' &&
-			typeof o.sourceId === 'string' &&
-			typeof o.targetId === 'string'
-		) {
-			out.push({
-				id: o.id,
-				sourceId: o.sourceId,
-				targetId: o.targetId,
-				color: typeof o.color === 'string' ? o.color : undefined
-			});
-			continue;
-		}
-		const sIds = o.sourceIds;
-		const tIds = o.targetIds;
-		if (Array.isArray(sIds) && Array.isArray(tIds)) {
-			const color = typeof o.color === 'string' ? o.color : '#94a3b8';
-			for (const s of sIds) {
-				for (const t of tIds) {
-					out.push({
-						id: createLinkId(),
-						sourceId: String(s),
-						targetId: String(t),
-						color
-					});
-				}
-			}
-		}
-	}
+	delete (out as unknown as Record<string, unknown>).backgroundImageDataUrl;
 	return out;
 }
 
-export function migrate(raw: unknown): AppStateV1 {
+export function appStateV2FromV1(state: AppStateV1): AppStateV2 {
+	const migrated = migrateV1ToV2(state.project, state.settings);
+	return { v: SCHEMA_VERSION, project: migrated.project, settings: migrated.settings };
+}
+
+export function migrate(raw: unknown): AppStateV2 {
 	if (!raw || typeof raw !== 'object') {
-		return {
-			v: SCHEMA_VERSION,
-			project: defaultProjectSnapshot(),
-			settings: defaultVisualSettings()
-		};
+		return defaultAppStateV2();
 	}
 	const o = raw as Record<string, unknown>;
 	const v = o.v;
-	if (v !== 1) {
-		return {
-			v: SCHEMA_VERSION,
-			project: defaultProjectSnapshot(),
-			settings: defaultVisualSettings()
-		};
+	if (v === SCHEMA_VERSION) {
+		const project = o.project as ProjectSnapshotV2 | undefined;
+		const settingsRaw = o.settings as Record<string, unknown> | undefined;
+		if (project?.lines && Array.isArray(project.lines) && settingsRaw) {
+			const legacyWordGap = legacyGapWordPxFromSettingsRaw(settingsRaw);
+			const legacyLineGap = legacyGapLinePxFromSettingsRaw(settingsRaw);
+			return {
+				v: SCHEMA_VERSION,
+				project: normalizeProjectSnapshotV2(project, legacyWordGap, legacyLineGap),
+				settings: normalizeVisualSettingsV2(settingsRaw)
+			};
+		}
 	}
-	const project = o.project as ProjectSnapshotV1 | undefined;
-	const settingsRaw = o.settings as Record<string, unknown> | undefined;
-	return {
-		v: SCHEMA_VERSION,
-		project: project
-			? {
+	if (v === SCHEMA_VERSION_V1) {
+		const project = o.project as ProjectSnapshotV1 | undefined;
+		const settingsRaw = o.settings as Record<string, unknown> | undefined;
+		if (project) {
+			const links = normalizeProjectConnections(project.links);
+			return appStateV2FromV1({
+				v: SCHEMA_VERSION_V1,
+				project: {
 					sourceText: String(project.sourceText ?? ''),
 					targetText: String(project.targetText ?? ''),
 					sourceGlosses: Array.isArray(project.sourceGlosses)
@@ -297,9 +640,141 @@ export function migrate(raw: unknown): AppStateV1 {
 					targetGlosses: Array.isArray(project.targetGlosses)
 						? project.targetGlosses.map((g) => (g == null ? null : String(g)))
 						: [],
-					links: Array.isArray(project.links) ? normalizeProjectLinks(project.links) : []
-				}
-			: defaultProjectSnapshot(),
-		settings: normalizeVisualSettings(settingsRaw)
+					links
+				},
+				settings: normalizeVisualSettings(settingsRaw)
+			});
+		}
+	}
+	return defaultAppStateV2();
+}
+
+function clampOpacity(o: number): number {
+	return Math.max(0.2, Math.min(1, o));
+}
+
+/** Old saves stored a global word gap under `settings.gapWordPx`; merge into lines when missing. */
+export function legacyGapWordPxFromSettingsRaw(
+	raw: Record<string, unknown> | undefined
+): number | undefined {
+	if (!raw || typeof raw !== 'object') return undefined;
+	const v = raw.gapWordPx;
+	return typeof v === 'number' && Number.isFinite(v) ? clampWordGapPx(v) : undefined;
+}
+
+/** Old saves stored a global line gap under `settings.gapLinePx`; seed per-pair gaps when missing. */
+export function legacyGapLinePxFromSettingsRaw(
+	raw: Record<string, unknown> | undefined
+): number | undefined {
+	if (!raw || typeof raw !== 'object') return undefined;
+	const v = raw.gapLinePx;
+	return typeof v === 'number' && Number.isFinite(v) ? clampLineGapPx(v) : undefined;
+}
+
+/** Normalize lines (word gap), pair gaps (vertical space between adjacent lines), and clone controls/connections. */
+export function normalizeProjectSnapshotV2(
+	project: Omit<ProjectSnapshotV2, 'linePairGaps'> & { linePairGaps?: LinePairGapV2[] },
+	legacySettingsGapWordPx?: number,
+	legacySettingsGapLinePx?: number
+): ProjectSnapshotV2 {
+	const linesNorm = project.lines.map((l) => {
+		const fromLine =
+			typeof l.gapWordPx === 'number' && Number.isFinite(l.gapWordPx)
+				? clampWordGapPx(l.gapWordPx)
+				: undefined;
+		const gapWordPx = fromLine ?? legacySettingsGapWordPx ?? DEFAULT_WORD_GAP_PX;
+		const { rtl, ...rest } = l;
+		const lineOut: LineV2 = { ...rest, font: { ...l.font }, gapWordPx };
+		if (rtl) lineOut.rtl = true;
+		return lineOut;
+	});
+
+	const lineIds = linesNorm.map((l) => l.id);
+	const rawGapsIn = Array.isArray(project.linePairGaps) ? project.linePairGaps : [];
+	const gapMap = new Map<string, number>();
+	for (const g of rawGapsIn) {
+		if (
+			g &&
+			typeof g.upperLineId === 'string' &&
+			typeof g.lowerLineId === 'string' &&
+			typeof g.gapPx === 'number' &&
+			Number.isFinite(g.gapPx)
+		) {
+			gapMap.set(`${g.upperLineId}\0${g.lowerLineId}`, clampLineGapPx(g.gapPx));
+		}
+	}
+
+	const linePairGaps: LinePairGapV2[] = [];
+	for (let i = 0; i < lineIds.length - 1; i++) {
+		const u = lineIds[i]!;
+		const lo = lineIds[i + 1]!;
+		const key = `${u}\0${lo}`;
+		const fromPair = gapMap.get(key);
+		const effective =
+			fromPair ??
+			(legacySettingsGapLinePx !== undefined
+				? clampLineGapPx(legacySettingsGapLinePx)
+				: DEFAULT_LINE_GAP_PX);
+		if (effective !== DEFAULT_LINE_GAP_PX) {
+			linePairGaps.push({ upperLineId: u, lowerLineId: lo, gapPx: effective });
+		}
+	}
+
+	return {
+		lines: linesNorm,
+		pairControls: project.pairControls.map((p) => ({ ...p })),
+		linePairGaps,
+		connections: project.connections.map((c) => ({ ...c }))
+	};
+}
+
+export function normalizeVisualSettingsV2(
+	raw: Record<string, unknown> | undefined
+): VisualSettingsV2 {
+	const d = defaultVisualSettingsV2();
+	if (!raw || typeof raw !== 'object') return d;
+	const mergeNorm = Object.prototype.hasOwnProperty.call(raw, 'tokenMergeChar')
+		? normalizeTokenMergeCharField(raw.tokenMergeChar)
+		: '';
+	let splitNorm = normalizeTokenSplitCharsField(raw.tokenSplitChars, d.tokenSplitChars);
+	if (mergeNorm) {
+		splitNorm = [...splitNorm].filter((c) => c !== mergeNorm).join('');
+	}
+	const punctNorm = Object.prototype.hasOwnProperty.call(raw, 'tokenPunctuationChars')
+		? normalizeTokenPunctuationCharsField(raw.tokenPunctuationChars)
+		: '';
+	return {
+		theme: normalizeUiTheme(String(raw.theme ?? d.theme)),
+		lineThickness:
+			typeof raw.lineThickness === 'number' && Number.isFinite(raw.lineThickness)
+				? Math.max(1, Math.min(8, Math.round(raw.lineThickness)))
+				: d.lineThickness,
+		lineOpacity:
+			typeof raw.lineOpacity === 'number' && Number.isFinite(raw.lineOpacity)
+				? clampOpacity(raw.lineOpacity)
+				: d.lineOpacity,
+		lineStyle:
+			raw.lineStyle === 'straight' || raw.lineStyle === 'curved' ? raw.lineStyle : d.lineStyle,
+		palette:
+			raw.palette === 'pastel' || raw.palette === 'vivid' || raw.palette === 'academic'
+				? raw.palette
+				: d.palette,
+		showNumbers: typeof raw.showNumbers === 'boolean' ? raw.showNumbers : d.showNumbers,
+		colorTokensByLink:
+			typeof raw.colorTokensByLink === 'boolean' ? raw.colorTokensByLink : d.colorTokensByLink,
+		tokenLinkColorMode:
+			raw.tokenLinkColorMode === 'background' || raw.tokenLinkColorMode === 'text'
+				? raw.tokenLinkColorMode
+				: d.tokenLinkColorMode,
+		tokenMergeChar: mergeNorm,
+		tokenSplitPunctuation:
+			typeof raw.tokenSplitPunctuation === 'boolean'
+				? raw.tokenSplitPunctuation
+				: d.tokenSplitPunctuation,
+		tokenPunctuationChars: punctNorm,
+		tokenSplitChars: splitNorm,
+		previewHideChrome:
+			typeof raw.previewHideChrome === 'boolean' ? raw.previewHideChrome : d.previewHideChrome,
+		background: normalizePreviewBackground(raw.background ?? d.background)
 	};
 }

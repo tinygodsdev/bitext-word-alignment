@@ -8,4 +8,4 @@ export const SITE_NAME = 'Bitext Align';
  */
 export const DEFAULT_TITLE = 'Word-by-word translation visualizer — see which words match';
 export const DEFAULT_DESCRIPTION =
-	'Free word-by-word translation visualizer. Paste two sentences, connect matching words and short phrases, add interlinear glosses, and export a clean bilingual image (PNG, SVG, PDF, or HTML). Great for language learners, teachers, linguists, and conlang posts.';
+	'Aligner (Bitext Align): free word-by-word translation visualizer. Stack multiple lines, link adjacent rows in the preview, optional gloss/IPA lines, exports (PNG, SVG, PDF, HTML), and shareable URLs. For learners, teachers, linguists, and conlang posts.';

@@ -5,9 +5,19 @@
 	import { GA_MEASUREMENT_ID } from '$lib/brand.js';
 	import { flowbiteTheme } from '$lib/flowbite-theme.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
+	import { viewportStore } from '$lib/state/viewport.svelte.js';
 	import { ThemeProvider } from 'flowbite-svelte';
 
 	let { children } = $props();
+
+	$effect.pre(() => {
+		if (browser) viewportStore.sync();
+	});
+
+	$effect(() => {
+		if (!browser) return;
+		return viewportStore.init();
+	});
 
 	$effect(() => {
 		if (!browser) return;

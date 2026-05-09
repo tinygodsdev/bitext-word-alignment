@@ -1,13 +1,14 @@
 <script lang="ts">
 	import type { Token } from '$lib/domain/tokens.js';
-	import { pendingAlignmentColor, primaryLinkForToken } from '$lib/domain/alignment.js';
+	import { pendingAlignmentColor, primaryConnectionForToken } from '$lib/domain/alignment.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { selectionStore } from '$lib/state/selection.svelte.js';
 
 	let {
 		token,
-		side,
+		lineId,
+		textSizePx,
 		showNumber,
 		index,
 		interactive = false,
@@ -15,75 +16,80 @@
 		joinTightEnd = false
 	}: {
 		token: Token;
-		side: 'source' | 'target';
+		lineId: string;
+		textSizePx: number;
 		showNumber: boolean;
 		index: number;
 		interactive?: boolean;
-		/** Strip inline padding on the start when `token.joinLeft` (alt. separator split). */
 		joinTightStart?: boolean;
-		/** Strip inline padding on the end when the next token is joined to this one. */
 		joinTightEnd?: boolean;
 	} = $props();
 
 	let hovering = $state(false);
 
-	const sz = $derived(
-		side === 'source'
-			? settingsStore.settings.sourceTextSizePx
-			: settingsStore.settings.targetTextSizePx
-	);
 	const palette = $derived(settingsStore.settings.palette);
+	const connections = $derived(projectStore.connections);
+	const lineIds = $derived(projectStore.lines.map((l) => l.id));
+	const pending = $derived(selectionStore.pending);
+	const conn = $derived.by(() => primaryConnectionForToken(connections, token.id));
 
-	const links = $derived(projectStore.links);
-	const link = $derived.by(() => primaryLinkForToken(links, token.id));
+	const linkBgMode = $derived(
+		settingsStore.settings.colorTokensByLink &&
+			settingsStore.settings.tokenLinkColorMode === 'background'
+	);
+
+	const previewSurfaceHex = $derived(
+		settingsStore.settings.background === 'dark' ? '#1e1e1e' : '#ffffff'
+	);
 
 	const textColor = $derived.by(() => {
-		if (!settingsStore.settings.colorTokensByLink || !link?.color) return null;
-		return link.color;
+		if (!settingsStore.settings.colorTokensByLink || !conn?.color || linkBgMode) return null;
+		return conn.color;
 	});
 
-	const selectedSource = $derived(selectionStore.selectedSource);
-	const selectedTarget = $derived(selectionStore.selectedTarget);
-
-	const isSelected = $derived.by(() =>
-		side === 'source' ? selectedSource.has(token.id) : selectedTarget.has(token.id)
-	);
+	const isPinned = $derived(pending != null && pending.tokenId === token.id);
 
 	const accentColor = $derived.by(() => {
 		if (!interactive) return null;
-		const src = [...selectedSource];
-		const tgt = [...selectedTarget];
-
-		if (isSelected) {
-			return pendingAlignmentColor(links, src, tgt, palette);
+		if (isPinned) {
+			return pendingAlignmentColor(connections, [token.id], [], palette);
 		}
 		if (!hovering) return null;
+		const pend = pending;
+		if (!pend) {
+			return pendingAlignmentColor(connections, [token.id], [], palette);
+		}
+		if (pend.lineId === lineId) {
+			return pendingAlignmentColor(connections, [token.id], [], palette);
+		}
+		const ip = lineIds.indexOf(pend.lineId);
+		const it = lineIds.indexOf(lineId);
+		if (ip < 0 || it < 0) return null;
+		if (Math.abs(ip - it) !== 1) {
+			return pendingAlignmentColor(connections, [token.id], [], palette);
+		}
+		const upperTok = ip < it ? pend.tokenId : token.id;
+		const lowerTok = ip < it ? token.id : pend.tokenId;
+		return pendingAlignmentColor(connections, [upperTok], [lowerTok], palette);
+	});
 
-		if (src.length && tgt.length === 0 && side === 'target') {
-			return pendingAlignmentColor(links, src, [token.id], palette);
+	const linkFillBackground = $derived.by(() => {
+		if (!settingsStore.settings.colorTokensByLink || !linkBgMode) return null;
+		const surf = previewSurfaceHex;
+		if (interactive && accentColor != null && (isPinned || hovering)) {
+			return `color-mix(in srgb, ${accentColor} ${isPinned ? 48 : 38}%, ${surf})`;
 		}
-		if (tgt.length && src.length === 0 && side === 'source') {
-			return pendingAlignmentColor(links, [token.id], tgt, palette);
-		}
-		if (src.length === 0 && tgt.length === 0) {
-			return side === 'source'
-				? pendingAlignmentColor(links, [token.id], [], palette)
-				: pendingAlignmentColor(links, [], [token.id], palette);
-		}
-		if (src.length && side === 'source') {
-			return pendingAlignmentColor(links, [token.id], [], palette);
-		}
-		if (tgt.length && side === 'target') {
-			return pendingAlignmentColor(links, [], [token.id], palette);
+		if (conn?.color) {
+			return `color-mix(in srgb, ${conn.color} 28%, ${surf})`;
 		}
 		return null;
 	});
 
-	const displayColor = $derived(accentColor ?? textColor ?? undefined);
+	const displayColor = $derived(linkBgMode ? undefined : (accentColor ?? textColor ?? undefined));
 
 	function onClick() {
 		if (!interactive) return;
-		selectionStore.previewTokenClick(side, token.id);
+		selectionStore.previewTokenClick(lineId, token.id);
 	}
 </script>
 
@@ -93,13 +99,14 @@
 		class="token-view token-view--clickable"
 		class:token-view--join-before={joinTightStart}
 		class:token-view--join-after={joinTightEnd}
-		class:token-view--colored={textColor && !accentColor}
-		class:token-view--accent-sel={accentColor !== null && isSelected}
-		class:token-view--accent-hover={accentColor !== null && !isSelected}
+		class:token-view--colored={!linkBgMode && textColor && !accentColor}
+		class:token-view--accent-sel={!linkBgMode && accentColor !== null && isPinned}
+		class:token-view--accent-hover={!linkBgMode && accentColor !== null && !isPinned}
 		data-token-id={token.id}
-		data-side={side}
-		style:font-size="{sz}px"
+		data-line={lineId}
+		style:font-size="{textSizePx}px"
 		style:--token-accent={accentColor ?? 'transparent'}
+		style:background={linkFillBackground ?? undefined}
 		style:color={displayColor}
 		onclick={onClick}
 		onmouseenter={() => {
@@ -119,11 +126,12 @@
 		class="token-view"
 		class:token-view--join-before={joinTightStart}
 		class:token-view--join-after={joinTightEnd}
-		class:token-view--colored={textColor}
+		class:token-view--colored={!linkBgMode && !!textColor}
 		data-token-id={token.id}
-		data-side={side}
-		style:font-size="{sz}px"
-		style:color={textColor ?? undefined}
+		data-line={lineId}
+		style:font-size="{textSizePx}px"
+		style:background={linkFillBackground ?? undefined}
+		style:color={linkBgMode ? undefined : (textColor ?? undefined)}
 	>
 		{#if showNumber}
 			<span class="token-view__num">{index + 1}</span>

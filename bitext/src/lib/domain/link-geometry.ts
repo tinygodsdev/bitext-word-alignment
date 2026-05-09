@@ -5,26 +5,26 @@ const PAD = 8;
 
 /**
  * Endpoints sit outside token boxes so strokes do not cross glyph bounds.
- * Uses row order (source row above target in typical layout).
+ * upperToken layout is treated as the higher (smaller cy) row when rows differ.
  */
 export function linkEndpoints(
-	pSource: TokenLayout,
-	pTarget: TokenLayout
+	pUpper: TokenLayout,
+	pLower: TokenLayout
 ): { x1: number; y1: number; x2: number; y2: number } {
-	const sourceAbove = pSource.cy <= pTarget.cy;
-	if (sourceAbove) {
+	const upperIsAbove = pUpper.cy <= pLower.cy;
+	if (upperIsAbove) {
 		return {
-			x1: pSource.cx,
-			y1: pSource.y + pSource.h + PAD,
-			x2: pTarget.cx,
-			y2: pTarget.y - PAD
+			x1: pUpper.cx,
+			y1: pUpper.y + pUpper.h + PAD,
+			x2: pLower.cx,
+			y2: pLower.y - PAD
 		};
 	}
 	return {
-		x1: pSource.cx,
-		y1: pSource.y - PAD,
-		x2: pTarget.cx,
-		y2: pTarget.y + pTarget.h + PAD
+		x1: pUpper.cx,
+		y1: pUpper.y - PAD,
+		x2: pLower.cx,
+		y2: pLower.y + pLower.h + PAD
 	};
 }
 

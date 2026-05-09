@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { Button, ButtonGroup } from 'flowbite-svelte';
+	import { Button, ButtonGroup, Label } from 'flowbite-svelte';
 	import { tick } from 'svelte';
+	import SettingsFieldHint from '$lib/components/settings/SettingsFieldHint.svelte';
 	import { buildStandaloneSvgString } from '$lib/export/svg.js';
 	import { svgStringToPngBlob, downloadBlob } from '$lib/export/png.js';
 	import { svgStringToPdfBlob } from '$lib/export/pdf.js';
@@ -9,17 +10,24 @@
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { layoutExportStore } from '$lib/state/layoutExport.svelte.js';
-	import {
-		svgFontFamilyStack,
-		visualizationGoogleFontUrls
-	} from '$lib/fonts/visualization-font.js';
-	import { buildInlinedFontCss } from '$lib/fonts/inline-fonts.js';
-	import { ensureVisualizationCustomFontsInDocument } from '$lib/fonts/ensure-document-fonts.js';
+	import { googleFontUrlsForLines, svgFontFamilyStackLine } from '$lib/fonts/visualization-font.js';
+	import { buildInlinedFontCssFromLines } from '$lib/fonts/inline-fonts.js';
+	import { ensureVisualizationCustomFontsFromLines } from '$lib/fonts/ensure-document-fonts.js';
 	import { convertCustomFontTextToPaths } from '$lib/fonts/text-to-paths.js';
 	import { encodeState } from '$lib/serialization/encode.js';
-	import { SCHEMA_VERSION, type AppStateV1 } from '$lib/serialization/schema.js';
+	import { SCHEMA_VERSION, type AppStateV2 } from '$lib/serialization/schema.js';
 	import { getShareUrl } from '$lib/share/url.js';
 	import { shareUrlToQrDataUrl } from '$lib/share/qr.js';
+
+	const RASTER_SCALE_OPTIONS = [2, 3, 4, 5, 6] as const;
+	const hintRasterScale =
+		'PNG and PDF are rasterized from the preview. Higher scale = sharper detail for small fonts or long sentences, but larger files and more memory use.\n\nSVG and HTML are vector exports and do not use this setting.';
+
+	let rasterExportScale = $state<(typeof RASTER_SCALE_OPTIONS)[number]>(2);
+
+	function isRasterScale(n: number): n is (typeof RASTER_SCALE_OPTIONS)[number] {
+		return (RASTER_SCALE_OPTIONS as readonly number[]).includes(n);
+	}
 
 	async function flushPreviewLayout() {
 		if (!browser) return;
@@ -35,7 +43,6 @@
 		return '#0f172a';
 	}
 
-	/** Same fills as `.preview-frame--light` / `--dark` (image mode exports without photo → white). */
 	function exportBackgroundColor(): string {
 		const bg = settingsStore.settings.background;
 		if (bg === 'dark') return '#1e1e1e';
@@ -43,10 +50,9 @@
 	}
 
 	function googleFontImportList(): string[] {
-		return visualizationGoogleFontUrls(settingsStore.settings);
+		return googleFontUrlsForLines(projectStore.lines);
 	}
 
-	/** Pass `siteQrPngDataUri: await siteLandingQrDataUrl()` to draw the corner site QR (currently off). */
 	function buildSvg(opts: {
 		includeAttributionFooter: boolean;
 		embedFontCss?: string;
@@ -56,26 +62,28 @@
 		const lay = layoutExportStore;
 		const s = settingsStore.settings;
 		const imports = opts.includeImports !== false ? googleFontImportList() : [];
+		const lineOrder = projectStore.lines.map((l) => l.id);
+		const lines = projectStore.lines.map((l) => ({
+			lineId: l.id,
+			tokens: projectStore.tokensOnLine(l.id),
+			fontFamilyStack: svgFontFamilyStackLine(l),
+			textSizePx: l.textSizePx
+		}));
 		return buildStandaloneSvgString({
 			width: Math.max(1, lay.width),
 			height: Math.max(1, lay.height),
 			backgroundColor: exportBackgroundColor(),
-			fontFamilySource: svgFontFamilyStack(s, 'source'),
-			fontFamilyTarget: svgFontFamilyStack(s, 'target'),
-			fontFamilyGloss: svgFontFamilyStack(s, 'gloss'),
-			fontSizeSource: s.sourceTextSizePx,
-			fontSizeTarget: s.targetTextSizePx,
-			glossFontSize: s.glossTextSizePx,
 			defaultTextColor: exportTextColor(),
 			colorTokensByLink: s.colorTokensByLink,
+			tokenLinkColorMode: s.tokenLinkColorMode,
 			lineStyle: s.lineStyle,
 			lineThickness: s.lineThickness,
 			lineOpacity: s.lineOpacity,
-			sourceTokens: projectStore.sourceTokens,
-			targetTokens: projectStore.targetTokens,
+			lineOrder,
+			lines,
 			tokenLayout: lay.tokenLayout,
-			links: projectStore.links,
-			showGloss: s.showGloss,
+			connections: projectStore.connections,
+			pairControls: projectStore.pairControls,
 			includeAttributionFooter: opts.includeAttributionFooter,
 			embedFontCdataImports: imports.length ? imports : undefined,
 			embedFontCss: opts.embedFontCss,
@@ -85,47 +93,41 @@
 
 	async function downloadSvg() {
 		await flushPreviewLayout();
-		/** Convert custom-font text to paths for portability (recipients don't need the font file). */
 		const rawSvg = buildSvg({ includeAttributionFooter: true });
-		const svg = await convertCustomFontTextToPaths(rawSvg, settingsStore.settings);
+		const svg = await convertCustomFontTextToPaths(rawSvg, projectStore.lines);
 		downloadBlob('alignment.svg', new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
 	}
 
-	/**
-	 * Build the SVG we feed to the rasterizer. Custom-font text is converted to vector paths
-	 * so it renders identically regardless of whether the browser finished decoding the
-	 * embedded `@font-face` before `<img>` drew the first frame.
-	 */
 	async function buildRasterSvg(): Promise<string> {
-		await ensureVisualizationCustomFontsInDocument(settingsStore.settings);
-		const embedFontCss = await buildInlinedFontCss(settingsStore.settings);
+		await ensureVisualizationCustomFontsFromLines(projectStore.lines);
+		const embedFontCss = await buildInlinedFontCssFromLines(projectStore.lines);
 		const svg = buildSvg({ includeAttributionFooter: true, embedFontCss, includeImports: false });
-		return await convertCustomFontTextToPaths(svg, settingsStore.settings);
+		return await convertCustomFontTextToPaths(svg, projectStore.lines);
 	}
 
 	async function downloadPng() {
 		await flushPreviewLayout();
 		const svg = await buildRasterSvg();
-		const blob = await svgStringToPngBlob(svg, 2);
+		const blob = await svgStringToPngBlob(svg, rasterExportScale);
 		downloadBlob('alignment.png', blob);
 	}
 
 	async function downloadPdf() {
 		await flushPreviewLayout();
 		const svg = await buildRasterSvg();
-		const blob = await svgStringToPdfBlob(svg);
+		const blob = await svgStringToPdfBlob(svg, rasterExportScale);
 		downloadBlob('alignment.pdf', blob);
 	}
 
 	async function downloadHtml() {
 		await flushPreviewLayout();
 		const rawSvg = buildSvg({ includeAttributionFooter: false });
-		const svg = await convertCustomFontTextToPaths(rawSvg, settingsStore.settings);
+		const svg = await convertCustomFontTextToPaths(rawSvg, projectStore.lines);
 		const html = wrapSvgInHtml(svg, 'Alignment export', googleFontImportList());
 		downloadBlob('alignment.html', new Blob([html], { type: 'text/html;charset=utf-8' }));
 	}
 
-	function buildState(): AppStateV1 {
+	function buildState(): AppStateV2 {
 		return {
 			v: SCHEMA_VERSION,
 			project: projectStore.getSnapshot(),
@@ -153,6 +155,26 @@
 		}
 	}
 </script>
+
+<div class="mb-3 flex flex-wrap items-center gap-2">
+	<Label for="export-raster-scale" class="mb-0 text-sm text-gray-600 dark:text-gray-400">
+		PNG / PDF scale
+	</Label>
+	<select
+		id="export-raster-scale"
+		class="rounded-lg border border-gray-300 bg-gray-50 py-1.5 pl-2 pr-8 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
+		value={String(rasterExportScale)}
+		onchange={(e) => {
+			const n = Number((e.currentTarget as HTMLSelectElement).value);
+			if (isRasterScale(n)) rasterExportScale = n;
+		}}
+	>
+		{#each RASTER_SCALE_OPTIONS as s (s)}
+			<option value={String(s)}>{s}×</option>
+		{/each}
+	</select>
+	<SettingsFieldHint text={hintRasterScale} />
+</div>
 
 <ButtonGroup class="flex-wrap">
 	<Button color="light" size="sm" onclick={downloadPng}>PNG</Button>

@@ -1,7 +1,7 @@
-import { addAtomicLinks, type Link } from '$lib/domain/alignment.js';
-import { connectedLinkIds } from '$lib/domain/link-graph.js';
+import { addAtomicLinks, type Connection } from '$lib/domain/alignment.js';
+import { connectedConnectionIds } from '$lib/domain/link-graph.js';
 import { pickUnusedPaletteColor, type PaletteName } from '$lib/domain/palettes.js';
-import { tokenize } from '$lib/domain/tokens.js';
+import { tokenize, tokenizeOptionsFromVisualSettings } from '$lib/domain/tokens.js';
 import {
 	DEFAULT_TOKEN_SPLIT_CHARS,
 	defaultProjectSnapshot,
@@ -54,16 +54,16 @@ function normalizeHex(color: string | undefined): string {
 }
 
 function addAlignmentStep(
-	links: Link[],
+	links: Connection[],
 	sourceIds: string[],
 	targetIds: string[],
 	palette: PaletteName
-): Link[] {
+): Connection[] {
 	const seedTokens = new Set<string>([...sourceIds, ...targetIds]);
-	const componentBefore = connectedLinkIds(links, seedTokens);
+	const componentBefore = connectedConnectionIds(links, seedTokens);
 	const used = new Set(links.map((l) => l.color).filter((c): c is string => Boolean(c)));
 	const inherited = links.find((l) => componentBefore.has(l.id) && l.color)?.color;
-	const color = inherited ?? pickUnusedPaletteColor(palette, used);
+	const color = inherited ?? pickUnusedPaletteColor(palette, used, links.length);
 	const pairs: { sourceId: string; targetId: string }[] = [];
 	for (const s of sourceIds) {
 		for (const t of targetIds) {
@@ -71,7 +71,7 @@ function addAlignmentStep(
 		}
 	}
 	const merged = addAtomicLinks(links, pairs, color);
-	const componentAfter = connectedLinkIds(merged, seedTokens);
+	const componentAfter = connectedConnectionIds(merged, seedTokens);
 	return merged.map((l) => (componentAfter.has(l.id) ? { ...l, color } : l));
 }
 
@@ -79,8 +79,8 @@ function addAlignmentStep(
 export function replayLinksFromPairIndices(
 	pairs: readonly [number, number][],
 	palette: PaletteName
-): Link[] {
-	let links: Link[] = [];
+): Connection[] {
+	let links: Connection[] = [];
 	for (const [si, ti] of pairs) {
 		links = addAlignmentStep(links, [`s-${si}`], [`t-${ti}`], palette);
 	}
@@ -135,7 +135,7 @@ function parseLk(lk: string): [number, number][] {
 }
 
 function computeLcString(
-	originalLinks: Link[],
+	originalLinks: Connection[],
 	pairs: [number, number][],
 	palette: PaletteName
 ): string | undefined {
@@ -161,7 +161,7 @@ function computeLcString(
 	return parts.length ? parts.join(';') : undefined;
 }
 
-function applyLc(links: Link[], lc: string): Link[] {
+function applyLc(links: Connection[], lc: string): Connection[] {
 	const overrides = new Map<number, string>();
 	for (const part of lc.split(';')) {
 		if (!part) continue;
@@ -234,7 +234,7 @@ function settingsToCompact(rounded: VisualSettingsV1): CompactSettings | undefin
 	if (rounded.tokenSplitChars !== def.tokenSplitChars) o.sp = rounded.tokenSplitChars;
 
 	if (rounded.background !== def.background) {
-		o.bg = rounded.background === 'light' ? 0 : rounded.background === 'dark' ? 1 : 2;
+		o.bg = rounded.background === 'dark' ? 1 : 0;
 	}
 
 	return Object.keys(o).length ? sortKeys(o) : undefined;
@@ -270,7 +270,8 @@ function compactToVisualSettings(s: CompactSettings | undefined): VisualSettings
 	if (s.sp !== undefined) raw.tokenSplitChars = String(s.sp);
 	if (s.bg !== undefined) {
 		const n = Number(s.bg);
-		raw.background = n === 1 ? 'dark' : n === 2 ? 'image' : 'light';
+		/* Legacy 2 = image → light */
+		raw.background = n === 1 ? 'dark' : 'light';
 	}
 	return normalizeVisualSettings(raw);
 }
@@ -301,8 +302,8 @@ function projectToCompact(
 	if (hasLinks) {
 		const pairs: [number, number][] = [];
 		for (const link of project.links) {
-			const si = parseTokenIndex(link.sourceId, 's');
-			const ti = parseTokenIndex(link.targetId, 't');
+			const si = parseTokenIndex(link.upperTokenId, 's');
+			const ti = parseTokenIndex(link.lowerTokenId, 't');
 			if (si === null || ti === null) continue;
 			pairs.push([si, ti]);
 		}
@@ -325,13 +326,19 @@ function compactToProject(
 	const sourceText = p.st ?? def.sourceText;
 	const targetText = p.tt ?? def.targetText;
 	const splitChars = settings.tokenSplitChars ?? DEFAULT_TOKEN_SPLIT_CHARS;
-	const stoks = tokenize(sourceText, 'source', splitChars);
-	const ttoks = tokenize(targetText, 'target', splitChars);
+	const tz = tokenizeOptionsFromVisualSettings({
+		tokenSplitChars: splitChars,
+		tokenMergeChar: '',
+		tokenSplitPunctuation: false,
+		tokenPunctuationChars: ''
+	});
+	const stoks = tokenize(sourceText, 's', tz);
+	const ttoks = tokenize(targetText, 't', tz);
 
 	const sourceGlosses = parseSparseGlosses(p.sg, stoks.length);
 	const targetGlosses = parseSparseGlosses(p.tg, ttoks.length);
 
-	let links: Link[] = [];
+	let links: Connection[] = [];
 	if (p.lk) {
 		const pairs = parseLk(p.lk);
 		links = replayLinksFromPairIndices(pairs, settings.palette);
@@ -349,7 +356,6 @@ function compactToProject(
 
 export function toCompactJSON(state: AppStateV1): string {
 	const slimSettings = { ...state.settings };
-	delete slimSettings.backgroundImageDataUrl;
 
 	const rounded = roundVisualSettings(slimSettings);
 	const sCompact = settingsToCompact(rounded);
@@ -387,21 +393,22 @@ export function projectContentEquals(a: ProjectSnapshotV1, b: ProjectSnapshotV1)
 		if (a.targetGlosses[i] !== b.targetGlosses[i]) return false;
 	}
 	if (a.links.length !== b.links.length) return false;
-	const norm = (links: Link[]) =>
+	const norm = (links: Connection[]) =>
 		links
 			.map((l) => ({
-				sourceId: l.sourceId,
-				targetId: l.targetId,
+				upperTokenId: l.upperTokenId,
+				lowerTokenId: l.lowerTokenId,
 				color: normalizeHex(l.color)
 			}))
 			.sort((x, y) => {
-				const c = x.sourceId.localeCompare(y.sourceId);
-				return c !== 0 ? c : x.targetId.localeCompare(y.targetId);
+				const c = x.upperTokenId.localeCompare(y.upperTokenId);
+				return c !== 0 ? c : x.lowerTokenId.localeCompare(y.lowerTokenId);
 			});
 	const na = norm(a.links);
 	const nb = norm(b.links);
 	for (let i = 0; i < na.length; i++) {
-		if (na[i]!.sourceId !== nb[i]!.sourceId || na[i]!.targetId !== nb[i]!.targetId) return false;
+		if (na[i]!.upperTokenId !== nb[i]!.upperTokenId || na[i]!.lowerTokenId !== nb[i]!.lowerTokenId)
+			return false;
 		if (na[i]!.color !== nb[i]!.color) return false;
 	}
 	return true;

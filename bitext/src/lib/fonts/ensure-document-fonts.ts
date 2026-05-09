@@ -1,27 +1,16 @@
 import { loadCustomFontBlob } from './custom-fonts.js';
-import type { VisualSettingsV1 } from '$lib/serialization/schema.js';
+import type { LineV2 } from '$lib/serialization/schema.js';
 
 const loadedKeys = new Set<string>();
 
-/**
- * Custom fonts in Bitext are stored in IDB; SVG rasterization (PNG/PDF) often does not
- * apply @font-face from `<defs><style>` in an SVG blob, but the same family names can resolve
- * if the faces are registered on `document.fonts` (same as preview).
- */
-export async function ensureVisualizationCustomFontsInDocument(
-	settings: VisualSettingsV1
-): Promise<void> {
+export async function ensureVisualizationCustomFontsFromLines(lines: LineV2[]): Promise<void> {
 	if (typeof document === 'undefined' || !document.fonts) return;
 
 	const names: string[] = [];
-	if (settings.sourceFontSource === 'custom' && settings.sourceCustomFontName) {
-		names.push(settings.sourceCustomFontName);
-	}
-	if (settings.targetFontSource === 'custom' && settings.targetCustomFontName) {
-		names.push(settings.targetCustomFontName);
-	}
-	if (settings.glossFontSource === 'custom' && settings.glossCustomFontName) {
-		names.push(settings.glossCustomFontName);
+	for (const line of lines) {
+		if (line.font.source === 'custom' && line.font.customName) {
+			names.push(line.font.customName);
+		}
 	}
 
 	for (const name of names) {
@@ -45,7 +34,7 @@ export async function ensureVisualizationCustomFontsInDocument(
 			document.fonts.add(ff);
 			loadedKeys.add(name);
 		} catch {
-			/* invalid font or decode error */
+			/* invalid font */
 		}
 	}
 

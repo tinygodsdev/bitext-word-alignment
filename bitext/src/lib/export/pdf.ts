@@ -2,8 +2,8 @@ import { jsPDF } from 'jspdf';
 import { svgStringToCanvas } from './svg-raster.js';
 
 /** Raster PDF (PNG page) — reliable in Vite; no svg2pdf.js / CJS interop. */
-export async function svgStringToPdfBlob(svg: string): Promise<Blob> {
-	const { canvas, cssWidth, cssHeight } = await svgStringToCanvas(svg, 2);
+export async function svgStringToPdfBlob(svg: string, scale = 2): Promise<Blob> {
+	const { canvas, cssWidth, cssHeight } = await svgStringToCanvas(svg, scale);
 	const w = cssWidth;
 	const h = cssHeight;
 	const pngData = canvas.toDataURL('image/png');

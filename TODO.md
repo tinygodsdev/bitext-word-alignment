@@ -1,6 +1,8 @@
+# Version 1.0.0
+
 - [x] Sort out glossing functionality
 - [x] Improve sharing visuals
-- [ ] Check SEO
+- [x] Check SEO
 - [x] Highlighting tokens when selecting (hovering) and when selected (with current color, which will be the link color)
 - [x] Make sure instructions are clear and concise, up to date, and complete. 
 - [x] Add better examples - with complex links and advanced tokenization.
@@ -9,3 +11,44 @@
 - [x] Dependency CVE check (`npm audit` / CI)
 - [x] Add QR code export method
 - [-] Add QR code to visualization exports (small in the corner - only site link; `siteLandingQrDataUrl` + `siteQrPngDataUri` in svg — wiring disabled in ExportMenu) - out of scope for now
+
+# Version 2
+
+Includes bugs and feature requests from the public.
+
+Feature requests - high priority:
+- [x] Add ability to add more than 2 lines 
+- [x] Improve support for longer sentences - currently non-svg export is low resolution when font is small
+- [x] add special separator to combine words into a single token - it will be connected with 1 line in the visualization but still be written with a space or spaces
+- [x] add ability to optionally tokenize punctuation as separate tokens
+- [x] add transcription line support (probably can be solved by adding more than 2 lines)
+
+Usability improvements - high priority:
+- [x] Parameter card or other view should move to be next to the editor - currently on small screens you have to scroll back and forth between the editor and the parameters
+
+Bug fixes - high priority:
+- [x] Reportedly ligatures in custom fonts are not working in the export (but fine in preview) — custom font `<text>` → paths now uses **harfbuzzjs** for shaping + `glyphToPath`, with **opentype.js** 1.3.4 only for metrics / fallback. Pin stays on `opentype.js@1.3.4` (avoid mistaken 1.3.5 & 2.x). Remaining edge cases: exotic scripts / SVG `text-anchor` with RTL may still differ slightly from browser.
+- [x] When color palette is depleted, it should cycle through the colors - currently uses the last color
+
+Advanced features - medium priority:
+
+- [x] Maybe parameter-line connection should be reworked to be more flexible - each line should have all the parameters configured separately. 
+- [x] Add ability to hide preview controls so that the user can see the entire visualization and screenshot it if needed. In this mode - add the credit to the bottom of the visualization, like in exports.
+
+General interface improvements - medium priority:
+
+- [x] Make interface more compact to accomodate more features
+- [x] Probably add full screen mode for the preview - so that the user would be able to see it all and screenshot if needed - this will partially help if we won't be able to solve ligature problems
+- [x] Create privacy policy page and link to it from the footer. We don't collect any data, but we should have a page for it. We use Google Analytics, Google Ads (probably in the future) and Tally for feedback.
+- [x] Add alternative color marking - don't color the text, color the background of the token. This should correctly work on dark mode as well. The mode can be changed in the settings (probably in colors tab).
+
+Considerations:
+- If we support multiple lines with independent parameters, we can deprecate separate gloss row and configuration - it will be just a single new line with the glosses. Then, the user would be able to add transcription and other annotations in the same manner. 
+- In case of adding multiple lines, additional lines after the first 2 should be optional. 
+- The ultimate fix for pdf export would be to use external resource like gotenberg. We can set up a server with it, but preferably this is to be avoided since it will add costs to support it. 
+
+
+Version 2.1:
+
+- [ ] Interface languages - add pages for some major languages
+- [ ] Ability to create custom color palettes

@@ -1,198 +1,100 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import { Label } from 'flowbite-svelte';
-	import { GOOGLE_FONT_OPTIONS } from '$lib/fonts/google-fonts.js';
-	import { saveCustomFontBlob } from '$lib/fonts/custom-fonts.js';
-	import { settingsStore } from '$lib/state/settings.svelte.js';
-
-	const s = $derived(settingsStore.settings);
-
-	const sel =
-		'block w-full rounded-none border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-500';
+	import {
+		saveCustomFontBlob,
+		listStoredCustomFontNames,
+		removeCustomFont
+	} from '$lib/fonts/custom-fonts.js';
 
 	const fileClass =
 		'block w-full cursor-pointer rounded-none border border-gray-300 bg-gray-50 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400';
 
-	async function onCustomFile(side: 'source' | 'target' | 'gloss', e: Event) {
+	let customNames = $state<string[]>([]);
+	let status = $state<string | null>(null);
+
+	async function refresh() {
+		if (!browser) return;
+		customNames = await listStoredCustomFontNames();
+	}
+
+	$effect(() => {
+		void refresh();
+	});
+
+	async function onUpload(e: Event) {
 		const input = e.currentTarget as HTMLInputElement;
 		const file = input.files?.[0];
 		if (!file) return;
 		const name = file.name.replace(/\.[^.]+$/, '') || 'CustomFont';
 		await saveCustomFontBlob(name, file);
 		const buf = await file.arrayBuffer();
-		const ff = new FontFace(name, buf);
-		await ff.load();
-		document.fonts.add(ff);
-		if (side === 'source') {
-			settingsStore.patch({ sourceFontSource: 'custom', sourceCustomFontName: name });
-		} else if (side === 'target') {
-			settingsStore.patch({ targetFontSource: 'custom', targetCustomFontName: name });
-		} else {
-			settingsStore.patch({ glossFontSource: 'custom', glossCustomFontName: name });
+		if (browser) {
+			const ff = new FontFace(name, buf);
+			await ff.load();
+			document.fonts.add(ff);
 		}
+		status = `Uploaded “${name}”. Select it from a line’s font settings in the editor.`;
+		input.value = '';
+		await refresh();
+	}
+
+	async function onRemove(name: string) {
+		if (typeof window !== 'undefined' && !window.confirm(`Remove stored font “${name}”?`)) return;
+		await removeCustomFont(name);
+		status = `Removed “${name}”.`;
+		await refresh();
 	}
 </script>
 
 <div class="grid grid-cols-12 gap-4">
 	<div class="col-span-12">
-		<h3 class="font-heading text-sm font-semibold text-gray-900 dark:text-white">Source line</h3>
-	</div>
-	<div class="col-span-12 md:col-span-6">
-		<Label for="settings-font-source-src" class="mb-2">Source font source</Label>
-		<select
-			id="settings-font-source-src"
-			class={sel}
-			value={s.sourceFontSource}
-			onchange={(e) =>
-				settingsStore.patch({
-					sourceFontSource: (e.currentTarget as HTMLSelectElement).value as 'google' | 'custom'
-				})}
-		>
-			<option value="google">Google Fonts</option>
-			<option value="custom">Custom upload</option>
-		</select>
-	</div>
-	{#if s.sourceFontSource === 'google'}
-		<div class="col-span-12 md:col-span-6">
-			<Label for="settings-font-family-src" class="mb-2">Source typeface</Label>
-			<select
-				id="settings-font-family-src"
-				class={sel}
-				value={s.sourceFontFamily}
-				onchange={(e) =>
-					settingsStore.patch({ sourceFontFamily: (e.currentTarget as HTMLSelectElement).value })}
-			>
-				{#each GOOGLE_FONT_OPTIONS as o (o.family)}
-					<option value={o.label}>{o.label}</option>
-				{/each}
-			</select>
-		</div>
-	{:else}
-		<div class="col-span-12 md:col-span-6">
-			<Label for="settings-font-file-src" class="mb-2">Upload source font</Label>
-			<input
-				id="settings-font-file-src"
-				type="file"
-				accept=".woff2,.ttf,.otf,.woff"
-				class={fileClass}
-				onchange={(e) => onCustomFile('source', e)}
-			/>
-		</div>
-		{#if s.sourceCustomFontName}
-			<div class="col-span-12">
-				<p class="text-base text-gray-600 dark:text-gray-400">
-					Loaded: <strong class="text-gray-900 dark:text-white">{s.sourceCustomFontName}</strong>
-				</p>
-			</div>
-		{/if}
-	{/if}
-
-	<div class="col-span-12 mt-2">
-		<h3 class="font-heading text-sm font-semibold text-gray-900 dark:text-white">Target line</h3>
-	</div>
-	<div class="col-span-12 md:col-span-6">
-		<Label for="settings-font-source-tgt" class="mb-2">Target font source</Label>
-		<select
-			id="settings-font-source-tgt"
-			class={sel}
-			value={s.targetFontSource}
-			onchange={(e) =>
-				settingsStore.patch({
-					targetFontSource: (e.currentTarget as HTMLSelectElement).value as 'google' | 'custom'
-				})}
-		>
-			<option value="google">Google Fonts</option>
-			<option value="custom">Custom upload</option>
-		</select>
-	</div>
-	{#if s.targetFontSource === 'google'}
-		<div class="col-span-12 md:col-span-6">
-			<Label for="settings-font-family-tgt" class="mb-2">Target typeface</Label>
-			<select
-				id="settings-font-family-tgt"
-				class={sel}
-				value={s.targetFontFamily}
-				onchange={(e) =>
-					settingsStore.patch({ targetFontFamily: (e.currentTarget as HTMLSelectElement).value })}
-			>
-				{#each GOOGLE_FONT_OPTIONS as o (o.family)}
-					<option value={o.label}>{o.label}</option>
-				{/each}
-			</select>
-		</div>
-	{:else}
-		<div class="col-span-12 md:col-span-6">
-			<Label for="settings-font-file-tgt" class="mb-2">Upload target font</Label>
-			<input
-				id="settings-font-file-tgt"
-				type="file"
-				accept=".woff2,.ttf,.otf,.woff"
-				class={fileClass}
-				onchange={(e) => onCustomFile('target', e)}
-			/>
-		</div>
-		{#if s.targetCustomFontName}
-			<div class="col-span-12">
-				<p class="text-base text-gray-600 dark:text-gray-400">
-					Loaded: <strong class="text-gray-900 dark:text-white">{s.targetCustomFontName}</strong>
-				</p>
-			</div>
-		{/if}
-	{/if}
-
-	<div class="col-span-12 mt-2">
-		<h3 class="font-heading text-sm font-semibold text-gray-900 dark:text-white">Gloss line</h3>
-		<p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-			Interlinear glosses (preview, editor, export). Independent of the source and target script
-			fonts.
+		<h3 class="font-heading text-sm font-semibold text-gray-900 dark:text-white">
+			Custom fonts library
+		</h3>
+		<p class="mt-1 text-base text-gray-600 dark:text-gray-400">
+			Upload font files once; they are stored in your browser. In the editor, set each line to
+			<strong>Custom</strong> and pick the family name here.
 		</p>
 	</div>
-	<div class="col-span-12 md:col-span-6">
-		<Label for="settings-font-source-gloss" class="mb-2">Gloss font source</Label>
-		<select
-			id="settings-font-source-gloss"
-			class={sel}
-			value={s.glossFontSource}
-			onchange={(e) =>
-				settingsStore.patch({
-					glossFontSource: (e.currentTarget as HTMLSelectElement).value as 'google' | 'custom'
-				})}
-		>
-			<option value="google">Google Fonts</option>
-			<option value="custom">Custom upload</option>
-		</select>
+	<div class="col-span-12">
+		<Label for="settings-global-font-upload" class="mb-2">Upload font file</Label>
+		<input
+			id="settings-global-font-upload"
+			type="file"
+			accept=".woff2,.ttf,.otf,.woff"
+			class={fileClass}
+			onchange={onUpload}
+		/>
 	</div>
-	{#if s.glossFontSource === 'google'}
-		<div class="col-span-12 md:col-span-6">
-			<Label for="settings-font-family-gloss" class="mb-2">Gloss typeface</Label>
-			<select
-				id="settings-font-family-gloss"
-				class={sel}
-				value={s.glossFontFamily}
-				onchange={(e) =>
-					settingsStore.patch({ glossFontFamily: (e.currentTarget as HTMLSelectElement).value })}
-			>
-				{#each GOOGLE_FONT_OPTIONS as o (o.family)}
-					<option value={o.label}>{o.label}</option>
-				{/each}
-			</select>
+	{#if status}
+		<div class="col-span-12 text-sm text-gray-600 dark:text-gray-400">
+			{status}
 		</div>
-	{:else}
-		<div class="col-span-12 md:col-span-6">
-			<Label for="settings-font-file-gloss" class="mb-2">Upload gloss font</Label>
-			<input
-				id="settings-font-file-gloss"
-				type="file"
-				accept=".woff2,.ttf,.otf,.woff"
-				class={fileClass}
-				onchange={(e) => onCustomFile('gloss', e)}
-			/>
-		</div>
-		{#if s.glossCustomFontName}
-			<div class="col-span-12">
-				<p class="text-base text-gray-600 dark:text-gray-400">
-					Loaded: <strong class="text-gray-900 dark:text-white">{s.glossCustomFontName}</strong>
-				</p>
-			</div>
-		{/if}
 	{/if}
+	<div class="col-span-12">
+		<h4 class="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+			Stored fonts
+		</h4>
+		{#if customNames.length === 0}
+			<p class="text-sm text-gray-500 dark:text-gray-400">No custom fonts uploaded yet.</p>
+		{:else}
+			<ul class="space-y-2">
+				{#each customNames as name (name)}
+					<li
+						class="flex flex-wrap items-center justify-between gap-2 border border-gray-200 px-3 py-2 dark:border-gray-600"
+					>
+						<span class="font-medium text-gray-900 dark:text-white">{name}</span>
+						<button
+							type="button"
+							class="text-sm text-red-600 hover:underline dark:text-red-400"
+							onclick={() => onRemove(name)}
+						>
+							Remove
+						</button>
+					</li>
+				{/each}
+			</ul>
+		{/if}
+	</div>
 </div>

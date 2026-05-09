@@ -1,22 +1,22 @@
 import {
-	defaultVisualSettings,
-	normalizeVisualSettings,
-	type VisualSettingsV1
+	defaultVisualSettingsV2,
+	normalizeVisualSettingsV2,
+	type VisualSettingsV2
 } from '$lib/serialization/schema.js';
 
 class SettingsStore {
-	settings = $state<VisualSettingsV1>(defaultVisualSettings());
+	settings = $state<VisualSettingsV2>(defaultVisualSettingsV2());
 
-	patch(p: Partial<VisualSettingsV1>) {
+	patch(p: Partial<VisualSettingsV2>) {
 		this.settings = { ...this.settings, ...p };
 	}
 
 	reset() {
-		this.settings = defaultVisualSettings();
+		this.settings = defaultVisualSettingsV2();
 	}
 
-	load(s: VisualSettingsV1) {
-		this.settings = normalizeVisualSettings(s as unknown as Record<string, unknown>);
+	load(s: VisualSettingsV2) {
+		this.settings = normalizeVisualSettingsV2(s as unknown as Record<string, unknown>);
 	}
 }
 

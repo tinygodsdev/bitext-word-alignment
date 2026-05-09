@@ -6,13 +6,20 @@ export const PALETTES: Record<PaletteName, readonly string[]> = {
 	academic: ['#64748b', '#475569', '#334155', '#78716c', '#57534e', '#71717a', '#52525b', '#3f3f46']
 };
 
-/** Next palette color that is not yet used; when all are used, cycle without bias to one hue first. */
-export function pickUnusedPaletteColor(palette: PaletteName, usedHex: ReadonlySet<string>): string {
+/**
+ * Next palette color not yet present in `usedHex`. When every palette color already appears somewhere,
+ * cycles with `cycleOrdinal` (e.g. `connections.length` before adding the next link).
+ */
+export function pickUnusedPaletteColor(
+	palette: PaletteName,
+	usedHex: ReadonlySet<string>,
+	cycleOrdinal = 0
+): string {
 	const colors = PALETTES[palette];
 	for (const c of colors) {
 		if (!usedHex.has(c)) return c;
 	}
-	return colors[usedHex.size % colors.length];
+	return colors[cycleOrdinal % colors.length]!;
 }
 
 /** Assign `count` colors in order, reusing only after the palette is exhausted. */
