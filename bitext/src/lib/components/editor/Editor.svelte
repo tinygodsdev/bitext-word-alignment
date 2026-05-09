@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { LanguageOutline } from 'flowbite-svelte-icons';
+	import { CogOutline } from 'flowbite-svelte-icons';
 	import LineCard from './LineCard.svelte';
 	import { editorTokenizationChipValues } from '$lib/domain/tokenization-summary.js';
 	import { MAX_LINES } from '$lib/serialization/schema.js';
@@ -59,11 +59,11 @@
 			<button
 				type="button"
 				class="shrink-0 rounded-none border-0 bg-transparent p-1 text-gray-500 transition-colors hover:text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:text-gray-400 dark:hover:text-gray-100 dark:focus-visible:outline-primary-500"
-				title="Edit tokenization (Settings → Tokens)"
-				aria-label="Edit tokenization rules"
+				title="Tokenization settings (Settings → Tokens)"
+				aria-label="Open tokenization settings"
 				onclick={() => settingsNavStore.focusTokensTab()}
 			>
-				<LanguageOutline class="h-5 w-5" aria-hidden="true" />
+				<CogOutline class="h-5 w-5" aria-hidden="true" />
 			</button>
 		</div>
 	</div>

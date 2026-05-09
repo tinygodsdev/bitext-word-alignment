@@ -2,8 +2,8 @@
 	import {
 		AdjustmentsHorizontalSolid,
 		FontFamilyOutline,
-		LanguageOutline,
-		PaletteSolid
+		PaletteSolid,
+		SplitCellsOutline
 	} from 'flowbite-svelte-icons';
 	import { Card, TabItem, Tabs } from 'flowbite-svelte';
 	import AppearanceTab from './AppearanceTab.svelte';
@@ -70,7 +70,7 @@
 					title="Tokenization — numbers, split rules"
 				>
 					<span class="sr-only">Tokens</span>
-					<LanguageOutline class="h-5 w-5 shrink-0" aria-hidden="true" />
+					<SplitCellsOutline class="h-5 w-5 shrink-0" aria-hidden="true" />
 				</span>
 			{/snippet}
 			<LinguisticsTab />
