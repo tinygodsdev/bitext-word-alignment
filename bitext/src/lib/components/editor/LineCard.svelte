@@ -1,7 +1,10 @@
 <script lang="ts">
+	import { TrashBinOutline } from 'flowbite-svelte-icons';
 	import type { LineV2 } from '$lib/serialization/schema.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { ButtonGroup, Input, InputAddon } from 'flowbite-svelte';
+
+	const addonClass = 'border-gray-300! bg-gray-50! px-2! dark:border-gray-600! dark:bg-gray-700!';
 
 	let {
 		line,
@@ -31,6 +34,25 @@
 	function toggleLineDir() {
 		projectStore.updateLineStyle(line.id, { rtl: !line.rtl });
 	}
+
+	function lineHasAnyConnection(): boolean {
+		const connections = projectStore.connections;
+		return connections.some(
+			(c) => c.upperTokenId.startsWith(`${line.id}-`) || c.lowerTokenId.startsWith(`${line.id}-`)
+		);
+	}
+
+	function confirmRemove(): boolean {
+		if (!lineHasAnyConnection()) return true;
+		return typeof window !== 'undefined'
+			? window.confirm('This line has connections. Removing it will delete those links. Continue?')
+			: true;
+	}
+
+	function removeThisLine() {
+		if (!confirmRemove()) return;
+		projectStore.removeLine(line.id);
+	}
 </script>
 
 <div
@@ -56,8 +78,8 @@
 		</span>
 	</div>
 
+	<label class="sr-only" for="line-{line.id}">Line {index + 1} text</label>
 	<ButtonGroup class="w-full min-w-32 flex-1 basis-48 sm:basis-auto">
-		<label class="sr-only" for="line-{line.id}">Line {index + 1} text</label>
 		<Input
 			id="line-{line.id}"
 			type="text"
@@ -68,9 +90,7 @@
 			oninput={(e) =>
 				projectStore.setLineText(line.id, (e.currentTarget as HTMLInputElement).value)}
 		/>
-		<InputAddon
-			class="rounded-e-none! border-gray-300! bg-gray-50! px-2! dark:border-gray-600! dark:bg-gray-700!"
-		>
+		<InputAddon class={addonClass}>
 			<button
 				type="button"
 				class="min-w-9 cursor-pointer select-none border-0 bg-transparent p-0 text-center text-[10px] font-medium tracking-wide text-gray-600 uppercase hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 dark:text-gray-400 dark:hover:text-gray-100 dark:focus-visible:ring-primary-400 dark:focus-visible:ring-offset-gray-800"
@@ -80,6 +100,18 @@
 				onclick={toggleLineDir}
 			>
 				{line.rtl ? 'RTL' : 'LTR'}
+			</button>
+		</InputAddon>
+		<InputAddon class="{addonClass} rounded-e-none!">
+			<button
+				type="button"
+				class="flex cursor-pointer items-center justify-center border-0 bg-transparent p-0 text-gray-500 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:text-gray-500 dark:text-gray-400 dark:hover:text-red-400 dark:focus-visible:ring-primary-400 dark:focus-visible:ring-offset-gray-800 dark:disabled:hover:text-gray-400"
+				title="Remove line"
+				aria-label="Remove line"
+				disabled={projectStore.lines.length <= 2}
+				onclick={removeThisLine}
+			>
+				<TrashBinOutline class="h-4 w-4 shrink-0" aria-hidden="true" />
 			</button>
 		</InputAddon>
 	</ButtonGroup>

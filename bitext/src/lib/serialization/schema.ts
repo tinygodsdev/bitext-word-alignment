@@ -35,7 +35,7 @@ export const MAX_TEXT_SIZE_PX = 64;
 export const DEFAULT_WORD_GAP_PX = 14;
 export const MIN_WORD_GAP_PX = 0;
 export const MAX_WORD_GAP_PX = 56;
-export const DEFAULT_TOKEN_SPLIT_CHARS = '.-';
+export const DEFAULT_TOKEN_SPLIT_CHARS = '.-|';
 /** Default join character for new projects; omits from compact when equal. */
 export const DEFAULT_TOKEN_MERGE_CHAR = '+';
 

@@ -1,8 +1,14 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import { Button, Modal } from 'flowbite-svelte';
 	import { ALIGNER_SITE_HOST } from '$lib/brand.js';
 	import { encodeState } from '$lib/serialization/encode.js';
-	import { SCHEMA_VERSION, type AppStateV2 } from '$lib/serialization/schema.js';
+	import {
+		SCHEMA_VERSION,
+		defaultVisualSettingsV2,
+		type AppStateV2,
+		type VisualSettingsV2
+	} from '$lib/serialization/schema.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { getShareUrl } from '$lib/share/url.js';
@@ -13,6 +19,7 @@
 	let qrSrc = $state<string | null>(null);
 	let qrErr = $state<string | null>(null);
 	let qrLoading = $state(false);
+	let dataObjectCopied = $state(false);
 
 	/** Called from parent via `bind:this` */
 	export function open() {
@@ -85,6 +92,49 @@
 		a.download = 'alignment-share-qr.png';
 		a.click();
 	}
+
+	function visualSettingsDiff(): Partial<VisualSettingsV2> | undefined {
+		const cur = settingsStore.settings;
+		const d = defaultVisualSettingsV2();
+		const patch: Partial<VisualSettingsV2> = {};
+		(keysOfVisualSettings() as (keyof VisualSettingsV2)[]).forEach((k) => {
+			if (cur[k] !== d[k]) (patch as Record<string, unknown>)[k] = cur[k];
+		});
+		return Object.keys(patch).length ? patch : undefined;
+	}
+
+	function keysOfVisualSettings(): (keyof VisualSettingsV2)[] {
+		return Object.keys(defaultVisualSettingsV2()) as (keyof VisualSettingsV2)[];
+	}
+
+	/** JSON shaped like `ExampleEntry` in `src/lib/state/examples.ts` (placeholders for id/label). */
+	function buildExampleDataObject(): Record<string, unknown> {
+		const snap = projectStore.getSnapshot();
+		const out: Record<string, unknown> = {
+			format: 'bitext-example-candidate-v1',
+			id: '<ExampleId>',
+			label: '<Example label>',
+			lines: snap.lines.map((l) => ({ ...l, font: { ...l.font } })),
+			connections: snap.connections.map((c) => [c.upperTokenId, c.lowerTokenId])
+		};
+		if (snap.pairControls.length) {
+			out.pairControls = snap.pairControls.map((p) => ({ ...p }));
+		}
+		if (snap.linePairGaps.length) {
+			out.linePairGaps = snap.linePairGaps.map((g) => ({ ...g }));
+		}
+		const diff = visualSettingsDiff();
+		if (diff) out.settings = diff;
+		return out;
+	}
+
+	async function copyDataObject() {
+		if (!browser) return;
+		const text = JSON.stringify(buildExampleDataObject(), null, '\t');
+		await navigator.clipboard.writeText(text);
+		dataObjectCopied = true;
+		setTimeout(() => (dataObjectCopied = false), 2000);
+	}
 </script>
 
 <Modal bind:open={modalOpen} title="Share" size="md">
@@ -127,6 +177,14 @@
 					Download QR (PNG)
 				</Button>
 			{/if}
+			<Button
+				color="alternative"
+				size="sm"
+				class="shrink-0 border border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800/80 dark:text-gray-400 dark:hover:bg-gray-800"
+				onclick={copyDataObject}
+			>
+				{dataObjectCopied ? 'Copied!' : 'Data object'}
+			</Button>
 		</div>
 	</div>
 </Modal>

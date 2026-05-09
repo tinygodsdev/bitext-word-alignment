@@ -20,6 +20,8 @@ import {
 	clampLineGapPx,
 	clampWordGapPx,
 	DEFAULT_LINE_GAP_PX,
+	DEFAULT_TOKEN_MERGE_CHAR,
+	DEFAULT_TOKEN_SPLIT_CHARS,
 	DEFAULT_WORD_GAP_PX,
 	defaultProjectSnapshotV2,
 	MAX_LINES,
@@ -311,12 +313,22 @@ class ProjectStore {
 	}
 
 	loadExample(kind: ExampleId = 'simple') {
-		const palette = settingsStore.settings.palette;
 		const example = findExample(kind);
+		// Reset tokenizer settings to defaults first so a previous example’s overrides
+		// (custom split / merge chars, punctuation tokenization) never leak across loads,
+		// then apply this example’s opt-in overrides.
+		settingsStore.patch({
+			tokenSplitChars: DEFAULT_TOKEN_SPLIT_CHARS,
+			tokenMergeChar: DEFAULT_TOKEN_MERGE_CHAR,
+			tokenSplitPunctuation: false,
+			tokenPunctuationChars: '',
+			...(example.settings ?? {})
+		});
+		const palette = settingsStore.settings.palette;
 		this.loadSnapshotV2({
 			lines: example.lines.map((l) => ({ ...l, font: { ...l.font } })),
-			pairControls: [],
-			linePairGaps: [],
+			pairControls: (example.pairControls ?? []).map((p) => ({ ...p })),
+			linePairGaps: (example.linePairGaps ?? []).map((g) => ({ ...g })),
 			connections: []
 		});
 		for (const [upper, lower] of example.connections) {

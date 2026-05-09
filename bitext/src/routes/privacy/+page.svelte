@@ -30,8 +30,10 @@
 <main
 	class="mx-auto w-full max-w-3xl min-w-0 px-4 pt-6 pb-16 leading-relaxed text-gray-700 sm:px-6 md:pt-10 dark:text-gray-300"
 >
-	<nav class="mb-6 text-sm">
+	<nav class="mb-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
 		<a href={resolve('/')} class={linkClass}>← Back to {SITE_NAME}</a>
+		<span class="text-gray-300 dark:text-gray-600" aria-hidden="true">·</span>
+		<a href={resolve('/about')} class={linkClass}>About</a>
 	</nav>
 
 	<h1

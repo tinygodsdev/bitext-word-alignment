@@ -180,7 +180,12 @@
 					> for linguistics and conlanging.
 				</p>
 			</div>
-			<div class="flex shrink-0 flex-wrap items-center justify-end gap-2">
+			<div class="flex shrink-0 flex-wrap items-center justify-end gap-3">
+				<a
+					href={resolve('/about')}
+					class="text-sm font-medium text-gray-600 underline decoration-gray-400/50 underline-offset-2 hover:text-gray-900 hover:decoration-gray-500/60 dark:text-gray-400 dark:decoration-gray-500/50 dark:hover:text-gray-100 dark:hover:decoration-gray-400/60"
+					>About</a
+				>
 				<div
 					class="inline-flex overflow-hidden rounded-none border border-gray-300 dark:border-gray-600"
 					role="group"
@@ -490,6 +495,12 @@
 		</p>
 		<p class="mt-2 text-gray-500 dark:text-gray-500">
 			© {year} Dani Polani ·
+			<a
+				href={resolve('/about')}
+				class="text-gray-600 underline decoration-gray-400/50 underline-offset-2 hover:text-gray-900 hover:decoration-gray-500/60 dark:text-gray-400 dark:decoration-gray-500/50 dark:hover:text-gray-200 dark:hover:decoration-gray-400/60"
+				>About</a
+			>
+			·
 			<a
 				href={resolve('/privacy')}
 				class="text-gray-600 underline decoration-gray-400/50 underline-offset-2 hover:text-gray-900 hover:decoration-gray-500/60 dark:text-gray-400 dark:decoration-gray-500/50 dark:hover:text-gray-200 dark:hover:decoration-gray-400/60"
