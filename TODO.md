@@ -18,7 +18,7 @@ Includes bugs and feature requests from the public.
 
 Feature requests - high priority:
 - [x] Add ability to add more than 2 lines 
-- [ ] Improve support for longer sentences - currently non-svg export is low resolution when font is small
+- [x] Improve support for longer sentences - currently non-svg export is low resolution when font is small
 - [x] add special separator to combine words into a single token - it will be connected with 1 line in the visualization but still be written with a space or spaces
 - [x] add ability to optionally tokenize punctuation as separate tokens
 - [x] add transcription line support (probably can be solved by adding more than 2 lines)
@@ -27,7 +27,7 @@ Usability improvements - high priority:
 - [x] Parameter card or other view should move to be next to the editor - currently on small screens you have to scroll back and forth between the editor and the parameters
 
 Bug fixes - high priority:
-- [ ] Reportedly ligatures in custom fonts are not working in the export (but fine in preview) - investigate and fix
+- [x] Reportedly ligatures in custom fonts are not working in the export (but fine in preview) — custom font `<text>` → paths now uses **harfbuzzjs** for shaping + `glyphToPath`, with **opentype.js** 1.3.4 only for metrics / fallback. Pin stays on `opentype.js@1.3.4` (avoid mistaken 1.3.5 & 2.x). Remaining edge cases: exotic scripts / SVG `text-anchor` with RTL may still differ slightly from browser.
 - [x] When color palette is depleted, it should cycle through the colors - currently uses the last color
 
 Advanced features - medium priority:

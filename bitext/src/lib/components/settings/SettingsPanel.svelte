@@ -40,7 +40,9 @@
 		tabStyle="underline"
 		bind:selected
 		class="min-w-0"
-		contentClass="mt-0 rounded-none bg-transparent p-0 pt-4 dark:bg-transparent"
+		classes={{
+			content: 'mt-0 rounded-none bg-transparent p-0 pt-4 dark:bg-transparent'
+		}}
 	>
 		<TabItem key="appearance" title="Style">
 			{#snippet titleSlot()}

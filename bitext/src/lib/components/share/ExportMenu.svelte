@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { Button, ButtonGroup } from 'flowbite-svelte';
+	import { Button, ButtonGroup, Label } from 'flowbite-svelte';
 	import { tick } from 'svelte';
+	import SettingsFieldHint from '$lib/components/settings/SettingsFieldHint.svelte';
 	import { buildStandaloneSvgString } from '$lib/export/svg.js';
 	import { svgStringToPngBlob, downloadBlob } from '$lib/export/png.js';
 	import { svgStringToPdfBlob } from '$lib/export/pdf.js';
@@ -17,6 +18,16 @@
 	import { SCHEMA_VERSION, type AppStateV2 } from '$lib/serialization/schema.js';
 	import { getShareUrl } from '$lib/share/url.js';
 	import { shareUrlToQrDataUrl } from '$lib/share/qr.js';
+
+	const RASTER_SCALE_OPTIONS = [2, 3, 4, 5, 6] as const;
+	const hintRasterScale =
+		'PNG and PDF are rasterized from the preview. Higher scale = sharper detail for small fonts or long sentences, but larger files and more memory use.\n\nSVG and HTML are vector exports and do not use this setting.';
+
+	let rasterExportScale = $state<(typeof RASTER_SCALE_OPTIONS)[number]>(2);
+
+	function isRasterScale(n: number): n is (typeof RASTER_SCALE_OPTIONS)[number] {
+		return (RASTER_SCALE_OPTIONS as readonly number[]).includes(n);
+	}
 
 	async function flushPreviewLayout() {
 		if (!browser) return;
@@ -97,14 +108,14 @@
 	async function downloadPng() {
 		await flushPreviewLayout();
 		const svg = await buildRasterSvg();
-		const blob = await svgStringToPngBlob(svg, 2);
+		const blob = await svgStringToPngBlob(svg, rasterExportScale);
 		downloadBlob('alignment.png', blob);
 	}
 
 	async function downloadPdf() {
 		await flushPreviewLayout();
 		const svg = await buildRasterSvg();
-		const blob = await svgStringToPdfBlob(svg);
+		const blob = await svgStringToPdfBlob(svg, rasterExportScale);
 		downloadBlob('alignment.pdf', blob);
 	}
 
@@ -144,6 +155,26 @@
 		}
 	}
 </script>
+
+<div class="mb-3 flex flex-wrap items-center gap-2">
+	<Label for="export-raster-scale" class="mb-0 text-sm text-gray-600 dark:text-gray-400">
+		PNG / PDF scale
+	</Label>
+	<select
+		id="export-raster-scale"
+		class="rounded-lg border border-gray-300 bg-gray-50 py-1.5 pl-2 pr-8 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
+		value={String(rasterExportScale)}
+		onchange={(e) => {
+			const n = Number((e.currentTarget as HTMLSelectElement).value);
+			if (isRasterScale(n)) rasterExportScale = n;
+		}}
+	>
+		{#each RASTER_SCALE_OPTIONS as s (s)}
+			<option value={String(s)}>{s}×</option>
+		{/each}
+	</select>
+	<SettingsFieldHint text={hintRasterScale} />
+</div>
 
 <ButtonGroup class="flex-wrap">
 	<Button color="light" size="sm" onclick={downloadPng}>PNG</Button>
