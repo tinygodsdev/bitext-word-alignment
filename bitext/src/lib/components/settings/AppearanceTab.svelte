@@ -7,8 +7,6 @@
 	const sel =
 		'block w-full rounded-none border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-500';
 
-	const fileInputClass =
-		'block w-full cursor-pointer rounded-none border border-gray-300 bg-gray-50 text-sm text-gray-900 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400';
 </script>
 
 <div class="grid grid-cols-12 gap-4">
@@ -52,12 +50,11 @@
 			value={s.background}
 			onchange={(e) =>
 				settingsStore.patch({
-					background: (e.currentTarget as HTMLSelectElement).value as 'light' | 'dark' | 'image'
+					background: (e.currentTarget as HTMLSelectElement).value as 'light' | 'dark'
 				})}
 		>
 			<option value="light">Light</option>
 			<option value="dark">Dark</option>
-			<option value="image">Image</option>
 		</select>
 	</div>
 	<div class="col-span-12 md:col-span-6">
@@ -75,26 +72,4 @@
 			<option value="curved">Curved</option>
 		</select>
 	</div>
-	{#if s.background === 'image'}
-		<div class="col-span-12">
-			<Label for="settings-bg-file" class="mb-2">Background image</Label>
-			<input
-				id="settings-bg-file"
-				type="file"
-				accept="image/*"
-				class={fileInputClass}
-				onchange={async (e) => {
-					const f = (e.currentTarget as HTMLInputElement).files?.[0];
-					if (!f) return;
-					const dataUrl = await new Promise<string>((res, rej) => {
-						const r = new FileReader();
-						r.onload = () => res(String(r.result));
-						r.onerror = () => rej(new Error('read'));
-						r.readAsDataURL(f);
-					});
-					settingsStore.patch({ backgroundImageDataUrl: dataUrl });
-				}}
-			/>
-		</div>
-	{/if}
 </div>

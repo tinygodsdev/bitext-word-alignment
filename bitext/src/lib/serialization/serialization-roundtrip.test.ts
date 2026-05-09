@@ -250,7 +250,7 @@ describe('compact v3 encode/decode (current share format)', () => {
 	it('enum coverage: lineStyle, background', () => {
 		const base = migrate({});
 		const lineStyles: LineStyle[] = ['straight', 'curved'];
-		const backgrounds: BackgroundMode[] = ['light', 'dark', 'image'];
+		const backgrounds: BackgroundMode[] = ['light', 'dark'];
 		for (const lineStyle of lineStyles) {
 			for (const background of backgrounds) {
 				const next: AppStateV2 = {

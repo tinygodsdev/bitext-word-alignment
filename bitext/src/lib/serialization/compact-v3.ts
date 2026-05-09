@@ -65,7 +65,7 @@ function settingsToCompact(rounded: VisualSettingsV2): CompactSettings3 | undefi
 	}
 	if (rounded.tokenPunctuationChars) o.px = rounded.tokenPunctuationChars;
 	if (rounded.background !== def.background) {
-		o.bg = rounded.background === 'light' ? 0 : rounded.background === 'dark' ? 1 : 2;
+		o.bg = rounded.background === 'dark' ? 1 : 0;
 	}
 	const keysBeforeFinalize = Object.keys(o).length;
 	if (keysBeforeFinalize > 0) {
@@ -90,7 +90,8 @@ function compactToVisualSettings(s: CompactSettings3 | undefined): VisualSetting
 	if (s.pp !== undefined) raw.tokenSplitPunctuation = Number(s.pp) === 1;
 	if (s.bg !== undefined) {
 		const n = Number(s.bg);
-		raw.background = n === 1 ? 'dark' : n === 2 ? 'image' : 'light';
+		/* Legacy 2 = image → light */
+		raw.background = n === 1 ? 'dark' : 'light';
 	}
 	return normalizeVisualSettingsV2(raw);
 }
@@ -295,7 +296,6 @@ function pruneConnections(
 
 export function toCompactJSON(state: AppStateV2): string {
 	const slimSettings = { ...state.settings };
-	delete slimSettings.backgroundImageDataUrl;
 	const rounded = roundVisualSettings(slimSettings);
 	const sCompact = settingsToCompact(rounded);
 	const pCompact = projectToCompact(state.project);

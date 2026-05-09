@@ -38,17 +38,9 @@
 <div
 	bind:this={rootEl}
 	class="preview-frame"
-	class:preview-frame--light={bg === 'light' || bg === 'image'}
+	class:preview-frame--light={bg === 'light'}
 	class:preview-frame--dark={bg === 'dark'}
-	style:background-image={bg === 'image' && settingsStore.settings.backgroundImageDataUrl
-		? `url(${settingsStore.settings.backgroundImageDataUrl})`
-		: undefined}
-	style:background-size="cover"
-	style:background-position="center"
 >
-	{#if bg === 'image' && settingsStore.settings.backgroundImageDataUrl}
-		<div class="preview-frame__image-overlay"></div>
-	{/if}
 	{#if selectionStore.showLinkHint()}
 		<p
 			class="preview-frame__link-hint pointer-events-none absolute left-3 top-3 z-30 max-w-[min(calc(100%-1.5rem),15rem)] px-2 py-1 text-xs leading-snug"

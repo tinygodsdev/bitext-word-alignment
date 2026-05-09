@@ -313,7 +313,7 @@
 	<ul class="mt-3 list-disc space-y-2 pl-6 text-gray-700 dark:text-gray-300">
 		<li>
 			<strong class="text-gray-900 dark:text-white">Style</strong> — light or dark UI, background of the
-			preview (including image background), whether connectors are curved or straight, how thick and faint
+			preview background (light or dark), whether connectors are curved or straight, how thick and faint
 			they are, default vertical space between lines, and optional per-pair spacing overrides. You can
 			also hide preview controls for a clean screenshot and open fullscreen from the preview toolbar.
 		</li>

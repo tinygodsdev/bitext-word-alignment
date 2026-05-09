@@ -24,7 +24,7 @@ Short notes for changes on branch **`v2`** relative to **`main`** (no dedicated 
 ### Changed
 
 - **Home & SEO** — copy aligned with current UX (multi-line, adjacent links, terminology); Aligner (Bitext Align) branding; `SeoIntro`, `SeoSections`, `JsonLd`, `metadata.ts`.
-- **Preview** — `AlignmentPreview`, token markup (`TokenView`, `TokenRow`), link layer (`AlignmentSvg`) with pairs and line order; line reorder and line actions; **in-preview controls follow preview light/dark (or image) background**, not only the page theme.
+- **Preview** — `AlignmentPreview`, token markup (`TokenView`, `TokenRow`), link layer (`AlignmentSvg`) with pairs and line order; line reorder and line actions; **in-preview controls follow preview light/dark background**, not only the page theme.
 - **SVG export** — respects `pairControls`, background, line weight/opacity, optional embedded fonts, etc. (`svg.ts`, `ExportMenu`).
 - **Settings** — Style / Colors / Tokens / Fonts tabs; icons (gear for editor tokenization settings, split-cells for Tokens); **Flowbite `Tabs`**: `classes.content` instead of deprecated `contentClass`.
 - **Link palette** — when colors run out, the palette **cycles** (`palettes`).
@@ -38,6 +38,7 @@ Short notes for changes on branch **`v2`** relative to **`main`** (no dedicated 
 ### Removed / replaced
 
 - Older narrow editor/preview pieces for a single-sentence model (`GlossInputRow`, `SentenceField`, `GlossRow`) — replaced by **multi-line cards** and token rows in preview.
+- **Preview background image** — removed from Style settings (legacy shares / compact `bg:2` decode as light).
 
 ### Dependencies (`bitext`)
 

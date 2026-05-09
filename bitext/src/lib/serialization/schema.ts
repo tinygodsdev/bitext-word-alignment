@@ -16,7 +16,13 @@ export const MAX_LINES = 8;
 export const NEW_LINE_HINT_TEXT = 'Type your text here';
 
 export type LineStyle = 'straight' | 'curved';
-export type BackgroundMode = 'light' | 'dark' | 'image';
+export type BackgroundMode = 'light' | 'dark';
+
+/** Map legacy / invalid values to the preview background enum (image mode removed). */
+export function normalizePreviewBackground(mode: unknown): BackgroundMode {
+	if (mode === 'dark') return 'dark';
+	return 'light';
+}
 /** How link colors apply to tokens when “match token color to links” is on. */
 export type TokenLinkColorMode = 'text' | 'background';
 export type UiTheme = 'light' | 'dark';
@@ -150,7 +156,6 @@ export interface VisualSettingsV2 {
 	/** Hide preview chrome (line controls, gap sliders, toolbar) and show export-style attribution in-frame. */
 	previewHideChrome: boolean;
 	background: BackgroundMode;
-	backgroundImageDataUrl?: string;
 }
 
 export interface AppStateV2 {
@@ -186,7 +191,6 @@ export interface VisualSettingsV1 {
 	colorTokensByLink: boolean;
 	tokenSplitChars: string;
 	background: BackgroundMode;
-	backgroundImageDataUrl?: string;
 }
 
 /** @deprecated v1 */
@@ -302,8 +306,7 @@ export function visualSettingsV1ToV2(v1: VisualSettingsV1): VisualSettingsV2 {
 		tokenSplitPunctuation: false,
 		tokenPunctuationChars: '',
 		previewHideChrome: false,
-		background: v1.background,
-		backgroundImageDataUrl: v1.backgroundImageDataUrl
+		background: normalizePreviewBackground(v1.background)
 	};
 }
 
@@ -539,7 +542,7 @@ export function normalizeVisualSettings(
 		)
 	);
 
-	return {
+	const out = {
 		...d,
 		...rawRest,
 		sourceTextSizePx,
@@ -590,8 +593,11 @@ export function normalizeVisualSettings(
 		glossLineGapPx:
 			typeof rawRest.glossLineGapPx === 'number'
 				? Math.max(0, Math.min(80, rawRest.glossLineGapPx))
-				: d.glossLineGapPx
+				: d.glossLineGapPx,
+		background: normalizePreviewBackground(rawRest.background ?? d.background)
 	} as VisualSettingsV1;
+	delete (out as unknown as Record<string, unknown>).backgroundImageDataUrl;
+	return out;
 }
 
 export function appStateV2FromV1(state: AppStateV1): AppStateV2 {
@@ -769,13 +775,6 @@ export function normalizeVisualSettingsV2(
 		tokenSplitChars: splitNorm,
 		previewHideChrome:
 			typeof raw.previewHideChrome === 'boolean' ? raw.previewHideChrome : d.previewHideChrome,
-		background:
-			raw.background === 'light' || raw.background === 'dark' || raw.background === 'image'
-				? raw.background
-				: d.background,
-		backgroundImageDataUrl:
-			typeof raw.backgroundImageDataUrl === 'string'
-				? raw.backgroundImageDataUrl
-				: d.backgroundImageDataUrl
+		background: normalizePreviewBackground(raw.background ?? d.background)
 	};
 }

@@ -234,7 +234,7 @@ function settingsToCompact(rounded: VisualSettingsV1): CompactSettings | undefin
 	if (rounded.tokenSplitChars !== def.tokenSplitChars) o.sp = rounded.tokenSplitChars;
 
 	if (rounded.background !== def.background) {
-		o.bg = rounded.background === 'light' ? 0 : rounded.background === 'dark' ? 1 : 2;
+		o.bg = rounded.background === 'dark' ? 1 : 0;
 	}
 
 	return Object.keys(o).length ? sortKeys(o) : undefined;
@@ -270,7 +270,8 @@ function compactToVisualSettings(s: CompactSettings | undefined): VisualSettings
 	if (s.sp !== undefined) raw.tokenSplitChars = String(s.sp);
 	if (s.bg !== undefined) {
 		const n = Number(s.bg);
-		raw.background = n === 1 ? 'dark' : n === 2 ? 'image' : 'light';
+		/* Legacy 2 = image → light */
+		raw.background = n === 1 ? 'dark' : 'light';
 	}
 	return normalizeVisualSettings(raw);
 }
@@ -355,7 +356,6 @@ function compactToProject(
 
 export function toCompactJSON(state: AppStateV1): string {
 	const slimSettings = { ...state.settings };
-	delete slimSettings.backgroundImageDataUrl;
 
 	const rounded = roundVisualSettings(slimSettings);
 	const sCompact = settingsToCompact(rounded);

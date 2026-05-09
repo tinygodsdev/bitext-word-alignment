@@ -101,20 +101,6 @@ html {
 	border-color: rgb(55 65 81);
 }
 
-.preview-frame__image-overlay {
-	position: absolute;
-	inset: 0;
-	backdrop-filter: blur(1px);
-}
-
-.preview-frame--light .preview-frame__image-overlay {
-	background: color-mix(in srgb, #ffffff 82%, transparent);
-}
-
-.preview-frame--dark .preview-frame__image-overlay {
-	background: color-mix(in srgb, #1e1e1e 82%, transparent);
-}
-
 /* Floating link hint — no panel chrome; halo keeps text readable on busy previews */
 .preview-frame__link-hint {
 	margin: 0;
