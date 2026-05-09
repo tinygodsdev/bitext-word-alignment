@@ -38,23 +38,45 @@
 				/>
 			</svg>
 			<span id="line-editor-heading" class="font-heading text-lg font-semibold leading-snug">
-				Line editor
+				<span class="md:hidden" aria-hidden="true">Lines</span>
+				<span class="sr-only md:hidden">Line editor</span>
+				<span class="hidden md:inline">Line editor</span>
 			</span>
 		</button>
 		<div
 			class="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-x-2 gap-y-1 sm:flex-nowrap sm:justify-end"
 		>
 			<p
-				class="m-0 max-w-full text-right text-sm leading-snug text-gray-600 dark:text-gray-400 [&>span]:mr-1 [&>span]:inline [&>span]:last:mr-0"
+				class="m-0 max-w-full text-right text-sm leading-snug text-gray-600 dark:text-gray-400 [&>span]:mr-1 [&>span]:last:mr-0"
 			>
-				<span>Whitespace splits words.</span>
-				<span>Extra split: <code class={chipClass}>{tok.extraSplitChars}</code>.</span>
-				<span>Join: <code class={chipClass}>{tok.joinChars}</code>.</span>
 				<span
-					>Punctuation: <code class="{chipClass} max-w-[min(100vw-4rem,24rem)] break-all"
-						>{tok.punctuationChip}</code
-					>.</span
+					class="inline md:hidden [&>span]:mr-1 [&>span]:inline [&>span]:last:mr-0"
 				>
+					<span class="sr-only">Whitespace splits words.</span>
+					<span
+						>Split: <code class="{chipClass} max-w-[min(100vw-4rem,24rem)] break-all"
+							>{tok.extraSplitChars}</code
+						></span
+					>
+					<span>Join: <code class={chipClass}>{tok.joinChars}</code></span>
+					<span
+						>Punct: <code class="{chipClass} max-w-[min(100vw-4rem,24rem)] break-all"
+							>{tok.punctuationChip}</code
+						></span
+					>
+				</span>
+				<span
+					class="hidden md:inline [&>span]:mr-1 [&>span]:inline [&>span]:last:mr-0"
+				>
+					<span>Whitespace splits words.</span>
+					<span>Extra split: <code class={chipClass}>{tok.extraSplitChars}</code>.</span>
+					<span>Join: <code class={chipClass}>{tok.joinChars}</code>.</span>
+					<span
+						>Punctuation: <code class="{chipClass} max-w-[min(100vw-4rem,24rem)] break-all"
+							>{tok.punctuationChip}</code
+						>.</span
+					>
+				</span>
 			</p>
 			<button
 				type="button"

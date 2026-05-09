@@ -96,15 +96,35 @@
 		<p
 			class="flex flex-wrap items-start gap-x-2 gap-y-1 text-sm leading-snug text-gray-600 dark:text-gray-400"
 		>
-			<span class="min-w-0 flex-1 [&>span]:mr-1 [&>span]:inline [&>span]:last:mr-0">
-				<span>Whitespace splits words.</span>
-				<span>Extra split characters: <code class={chipClass}>{tok.extraSplitChars}</code>.</span>
-				<span>Join characters: <code class={chipClass}>{tok.joinChars}</code>.</span>
+			<span class="min-w-0 flex-1 [&>span]:mr-1 [&>span]:last:mr-0">
 				<span
-					>Tokenize punctuation: <code class="{chipClass} max-w-[min(100%,24rem)] break-all"
-						>{tok.punctuationChip}</code
-					>.</span
+					class="inline md:hidden [&>span]:mr-1 [&>span]:inline [&>span]:last:mr-0"
 				>
+					<span class="sr-only">Whitespace splits words.</span>
+					<span
+						>Split: <code class="{chipClass} max-w-[min(100%,24rem)] break-all"
+							>{tok.extraSplitChars}</code
+						>.</span
+					>
+					<span>Join: <code class={chipClass}>{tok.joinChars}</code>.</span>
+					<span
+						>Punct: <code class="{chipClass} max-w-[min(100%,24rem)] break-all"
+							>{tok.punctuationChip}</code
+						>.</span
+					>
+				</span>
+				<span
+					class="hidden md:inline [&>span]:mr-1 [&>span]:inline [&>span]:last:mr-0"
+				>
+					<span>Whitespace splits words.</span>
+					<span>Extra split characters: <code class={chipClass}>{tok.extraSplitChars}</code>.</span>
+					<span>Join characters: <code class={chipClass}>{tok.joinChars}</code>.</span>
+					<span
+						>Tokenize punctuation: <code class="{chipClass} max-w-[min(100%,24rem)] break-all"
+							>{tok.punctuationChip}</code
+						>.</span
+					>
+				</span>
 				<span>Preview below.</span>
 			</span>
 			<button
@@ -144,7 +164,7 @@
 							rtl: (e.currentTarget as HTMLInputElement).checked
 						})}
 				/>
-				<span>Right-to-left row (Hebrew, Arabic, …)</span>
+				<span>Right-to-left row</span>
 			</Label>
 		</div>
 		<div

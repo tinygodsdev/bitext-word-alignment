@@ -66,7 +66,7 @@
 				</button>
 			</div>
 			<div class="max-h-[calc(85vh-2rem)] overflow-y-auto px-3 pb-4 pt-1">
-				<LineSettingsForm variant="sheet" {line} {index} total={projectStore.lines.length} />
+				<LineSettingsForm {line} {index} total={projectStore.lines.length} />
 			</div>
 		</div>
 	</Drawer>

@@ -12,6 +12,14 @@
 	import SeoSections from '$lib/components/seo/SeoSections.svelte';
 	import JsonLd from '$lib/components/seo/JsonLd.svelte';
 	import { Button } from 'flowbite-svelte';
+	import {
+		CloseOutline,
+		ExpandOutline,
+		EyeOutline,
+		EyeSlashOutline,
+		FolderOpenOutline,
+		TrashBinOutline
+	} from 'flowbite-svelte-icons';
 	import { resolve } from '$app/paths';
 	import { encodeState } from '$lib/serialization/encode.js';
 	import { SCHEMA_VERSION, type AppStateV2 } from '$lib/serialization/schema.js';
@@ -119,7 +127,7 @@
 	const themeIconIdle = `${themeIconBtn} bg-transparent text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800`;
 
 	const exampleDropdownBtn =
-		'inline-flex list-none cursor-pointer items-center gap-1 rounded-none border border-gray-300 bg-white px-2.5 py-1 text-sm font-medium text-gray-800 shadow-sm marker:hidden outline-none hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-primary-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700/80 dark:focus-visible:ring-primary-500 [&::-webkit-details-marker]:hidden';
+		'inline-flex list-none cursor-pointer items-center gap-1 rounded-none border border-gray-300 bg-white px-2 py-1 text-sm font-medium text-gray-800 shadow-sm marker:hidden outline-none hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-primary-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700/80 dark:focus-visible:ring-primary-500 [&::-webkit-details-marker]:hidden md:px-2.5';
 
 	const exampleDropdownItem =
 		'block w-full border-0 bg-transparent px-3 py-2 text-left text-sm text-gray-800 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-700/80';
@@ -148,7 +156,9 @@
 
 <JsonLd />
 
-<main class="w-full min-w-0 px-4 pt-4 pb-8 sm:px-6 md:pt-6 md:pb-12 lg:px-10">
+<main
+	class="w-full min-w-0 overflow-x-hidden px-4 pt-4 pb-8 sm:px-6 md:pt-6 md:pb-12 lg:px-10"
+>
 	<header class="mb-8 border-b border-gray-200 pb-8 dark:border-gray-700">
 		<div class="flex flex-wrap items-start justify-between gap-x-8 gap-y-4">
 			<div class="min-w-0 max-w-3xl flex-1 text-left">
@@ -261,8 +271,9 @@
 							Preview
 						</h2>
 						<details bind:this={loadExampleDetailsEl} class="group relative shrink-0">
-							<summary class={exampleDropdownBtn}>
-								Load example
+							<summary class={exampleDropdownBtn} title="Load example">
+								<FolderOpenOutline class="h-4 w-4 shrink-0 md:hidden" aria-hidden="true" />
+								<span class="sr-only md:not-sr-only md:inline">Load example</span>
 								<svg
 									class="h-4 w-4 shrink-0 text-gray-500 transition-transform group-open:rotate-180 dark:text-gray-400"
 									viewBox="0 0 20 20"
@@ -298,7 +309,7 @@
 						<Button
 							color="light"
 							size="sm"
-							class="shrink-0"
+							class="shrink-0 px-2! md:px-4!"
 							title="Only affects controls inside the preview frame (add line, reorder, line settings, gap sliders). Attribution appears at the bottom when hidden. Layout stays the same."
 							aria-pressed={previewHideChrome}
 							onclick={() => {
@@ -306,36 +317,56 @@
 								layoutExportStore.requestRemeasureAfterLayout();
 							}}
 						>
-							{previewHideChrome ? 'Show controls' : 'Hide controls'}
+							{#if previewHideChrome}
+								<EyeOutline class="h-4 w-4 shrink-0 md:hidden" aria-hidden="true" />
+							{:else}
+								<EyeSlashOutline class="h-4 w-4 shrink-0 md:hidden" aria-hidden="true" />
+							{/if}
+							<span class="sr-only md:not-sr-only md:inline">
+								{previewHideChrome ? 'Show controls' : 'Hide controls'}
+							</span>
 						</Button>
 						<div class="flex flex-wrap items-center gap-2">
 							<Button
 								color="light"
 								size="sm"
-								class="shrink-0"
+								class="shrink-0 px-2! md:px-4!"
+								title="Expand preview to fullscreen"
 								onclick={() => {
 									previewExpand = true;
 									queueMicrotask(() => layoutExportStore.requestRemeasure());
 								}}
 							>
-								Expand
+								<ExpandOutline class="h-4 w-4 shrink-0 md:hidden" aria-hidden="true" />
+								<span class="sr-only md:not-sr-only md:inline">Expand</span>
 							</Button>
 							<Button
 								color="light"
 								size="sm"
-								class="shrink-0"
+								class="shrink-0 px-2! md:px-4!"
+								title="Remove every word link in the project"
 								disabled={projectStore.connections.length === 0}
 								onclick={() => {
 									projectStore.clearAllConnections();
 									selectionStore.clear();
 								}}
 							>
-								Clear all links
+								<TrashBinOutline class="h-4 w-4 shrink-0 md:hidden" aria-hidden="true" />
+								<span class="sr-only md:not-sr-only md:inline">Clear all links</span>
 							</Button>
 						</div>
 					</div>
 				</div>
-				<AlignmentPreview instancePrefix="preview-inline" writesExportLayout={!previewExpand} />
+				<p
+					class="mb-2 text-sm leading-snug text-gray-600 lg:hidden dark:text-gray-400"
+					role="note"
+				>
+					Narrow screen: try landscape orientation or reduce line size in line settings—layouts stay
+					readable with a bit more horizontal space.
+				</p>
+				<div class="-mx-4 sm:-mx-6 lg:mx-0">
+					<AlignmentPreview instancePrefix="preview-inline" writesExportLayout={!previewExpand} />
+				</div>
 				{#if previewExpand}
 					<div
 						class="fixed inset-0 z-40"
@@ -355,7 +386,7 @@
 							>
 								<button
 									type="button"
-									class="{fullscreenPreviewToolbarBtn} border-gray-300 bg-white text-gray-900 hover:bg-gray-100 dark:border-gray-500 dark:bg-gray-200 dark:text-gray-900 dark:hover:bg-gray-300"
+									class="{fullscreenPreviewToolbarBtn} px-2! md:px-3! border-gray-300 bg-white text-gray-900 hover:bg-gray-100 dark:border-gray-500 dark:bg-gray-200 dark:text-gray-900 dark:hover:bg-gray-300"
 									title="Only affects controls inside the preview frame (add line, reorder, line settings, gap sliders). Attribution appears at the bottom when hidden. Layout stays the same."
 									aria-pressed={previewHideChrome}
 									onclick={() => {
@@ -363,14 +394,23 @@
 										layoutExportStore.requestRemeasureAfterLayout();
 									}}
 								>
-									{previewHideChrome ? 'Show controls' : 'Hide controls'}
+									{#if previewHideChrome}
+										<EyeOutline class="h-4 w-4 shrink-0 md:hidden" aria-hidden="true" />
+									{:else}
+										<EyeSlashOutline class="h-4 w-4 shrink-0 md:hidden" aria-hidden="true" />
+									{/if}
+									<span class="sr-only md:not-sr-only md:inline">
+										{previewHideChrome ? 'Show controls' : 'Hide controls'}
+									</span>
 								</button>
 								<button
 									type="button"
-									class="{fullscreenPreviewToolbarBtn} border-gray-600 bg-gray-900/90 text-white hover:bg-gray-800 dark:bg-gray-950/90"
+									class="{fullscreenPreviewToolbarBtn} px-2! md:px-3! border-gray-600 bg-gray-900/90 text-white hover:bg-gray-800 dark:bg-gray-950/90"
+									title="Close fullscreen preview"
 									onclick={closeFullscreenPreview}
 								>
-									Close
+									<CloseOutline class="h-4 w-4 shrink-0 md:hidden" aria-hidden="true" />
+									<span class="sr-only md:not-sr-only md:inline">Close</span>
 								</button>
 							</div>
 							<div

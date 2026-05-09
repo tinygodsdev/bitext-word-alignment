@@ -13,24 +13,11 @@
 	import { listStoredCustomFontNames, saveCustomFontBlob } from '$lib/fonts/custom-fonts.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
 
-	let {
-		line,
-		index,
-		total,
-		variant = 'popover'
-	}: {
-		line: LineV2;
-		index: number;
-		total: number;
-		/** `sheet`: wider multi-column grids until very small widths (bottom drawer). */
-		variant?: 'popover' | 'sheet';
-	} = $props();
+	let { line, index, total }: { line: LineV2; index: number; total: number } = $props();
 
-	const fieldsGridClass = $derived(
-		variant === 'sheet'
-			? 'mb-3 grid grid-cols-2 gap-3 max-[419px]:grid-cols-1'
-			: 'mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2'
-	);
+	/** Below `sm`: stacked; `sm`–`lg`: one row of four; `lg+`: 2×2 (popover / wide). */
+	const controlsGridClass =
+		'mb-3 grid grid-cols-1 gap-3 sm:grid-cols-4 lg:grid-cols-2';
 
 	const sel =
 		'block w-full max-w-full rounded-none border border-gray-300 bg-gray-50 px-2 py-2 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-500';
@@ -121,7 +108,7 @@
 		</button>
 	</div>
 
-	<div class={fieldsGridClass}>
+	<div class={controlsGridClass}>
 		<div class="min-w-0">
 			<Label class="mb-1 block text-xs text-gray-600 dark:text-gray-400">Font source</Label>
 			<select
@@ -188,20 +175,6 @@
 				</select>
 			</div>
 		{/if}
-	</div>
-
-	{#if line.font.source === 'custom'}
-		<div class="mb-3">
-			<input
-				type="file"
-				accept=".woff2,.ttf,.otf,.woff"
-				class={fileClass}
-				onchange={onCustomUpload}
-			/>
-		</div>
-	{/if}
-
-	<div class={fieldsGridClass}>
 		<div class="min-w-0 max-w-full">
 			<Label class="mb-1">Size ({line.textSizePx}px)</Label>
 			<Range
@@ -238,31 +211,43 @@
 		</div>
 	</div>
 
-	<div class="border-t border-gray-100 pt-3 dark:border-gray-700" role="group">
+	{#if line.font.source === 'custom'}
+		<div class="mb-3">
+			<input
+				type="file"
+				accept=".woff2,.ttf,.otf,.woff"
+				class={fileClass}
+				onchange={onCustomUpload}
+			/>
+		</div>
+	{/if}
+
+	<div
+		class="flex flex-col gap-3 border-t border-gray-100 pt-3 dark:border-gray-700 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-8 sm:gap-y-2"
+		role="group"
+		aria-label="Line display options"
+	>
 		<Label
-			class="inline-flex cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-gray-300"
+			class="inline-flex min-w-0 cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-gray-300"
 		>
 			<input
 				type="checkbox"
-				class="peer h-4 w-4 rounded border-gray-300 bg-gray-100 text-primary-600 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:focus:ring-primary-600"
+				class="peer h-4 w-4 shrink-0 rounded border-gray-300 bg-gray-100 text-primary-600 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:focus:ring-primary-600"
 				checked={Boolean(line.rtl)}
 				onchange={(e) =>
 					projectStore.updateLineStyle(line.id, {
 						rtl: (e.currentTarget as HTMLInputElement).checked
 					})}
 			/>
-			<span>Right-to-left row (Hebrew, Arabic, …)</span>
+			<span>Right-to-left row</span>
 		</Label>
-	</div>
-
-	{#if nextLine}
-		<div class="border-t border-gray-100 pt-3 dark:border-gray-700" role="group">
+		{#if nextLine}
 			<Label
-				class="inline-flex cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-gray-300"
+				class="inline-flex min-w-0 cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-gray-300"
 			>
 				<input
 					type="checkbox"
-					class="peer h-4 w-4 rounded border-gray-300 bg-gray-100 text-primary-600 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:focus:ring-primary-600"
+					class="peer h-4 w-4 shrink-0 rounded border-gray-300 bg-gray-100 text-primary-600 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:focus:ring-primary-600"
 					checked={projectStore.pairShowsConnectors(line.id, nextLine.id)}
 					onchange={(e) =>
 						projectStore.setPairShowConnectors(
@@ -273,6 +258,6 @@
 				/>
 				<span>Show connectors with line below</span>
 			</Label>
-		</div>
-	{/if}
+		{/if}
+	</div>
 </div>
