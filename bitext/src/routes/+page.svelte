@@ -8,6 +8,8 @@
 	import SettingsPanel from '$lib/components/settings/SettingsPanel.svelte';
 	import ExportCard from '$lib/components/settings/ExportCard.svelte';
 	import ShareQuickRow from '$lib/components/share/ShareQuickRow.svelte';
+	import PartnerBannerPreply from '$lib/components/partners/PartnerBannerPreply.svelte';
+	import PartnerBannerRailway from '$lib/components/partners/PartnerBannerRailway.svelte';
 	import SeoIntro from '$lib/components/seo/SeoIntro.svelte';
 	import SeoSections from '$lib/components/seo/SeoSections.svelte';
 	import JsonLd from '$lib/components/seo/JsonLd.svelte';
@@ -160,37 +162,13 @@
 	class="w-full min-w-0 overflow-x-hidden px-4 pt-4 pb-8 sm:px-6 md:pt-6 md:pb-12 lg:px-10"
 >
 	<header class="mb-8 border-b border-gray-200 pb-8 dark:border-gray-700">
-		<div class="flex flex-wrap items-start justify-between gap-x-8 gap-y-4">
-			<div class="min-w-0 max-w-3xl flex-1 text-left">
-				<h1
-					class="font-heading text-2xl font-semibold leading-tight tracking-tight text-gray-900 sm:text-3xl dark:text-white"
-				>
-					Word-by-word translation visualizer
-				</h1>
-				<p
-					class="mt-4 max-w-prose text-base leading-relaxed text-gray-600 dark:text-gray-400 lg:text-[1.05rem]"
-				>
-					See exactly which word matches which across stacked lines. Add rows for glosses or IPA if you
-					need them, click a word then its match on the line above or below, and export or share the
-					diagram—great for lessons, posts, or conlang notes.
-				</p>
-				<p class="mt-4 max-w-prose text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-					Created by
-					<a
-						href={authorSite}
-						class="font-medium text-primary-700 underline decoration-primary-700/40 underline-offset-2 hover:text-primary-800 hover:decoration-primary-800 dark:text-primary-400 dark:decoration-primary-400/50 dark:hover:text-primary-300"
-						target="_blank"
-						rel="noopener noreferrer">Dani</a
-					>. See other
-					<a
-						href={toolsPage}
-						class="font-medium text-primary-700 underline decoration-primary-700/40 underline-offset-2 hover:text-primary-800 hover:decoration-primary-800 dark:text-primary-400 dark:decoration-primary-400/50 dark:hover:text-primary-300"
-						target="_blank"
-						rel="noopener noreferrer">tools</a
-					> for linguistics and conlanging.
-				</p>
-			</div>
-			<div class="flex shrink-0 flex-wrap items-center justify-end gap-3">
+		<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+			<h1
+				class="font-heading min-w-0 text-left text-2xl font-semibold leading-tight tracking-tight text-gray-900 sm:flex-1 sm:pr-4 sm:text-3xl dark:text-white"
+			>
+				Word-by-word translation visualizer
+			</h1>
+			<div class="flex shrink-0 flex-wrap items-center gap-3 sm:justify-end">
 				<a
 					href={resolve('/about')}
 					class="text-sm font-medium text-gray-600 underline decoration-gray-400/50 underline-offset-2 hover:text-gray-900 hover:decoration-gray-500/60 dark:text-gray-400 dark:decoration-gray-500/50 dark:hover:text-gray-100 dark:hover:decoration-gray-400/60"
@@ -252,6 +230,37 @@
 						</svg>
 					</button>
 				</div>
+			</div>
+		</div>
+		<div
+			class="mt-6 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between lg:gap-8 xl:gap-10"
+		>
+			<div class="min-w-0 max-w-3xl flex-1 text-left">
+				<p
+					class="mt-0 max-w-prose text-base leading-relaxed text-gray-600 dark:text-gray-400 lg:text-[1.05rem]"
+				>
+					See exactly which word matches which across stacked lines. Add rows for glosses or IPA if you
+					need them, click a word then its match on the line above or below, and export or share the
+					diagram—great for lessons, posts, or conlang notes.
+				</p>
+				<p class="mt-4 max-w-prose text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+					Created by
+					<a
+						href={authorSite}
+						class="font-medium text-primary-700 underline decoration-primary-700/40 underline-offset-2 hover:text-primary-800 hover:decoration-primary-800 dark:text-primary-400 dark:decoration-primary-400/50 dark:hover:text-primary-300"
+						target="_blank"
+						rel="noopener noreferrer">Dani</a
+					>. See other
+					<a
+						href={toolsPage}
+						class="font-medium text-primary-700 underline decoration-primary-700/40 underline-offset-2 hover:text-primary-800 hover:decoration-primary-800 dark:text-primary-400 dark:decoration-primary-400/50 dark:hover:text-primary-300"
+						target="_blank"
+						rel="noopener noreferrer">tools</a
+					> for linguistics and conlanging.
+				</p>
+			</div>
+			<div class="w-full min-w-0 lg:w-auto lg:flex-1">
+				<PartnerBannerPreply />
 			</div>
 		</div>
 	</header>
@@ -489,6 +498,9 @@
 			</div>
 			<div class="mt-6">
 				<ShareQuickRow />
+			</div>
+			<div class="mt-6 min-w-0">
+				<PartnerBannerRailway />
 			</div>
 			<p class="mt-2 text-center">
 				<!-- Looks like a text link; <button> avoids SvelteKit href + eslint; Tally uses data-tally-*. -->
