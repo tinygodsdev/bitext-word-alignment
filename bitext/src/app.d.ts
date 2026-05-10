@@ -10,4 +10,11 @@ declare global {
 	}
 }
 
+/** Some verification snippets use `value` instead of `content` on `<meta>`. */
+declare module 'svelte/elements' {
+	export interface HTMLMetaAttributes {
+		value?: string | undefined | null;
+	}
+}
+
 export {};

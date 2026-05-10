@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
+	import { SITE_CONTACT_EMAIL } from '$lib/brand.js';
 	import { SITE_NAME } from '$lib/seo/metadata.js';
 
 	const TITLE = 'Privacy policy';
@@ -9,7 +10,7 @@
 
 	const canonical = $derived(page.url.origin + page.url.pathname);
 	/** Last meaningful content review of this policy. Bump when wording changes. */
-	const LAST_UPDATED = '2026-05-09';
+	const LAST_UPDATED = '2026-05-10';
 
 	const headingClass = 'font-heading mt-8 text-xl font-semibold text-gray-900 dark:text-white';
 	const linkClass =
@@ -47,8 +48,9 @@
 
 	<p class="mt-6">
 		<a href={resolve('/')} class={linkClass}>{SITE_NAME}</a> ("the tool", "we") is a free, browser-based
-		visualizer for word-by-word translations. We don't run user accounts, we don't ask for an email, and
-		the sentences you align never leave your browser unless you choose to share or export them. This page
+		visualizer for word-by-word translations. We don't run user accounts, you don't need to provide an
+		email address to use the tool, and the sentences you align never leave your browser unless you choose
+		to share or export them. This page
 		summarizes what data is involved when you use the tool.
 	</p>
 
@@ -172,12 +174,15 @@
 
 	<h2 class={headingClass}>Contact</h2>
 	<p class="mt-3">
-		Questions or requests about this policy can be sent through the
+		Questions or requests about this policy:
+		<a class={linkClass} href={`mailto:${SITE_CONTACT_EMAIL}`}>{SITE_CONTACT_EMAIL}</a>
+		<span class="text-gray-400 dark:text-gray-600"> · </span>
+		the
 		<a
 			class={linkClass}
 			href="https://danipolani.github.io/en/"
 			target="_blank"
 			rel="noopener noreferrer">author's site</a
-		> or via the in-app "Send feedback" form.
+		>, or the in-app "Send feedback" form (Tally).
 	</p>
 </main>

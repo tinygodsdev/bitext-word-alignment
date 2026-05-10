@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import { TALLY_FORM_ID } from '$lib/brand.js';
+	import { SITE_CONTACT_EMAIL, TALLY_FORM_ID } from '$lib/brand.js';
+	import PartnerBannerPreply from '$lib/components/partners/PartnerBannerPreply.svelte';
+	import PartnerBannerRailway from '$lib/components/partners/PartnerBannerRailway.svelte';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 
 	const TITLE = 'About';
@@ -244,6 +246,8 @@
 			<li><a href="#doc-settings" class={tocLinkClass}>Settings</a></li>
 			<li><a href="#doc-export-share" class={tocLinkClass}>Export and share</a></li>
 			<li><a href="#doc-examples" class={tocLinkClass}>Examples and motion demos</a></li>
+			<li><a href="#doc-partners" class={tocLinkClass}>Partner links</a></li>
+			<li><a href="#doc-contact" class={tocLinkClass}>Contact</a></li>
 			<li><a href="#doc-privacy" class={tocLinkClass}>Privacy</a></li>
 		</ul>
 	</nav>
@@ -424,6 +428,34 @@
 			</figcaption>
 		</figure>
 	</div>
+
+	<h2 id="doc-partners" class={headingClass}>Partner links</h2>
+	<p class="mt-3">
+		{DISPLAY_NAME} stays free and without aggressive ads. Hosting and ongoing upkeep still have a cost, so
+		we add a few optional partner links - use them if you were already considering the service. It will help us keep the site running. The
+		referral bonuses come from the provider. Here I recommend the services that I happily use myself. 
+	</p>
+	<div class="mt-5 flex min-w-0 flex-col gap-4">
+		<PartnerBannerPreply />
+		<PartnerBannerRailway />
+	</div>
+
+	<h2 id="doc-contact" class={headingClass}>Contact</h2>
+	<p class="mt-3">
+		Questions or feedback about {DISPLAY_NAME}:{' '}
+		<a href={`mailto:${SITE_CONTACT_EMAIL}`} class={linkClass}>{SITE_CONTACT_EMAIL}</a>
+		<span class="text-gray-400 dark:text-gray-600"> · </span>
+		<button
+			type="button"
+			class={feedbackBtnClass}
+			data-tally-open={TALLY_FORM_ID}
+			data-tally-auto-close="0"
+			data-tally-hide-title="1"
+			data-tally-form-events-forwarding="1"
+		>
+			Feedback form (Tally)
+		</button>
+	</p>
 
 	<h2 id="doc-privacy" class={headingClass}>Privacy</h2>
 	<p class="mt-3">
