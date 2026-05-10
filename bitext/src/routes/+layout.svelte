@@ -37,6 +37,7 @@
 </script>
 
 <svelte:head>
+	<meta name="impact-site-verification" content="a52264b4-df2c-48b2-90cb-a4c5e81c208b" />
 	<link rel="icon" href="/favicon.ico" sizes="any" />
 	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
 	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
