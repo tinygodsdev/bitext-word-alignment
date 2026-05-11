@@ -7,6 +7,8 @@
 		href,
 		ctaLabel,
 		toneClass,
+		partner,
+		product,
 		children
 	}: {
 		title: string;
@@ -14,6 +16,10 @@
 		ctaLabel: string;
 		/** Left accent bar + pale tinted surface (light/dark), e.g. border-l-[#hex] bg-[#hex]/10 */
 		toneClass: string;
+		/** GA4 `affiliate_click` — stable slug, e.g. preply */
+		partner: string;
+		/** GA4 `affiliate_click` — offer/category slug, e.g. language_tutors */
+		product: string;
 		children: Snippet;
 	} = $props();
 
@@ -54,8 +60,10 @@
 			{@render children()}
 		</div>
 		<a
-			class="{linkClass} mt-1 max-sm:mt-2 sm:col-start-2 sm:row-start-1 sm:mt-0 sm:justify-self-end sm:text-right"
+			class="affiliate-link {linkClass} mt-1 max-sm:mt-2 sm:col-start-2 sm:row-start-1 sm:mt-0 sm:justify-self-end sm:text-right"
 			href={href}
+			data-partner={partner}
+			data-product={product}
 			target="_blank"
 			rel="noopener noreferrer sponsored"
 		>

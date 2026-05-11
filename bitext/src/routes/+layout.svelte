@@ -2,6 +2,7 @@
 	import { browser } from '$app/environment';
 	import { afterNavigate } from '$app/navigation';
 	import '../app.css';
+	import { registerAffiliateLinkClickTracking } from '$lib/analytics/affiliate-link-tracking.js';
 	import { GA_MEASUREMENT_ID } from '$lib/brand.js';
 	import { flowbiteTheme } from '$lib/flowbite-theme.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
@@ -23,6 +24,11 @@
 		if (!browser) return;
 		const isDark = settingsStore.settings.theme === 'dark';
 		document.documentElement.classList.toggle('dark', isDark);
+	});
+
+	$effect(() => {
+		if (!browser) return;
+		return registerAffiliateLinkClickTracking();
 	});
 
 	/** SPA navigations: initial `enter` is already counted by the snippet in app.html */

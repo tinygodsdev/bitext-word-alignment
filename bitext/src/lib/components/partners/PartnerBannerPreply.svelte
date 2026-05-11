@@ -9,6 +9,8 @@
 	title="Preply — language tutors"
 	{href}
 	ctaLabel="Open Preply"
+	partner="preply"
+	product="language_tutors"
 	toneClass="border-l-[#FF7AAC] bg-[#FF7AAC]/10 dark:bg-[#FF7AAC]/15"
 >
 	<p class="m-0">

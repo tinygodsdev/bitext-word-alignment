@@ -8,6 +8,8 @@
 	title="Railway - easy deployment"
 	{href}
 	ctaLabel="Open Railway"
+	partner="railway"
+	product="hosting"
 	toneClass="border-l-[#853bce] bg-[#853bce]/10 dark:bg-[#853bce]/15"
 >
 	<p class="m-0">
