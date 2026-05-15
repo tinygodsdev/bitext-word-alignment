@@ -8,8 +8,11 @@
 	import SettingsPanel from '$lib/components/settings/SettingsPanel.svelte';
 	import ExportCard from '$lib/components/settings/ExportCard.svelte';
 	import ShareQuickRow from '$lib/components/share/ShareQuickRow.svelte';
+	import PartnerBannerCursor from '$lib/components/partners/PartnerBannerCursor.svelte';
 	import PartnerBannerPreply from '$lib/components/partners/PartnerBannerPreply.svelte';
 	import PartnerBannerRailway from '$lib/components/partners/PartnerBannerRailway.svelte';
+	import PartnerBannerWise from '$lib/components/partners/PartnerBannerWise.svelte';
+	import type { HomePartnerId } from '$lib/partners/home-rotation.js';
 	import SeoIntro from '$lib/components/seo/SeoIntro.svelte';
 	import SeoSections from '$lib/components/seo/SeoSections.svelte';
 	import JsonLd from '$lib/components/seo/JsonLd.svelte';
@@ -33,8 +36,16 @@
 	import { TALLY_FORM_ID } from '$lib/brand.js';
 	import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, SITE_NAME } from '$lib/seo/metadata.js';
 	import type { PageProps } from './$types';
+	import type { Component } from 'svelte';
 
 	let { data }: PageProps = $props();
+
+	const homeBannerById: Record<HomePartnerId, Component> = {
+		preply: PartnerBannerPreply,
+		railway: PartnerBannerRailway,
+		cursor: PartnerBannerCursor,
+		wise: PartnerBannerWise
+	};
 
 	let hydrated = $state(false);
 	let previewExpand = $state(false);
@@ -260,7 +271,10 @@
 				</p>
 			</div>
 			<div class="w-full min-w-0 lg:w-auto lg:flex-1">
-				<PartnerBannerPreply />
+				{#key data.homePartnerOrder[0]}
+					{@const HomePartnerIntroBanner = homeBannerById[data.homePartnerOrder[0]]}
+					<HomePartnerIntroBanner />
+				{/key}
 			</div>
 		</div>
 	</header>
@@ -500,7 +514,10 @@
 				<ShareQuickRow />
 			</div>
 			<div class="mt-6 min-w-0">
-				<PartnerBannerRailway />
+				{#key data.homePartnerOrder[1]}
+					{@const HomePartnerSidebarBanner = homeBannerById[data.homePartnerOrder[1]]}
+					<HomePartnerSidebarBanner />
+				{/key}
 			</div>
 			<p class="mt-2 text-center">
 				<!-- Looks like a text link; <button> avoids SvelteKit href + eslint; Tally uses data-tally-*. -->

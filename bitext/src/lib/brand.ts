@@ -13,7 +13,7 @@ export const ALIGNER_DISPLAY_NAME = 'Aligner';
 /** Multiline tooltip for partner link cards; shown on “?” hint. */
 export const PARTNER_LINK_WHY_TOOLTIP = `Why is this here?
 
-${ALIGNER_DISPLAY_NAME} stays free and without aggressive ads. Hosting and ongoing upkeep still have a cost, so we add a few optional partner links - use them if you were already considering the service. It will help us keep the site running. The referral bonuses come from the provider. Here I recommend the services that I happily use myself.
+${ALIGNER_DISPLAY_NAME} stays free. Upkeep still has a cost, so we add a few partner links. Use them if you consider the service. It helps us to maintain the app. I recommend only the services I happily use myself.
 
 Thanks,
 Dani`;

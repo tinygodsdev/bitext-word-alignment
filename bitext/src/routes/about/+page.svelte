@@ -2,8 +2,10 @@
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import { SITE_CONTACT_EMAIL, TALLY_FORM_ID } from '$lib/brand.js';
+	import PartnerBannerCursor from '$lib/components/partners/PartnerBannerCursor.svelte';
 	import PartnerBannerPreply from '$lib/components/partners/PartnerBannerPreply.svelte';
 	import PartnerBannerRailway from '$lib/components/partners/PartnerBannerRailway.svelte';
+	import PartnerBannerWise from '$lib/components/partners/PartnerBannerWise.svelte';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 
 	const TITLE = 'About';
@@ -438,6 +440,8 @@
 	<div class="mt-5 flex min-w-0 flex-col gap-4">
 		<PartnerBannerPreply />
 		<PartnerBannerRailway />
+		<PartnerBannerCursor />
+		<PartnerBannerWise />
 	</div>
 
 	<h2 id="doc-contact" class={headingClass}>Contact</h2>
