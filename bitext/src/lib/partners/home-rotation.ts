@@ -1,9 +1,8 @@
 /**
- * Home page shows two partner banners in fixed regions (intro column + settings sidebar).
- * Each hour (UTC, by Unix time) we pick two *distinct* partners from `HOME_PARTNER_IDS`;
- * all ids participate in rotation as the set grows.
+ * Partner banner rotation.
  *
- * Order is computed once per request on the server so SSR and hydration match.
+ * Home: two distinct partners per UTC hour (`getHomePartnerOrder`).
+ * Example gallery pages: one partner per slug, stable across prerender/build (`getExamplePagePartnerId`).
  */
 export const HOME_PARTNER_IDS = ['preply', 'railway', 'cursor', 'wise'] as const;
 export type HomePartnerId = (typeof HOME_PARTNER_IDS)[number];
@@ -17,12 +16,33 @@ function mulberry32(seed: number) {
 	};
 }
 
+/** FNV-1a 32-bit — stable string → integer for seeded picks. */
+function hashSeedString(input: string): number {
+	let h = 0x811c9dc5;
+	for (let i = 0; i < input.length; i++) {
+		h ^= input.charCodeAt(i);
+		h = Math.imul(h, 0x01000193);
+	}
+	return h | 0;
+}
+
 /** Uniform random shuffle (Fisher–Yates). Mutates `items`. */
 function shuffleInPlace<T>(items: T[], rng: () => number): void {
 	for (let i = items.length - 1; i > 0; i--) {
 		const j = Math.floor(rng() * (i + 1));
 		[items[i], items[j]] = [items[j], items[i]];
 	}
+}
+
+/**
+ * One partner for a prerendered example page. Seed with gallery `slug` so each page keeps
+ * the same banner across visits and SSR/hydration match; partners are spread across slugs.
+ */
+export function getExamplePagePartnerId(slug: string): HomePartnerId {
+	const seed = Math.imul(hashSeedString(`example:${slug}`), 0x9e3779b1) | 0;
+	const rng = mulberry32(seed);
+	const index = Math.floor(rng() * HOME_PARTNER_IDS.length);
+	return HOME_PARTNER_IDS[index]!;
 }
 
 /**

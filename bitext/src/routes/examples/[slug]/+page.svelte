@@ -3,6 +3,7 @@
 	import { resolve } from '$app/paths';
 	import { ALIGNER_DISPLAY_NAME } from '$lib/brand.js';
 	import SiteFooter from '$lib/components/layout/SiteFooter.svelte';
+	import PartnerBannerById from '$lib/components/partners/PartnerBannerById.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -91,15 +92,16 @@
 		</figcaption>
 	</figure>
 
-	<p class="mt-8">
+	<div class="mt-8 flex flex-wrap items-center gap-x-4 gap-y-3">
+		<a href={resolve('/examples')} class="{linkClass} text-sm">← All examples</a>
 		<a href="{resolve('/')}?example={exampleSlug}" class={ctaClass}>
 			Open in Editor
 		</a>
-	</p>
+	</div>
 
-	<p class="mt-6 text-sm">
-		<a href={resolve('/examples')} class={linkClass}>← All examples</a>
-	</p>
+	<div class="mt-10">
+		<PartnerBannerById partnerId={data.partnerId} />
+	</div>
 
 	<SiteFooter />
 </main>

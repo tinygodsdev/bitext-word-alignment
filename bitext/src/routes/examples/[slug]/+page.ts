@@ -2,6 +2,7 @@ export const prerender = true;
 
 import { error } from '@sveltejs/kit';
 import { findGalleryBySlug, galleryPreviewImageFor, GALLERY_EXAMPLES } from '$lib/examples/catalog.js';
+import { getExamplePagePartnerId } from '$lib/partners/home-rotation.js';
 import type { PageLoad } from './$types';
 
 export function entries() {
@@ -14,6 +15,7 @@ export const load: PageLoad = ({ params }) => {
 	return {
 		entry,
 		previewImageUrl: galleryPreviewImageFor(entry),
-		exampleSlug: entry.slug
+		exampleSlug: entry.slug,
+		partnerId: getExamplePagePartnerId(entry.slug)
 	};
 };
