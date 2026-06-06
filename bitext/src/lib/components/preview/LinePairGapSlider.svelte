@@ -6,11 +6,14 @@
 	let {
 		upperLineId,
 		lowerLineId,
-		previewDark = false
+		previewDark = false,
+		showControls = true
 	}: {
 		upperLineId: string;
 		lowerLineId: string;
 		previewDark?: boolean;
+		/** When false, only reserve vertical gap height (gallery / headless render). */
+		showControls?: boolean;
 	} = $props();
 
 	const gapPx = $derived.by(() => {
@@ -27,34 +30,36 @@
 	style:min-height={`${gapPx}px`}
 	aria-label="Vertical gap between lines"
 >
-	<div
-		class="pointer-events-none absolute inset-x-0 top-1/2 z-10 flex -translate-y-1/2 items-center gap-3 bg-transparent"
-	>
-		<div class="w-[4.5rem] shrink-0 bg-transparent" aria-hidden="true"></div>
-		<!-- No right spacer: match full row width so controls align with the pencil/gear column edge -->
-		<div class="flex min-w-0 flex-1 justify-end bg-transparent">
-			<div class="pointer-events-auto flex items-center gap-1.5 bg-transparent">
-				<span
-					class="shrink-0 tabular-nums text-[10px] {previewDark ? 'text-gray-400' : 'text-gray-500'}"
-					>{gapPx}px</span
-				>
-				<Range
-					appearance="auto"
-					color="indigo"
-					size="sm"
-					min={MIN_LINE_GAP_PX}
-					max={MAX_LINE_GAP_PX}
-					step={1}
-					value={gapPx}
-					class="line-gap-range !h-1 !w-[7rem] shrink-0 !rounded-none !bg-transparent py-0 shadow-none"
-					oninput={(e) =>
-						projectStore.setLinePairGap(
-							upperLineId,
-							lowerLineId,
-							Number((e.currentTarget as HTMLInputElement).value)
-						)}
-				/>
+	{#if showControls}
+		<div
+			class="pointer-events-none absolute inset-x-0 top-1/2 z-10 flex -translate-y-1/2 items-center gap-3 bg-transparent"
+		>
+			<div class="w-[4.5rem] shrink-0 bg-transparent" aria-hidden="true"></div>
+			<!-- No right spacer: match full row width so controls align with the pencil/gear column edge -->
+			<div class="flex min-w-0 flex-1 justify-end bg-transparent">
+				<div class="pointer-events-auto flex items-center gap-1.5 bg-transparent">
+					<span
+						class="shrink-0 tabular-nums text-[10px] {previewDark ? 'text-gray-400' : 'text-gray-500'}"
+						>{gapPx}px</span
+					>
+					<Range
+						appearance="auto"
+						color="indigo"
+						size="sm"
+						min={MIN_LINE_GAP_PX}
+						max={MAX_LINE_GAP_PX}
+						step={1}
+						value={gapPx}
+						class="line-gap-range !h-1 !w-[7rem] shrink-0 !rounded-none !bg-transparent py-0 shadow-none"
+						oninput={(e) =>
+							projectStore.setLinePairGap(
+								upperLineId,
+								lowerLineId,
+								Number((e.currentTarget as HTMLInputElement).value)
+							)}
+					/>
+				</div>
 			</div>
 		</div>
-	</div>
+	{/if}
 </div>

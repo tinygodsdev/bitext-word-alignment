@@ -15,19 +15,22 @@
 
 	let {
 		instancePrefix = 'preview-default',
-		writesExportLayout = true
+		writesExportLayout = true,
+		readonly = false
 	}: {
 		/** Unique prefix for gear `id` / Popover anchor when several previews are mounted. */
 		instancePrefix?: string;
 		/** Only one instance should push layout into `layoutExportStore` (export / PNG). */
 		writesExportLayout?: boolean;
+		/** Gallery embed: no editing controls, non-interactive tokens. */
+		readonly?: boolean;
 	} = $props();
 
 	let rootEl = $state<HTMLElement | null>(null);
 
 	const bg = $derived(settingsStore.settings.background);
 	const previewDark = $derived(bg === 'dark');
-	const hideChrome = $derived(settingsStore.settings.previewHideChrome);
+	const hideChrome = $derived(readonly || settingsStore.settings.previewHideChrome);
 	const chromeHiddenLayer = 'invisible pointer-events-none select-none';
 	const connections = $derived(projectStore.connections);
 	const lineIds = $derived(projectStore.lines.map((l) => l.id));
@@ -41,7 +44,7 @@
 	class:preview-frame--light={bg === 'light'}
 	class:preview-frame--dark={bg === 'dark'}
 >
-	{#if selectionStore.showLinkHint()}
+	{#if !readonly && selectionStore.showLinkHint()}
 		<p
 			class="preview-frame__link-hint pointer-events-none absolute left-3 top-3 z-30 max-w-[min(calc(100%-1.5rem),15rem)] px-2 py-1 text-xs leading-snug"
 			role="status"
@@ -54,21 +57,23 @@
 		</p>
 	{/if}
 	<div class="preview-stack">
-		<div
-			class="mb-1 flex justify-center {hideChrome ? chromeHiddenLayer : ''}"
-			aria-hidden={hideChrome ? true : undefined}
-		>
-			<button
-				type="button"
-				class="rounded-none border border-dashed px-2 py-0.5 text-xs font-medium disabled:opacity-40 {previewDark
-					? 'border-gray-600 text-gray-400 hover:border-primary-400 hover:text-primary-300'
-					: 'border-gray-400 text-gray-600 hover:border-primary-500 hover:text-primary-700'}"
-				disabled={projectStore.lines.length >= MAX_LINES}
-				onclick={() => projectStore.addLine(0)}
+		{#if !readonly}
+			<div
+				class="mb-1 flex justify-center {hideChrome ? chromeHiddenLayer : ''}"
+				aria-hidden={hideChrome ? true : undefined}
 			>
-				+ Add line
-			</button>
-		</div>
+				<button
+					type="button"
+					class="rounded-none border border-dashed px-2 py-0.5 text-xs font-medium disabled:opacity-40 {previewDark
+						? 'border-gray-600 text-gray-400 hover:border-primary-400 hover:text-primary-300'
+						: 'border-gray-400 text-gray-600 hover:border-primary-500 hover:text-primary-700'}"
+					disabled={projectStore.lines.length >= MAX_LINES}
+					onclick={() => projectStore.addLine(0)}
+				>
+					+ Add line
+				</button>
+			</div>
+		{/if}
 		{#each projectStore.lines as line, li (line.id)}
 			{@const gearDomId = `${instancePrefix}-line-gear-${line.id}`}
 			{@const pending = selectionStore.pending}
@@ -77,15 +82,17 @@
 			<div
 				data-line={line.id}
 				class="preview-token-line flex items-center gap-3 transition-opacity duration-150"
-				class:opacity-[0.34]={rowDimmed}
+				class:opacity-[0.34]={!readonly && rowDimmed}
 				style:font-family={resolveLineFontCss(line)}
 			>
-				<div
-					class="shrink-0 {hideChrome ? chromeHiddenLayer : ''}"
-					aria-hidden={hideChrome ? true : undefined}
-				>
-					<LineReorderButtons {line} index={li} total={projectStore.lines.length} {previewDark} />
-				</div>
+				{#if !readonly}
+					<div
+						class="shrink-0 {hideChrome ? chromeHiddenLayer : ''}"
+						aria-hidden={hideChrome ? true : undefined}
+					>
+						<LineReorderButtons {line} index={li} total={projectStore.lines.length} {previewDark} />
+					</div>
+				{/if}
 				<div class="preview-gloss-wrap min-w-0 flex-1">
 					<TokenRow
 						tokens={projectStore.tokensOnLine(line.id)}
@@ -93,49 +100,53 @@
 						textSizePx={line.textSizePx}
 						gapWordPx={line.gapWordPx}
 						showNumbers={settingsStore.settings.showNumbers}
-						interactive={true}
+						interactive={!readonly}
 						rtl={Boolean(line.rtl)}
 					/>
 				</div>
-				<div
-					class="shrink-0 {hideChrome ? chromeHiddenLayer : ''}"
-					aria-hidden={hideChrome ? true : undefined}
-				>
-					<LineTrailingActions
-						{line}
-						index={li}
-						total={projectStore.lines.length}
-						{gearDomId}
-						triggeredBy={`#${gearDomId}`}
-						{previewDark}
-					/>
-				</div>
+				{#if !readonly}
+					<div
+						class="shrink-0 {hideChrome ? chromeHiddenLayer : ''}"
+						aria-hidden={hideChrome ? true : undefined}
+					>
+						<LineTrailingActions
+							{line}
+							index={li}
+							total={projectStore.lines.length}
+							{gearDomId}
+							triggeredBy={`#${gearDomId}`}
+							{previewDark}
+						/>
+					</div>
+				{/if}
 			</div>
 			{#if li < projectStore.lines.length - 1}
 				{@const lowerLine = projectStore.lines[li + 1]!}
-				<div
-					class={hideChrome ? chromeHiddenLayer : ''}
-					aria-hidden={hideChrome ? true : undefined}
-				>
-					<LinePairGapSlider upperLineId={line.id} lowerLineId={lowerLine.id} {previewDark} />
-				</div>
+				<LinePairGapSlider
+					upperLineId={line.id}
+					lowerLineId={lowerLine.id}
+					{previewDark}
+					showControls={!readonly && !hideChrome}
+				/>
 			{/if}
 		{/each}
-		<div
-			class="mt-1 flex justify-center {hideChrome ? chromeHiddenLayer : ''}"
-			aria-hidden={hideChrome ? true : undefined}
-		>
-			<button
-				type="button"
-				class="rounded-none border border-dashed px-2 py-0.5 text-xs font-medium disabled:opacity-40 {previewDark
-					? 'border-gray-600 text-gray-400 hover:border-primary-400 hover:text-primary-300'
-					: 'border-gray-400 text-gray-600 hover:border-primary-500 hover:text-primary-700'}"
-				disabled={projectStore.lines.length >= MAX_LINES}
-				onclick={() => projectStore.addLine()}
+		{#if !readonly}
+			<div
+				class="mt-1 flex justify-center {hideChrome ? chromeHiddenLayer : ''}"
+				aria-hidden={hideChrome ? true : undefined}
 			>
-				+ Add line
-			</button>
-		</div>
+				<button
+					type="button"
+					class="rounded-none border border-dashed px-2 py-0.5 text-xs font-medium disabled:opacity-40 {previewDark
+						? 'border-gray-600 text-gray-400 hover:border-primary-400 hover:text-primary-300'
+						: 'border-gray-400 text-gray-600 hover:border-primary-500 hover:text-primary-700'}"
+					disabled={projectStore.lines.length >= MAX_LINES}
+					onclick={() => projectStore.addLine()}
+				>
+					+ Add line
+				</button>
+			</div>
+		{/if}
 		{#if hideChrome}
 			<p class="preview-frame__attribution">
 				Created with

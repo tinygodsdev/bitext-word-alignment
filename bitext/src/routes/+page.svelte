@@ -32,7 +32,7 @@
 	import { selectionStore } from '$lib/state/selection.svelte.js';
 	import { layoutExportStore } from '$lib/state/layoutExport.svelte.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
-	import { EXAMPLES, type ExampleId } from '$lib/state/examples.js';
+	import { editorExamples, type ExampleId } from '$lib/state/examples.js';
 	import { TALLY_FORM_ID } from '$lib/brand.js';
 	import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, SITE_NAME } from '$lib/seo/metadata.js';
 	import type { PageProps } from './$types';
@@ -67,6 +67,13 @@
 			projectStore.retokenizeFromSettings();
 		}
 		hydrated = true;
+	});
+
+	$effect(() => {
+		if (!browser || !data.exampleInvalid) return;
+		const u = new URL(window.location.href);
+		u.searchParams.delete('example');
+		history.replaceState({}, '', u);
 	});
 
 	$effect(() => {
@@ -180,6 +187,11 @@
 				Word-by-word translation visualizer
 			</h1>
 			<div class="flex shrink-0 flex-wrap items-center gap-3 sm:justify-end">
+				<a
+					href={resolve('/examples')}
+					class="text-sm font-medium text-gray-600 underline decoration-gray-400/50 underline-offset-2 hover:text-gray-900 hover:decoration-gray-500/60 dark:text-gray-400 dark:decoration-gray-500/50 dark:hover:text-gray-100 dark:hover:decoration-gray-400/60"
+					>Examples</a
+				>
 				<a
 					href={resolve('/about')}
 					class="text-sm font-medium text-gray-600 underline decoration-gray-400/50 underline-offset-2 hover:text-gray-900 hover:decoration-gray-500/60 dark:text-gray-400 dark:decoration-gray-500/50 dark:hover:text-gray-100 dark:hover:decoration-gray-400/60"
@@ -315,7 +327,7 @@
 								role="menu"
 								aria-label="Example projects"
 							>
-								{#each EXAMPLES as ex (ex.id)}
+								{#each editorExamples() as ex (ex.id)}
 									<button
 										type="button"
 										class={exampleDropdownItem}

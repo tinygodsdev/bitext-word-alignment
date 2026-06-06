@@ -20,8 +20,6 @@ import {
 	clampLineGapPx,
 	clampWordGapPx,
 	DEFAULT_LINE_GAP_PX,
-	DEFAULT_TOKEN_MERGE_CHAR,
-	DEFAULT_TOKEN_SPLIT_CHARS,
 	DEFAULT_WORD_GAP_PX,
 	defaultProjectSnapshotV2,
 	MAX_LINES,
@@ -33,6 +31,7 @@ import {
 	type ProjectSnapshotV2
 } from '$lib/serialization/schema.js';
 import { layoutExportStore } from '$lib/state/layoutExport.svelte.js';
+import { buildAppStateFromExample } from '$lib/examples/build-app-state.js';
 import { settingsStore } from '$lib/state/settings.svelte.js';
 import { findExample, type ExampleId } from '$lib/state/examples.js';
 
@@ -313,27 +312,10 @@ class ProjectStore {
 	}
 
 	loadExample(kind: ExampleId = 'simple') {
-		const example = findExample(kind);
-		// Reset tokenizer settings to defaults first so a previous example’s overrides
-		// (custom split / merge chars, punctuation tokenization) never leak across loads,
-		// then apply this example’s opt-in overrides.
-		settingsStore.patch({
-			tokenSplitChars: DEFAULT_TOKEN_SPLIT_CHARS,
-			tokenMergeChar: DEFAULT_TOKEN_MERGE_CHAR,
-			tokenSplitPunctuation: false,
-			tokenPunctuationChars: '',
-			...(example.settings ?? {})
-		});
-		const palette = settingsStore.settings.palette;
-		this.loadSnapshotV2({
-			lines: example.lines.map((l) => ({ ...l, font: { ...l.font } })),
-			pairControls: (example.pairControls ?? []).map((p) => ({ ...p })),
-			linePairGaps: (example.linePairGaps ?? []).map((g) => ({ ...g })),
-			connections: []
-		});
-		for (const [upper, lower] of example.connections) {
-			this.addConnection(upper, lower, palette);
-		}
+		const state = buildAppStateFromExample(findExample(kind));
+		settingsStore.load(state.settings);
+		this.loadSnapshotV2(state.project);
+		this.retokenizeFromSettings();
 		layoutExportStore.requestRemeasureAfterLayout();
 	}
 }

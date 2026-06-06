@@ -1,3 +1,6 @@
+# Node
+node_modules/
+
 # Secrets & local env
 .env
 .env.*

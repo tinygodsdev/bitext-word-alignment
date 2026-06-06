@@ -1,0 +1,92 @@
+<script lang="ts">
+	import { page } from '$app/state';
+	import { resolve } from '$app/paths';
+	import { ALIGNER_DISPLAY_NAME } from '$lib/brand.js';
+	import SiteFooter from '$lib/components/layout/SiteFooter.svelte';
+	import type { PageProps } from './$types';
+
+	let { data }: PageProps = $props();
+
+	const entry = $derived(data.entry);
+	const previewImageUrl = $derived(data.previewImageUrl);
+	const exampleSlug = $derived(data.exampleSlug);
+	const bodyParagraphs = $derived(entry.body.split('\n\n'));
+
+	const canonical = $derived(page.url.origin + page.url.pathname);
+
+	const linkClass =
+		'font-medium text-primary-700 underline decoration-primary-700/40 underline-offset-2 hover:text-primary-800 hover:decoration-primary-800 dark:text-primary-400 dark:decoration-primary-400/50 dark:hover:text-primary-300';
+
+	const ctaClass =
+		'inline-flex items-center gap-1 rounded-none border border-primary-600 bg-primary-600 px-4 py-2 text-sm font-medium text-white no-underline shadow-sm hover:bg-primary-700 dark:border-primary-500 dark:bg-primary-600 dark:hover:bg-primary-500';
+</script>
+
+<svelte:head>
+	<title>{entry.title} · {ALIGNER_DISPLAY_NAME}</title>
+	<meta name="description" content={entry.description} />
+	<link rel="canonical" href={canonical} />
+	<meta name="robots" content="index,follow" />
+	<meta property="og:type" content="article" />
+	<meta property="og:title" content={`${entry.title} · ${ALIGNER_DISPLAY_NAME}`} />
+	<meta property="og:description" content={entry.description} />
+	<meta property="og:url" content={canonical} />
+	<meta property="og:image" content={previewImageUrl} />
+	<meta property="og:image:secure_url" content={previewImageUrl} />
+	<meta property="og:image:type" content="image/png" />
+	<meta property="og:image:alt" content={entry.imageAlt} />
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:title" content={`${entry.title} · ${ALIGNER_DISPLAY_NAME}`} />
+	<meta name="twitter:description" content={entry.description} />
+	<meta name="twitter:image" content={previewImageUrl} />
+	<meta name="twitter:image:alt" content={entry.imageAlt} />
+</svelte:head>
+
+<main
+	class="mx-auto w-full max-w-3xl min-w-0 px-4 pt-4 pb-16 leading-relaxed text-gray-700 sm:px-6 md:pt-6 md:pb-20 dark:text-gray-300"
+>
+	<header class="mb-8 border-b border-gray-200 pb-6 dark:border-gray-700">
+		<nav class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+			<a href={resolve('/')} class={linkClass}>← {ALIGNER_DISPLAY_NAME}</a>
+			<span class="text-gray-400 dark:text-gray-500" aria-hidden="true">·</span>
+			<a href={resolve('/examples')} class={linkClass}>Examples</a>
+		</nav>
+		<h1 class="font-heading mt-4 text-2xl font-semibold text-gray-900 sm:text-3xl dark:text-white">
+			{entry.title}
+		</h1>
+		<p class="mt-3 max-w-prose text-base text-gray-600 dark:text-gray-400">
+			{entry.description}
+		</p>
+	</header>
+
+	{#each bodyParagraphs as paragraph}
+		<p class="max-w-prose text-base leading-relaxed">{paragraph}</p>
+	{/each}
+
+	<figure class="my-8 m-0">
+		<div class="overflow-hidden rounded-md border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/40">
+			<img
+				src={previewImageUrl}
+				alt={entry.imageAlt}
+				width={960}
+				loading="eager"
+				decoding="async"
+				class="w-full bg-white object-contain object-center dark:bg-gray-900/40"
+			/>
+		</div>
+		<figcaption class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+			Word alignment diagram — same export as in the editor.
+		</figcaption>
+	</figure>
+
+	<p class="mt-8">
+		<a href="{resolve('/')}?example={exampleSlug}" class={ctaClass}>
+			Open in Editor
+		</a>
+	</p>
+
+	<p class="mt-6 text-sm">
+		<a href={resolve('/examples')} class={linkClass}>← All examples</a>
+	</p>
+
+	<SiteFooter />
+</main>
