@@ -62,6 +62,19 @@
 		<p class="max-w-prose text-base leading-relaxed">{paragraph}</p>
 	{/each}
 
+	{#if entry.sourceAttribution}
+		<p class="mt-6 max-w-prose text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+			Example layout based on an example in the Wikipedia article
+			<a
+				href={entry.sourceAttribution.url}
+				class={linkClass}
+				target="_blank"
+				rel="noopener noreferrer">{entry.sourceAttribution.title}</a
+			>
+			(illustrative; Leipzig-style conventions).
+		</p>
+	{/if}
+
 	<figure class="my-8 m-0">
 		<div class="overflow-hidden rounded-md border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/40">
 			<img
