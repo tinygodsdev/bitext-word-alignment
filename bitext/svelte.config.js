@@ -7,7 +7,11 @@ const config = {
 		runes: ({ filename }) => (filename.split(/[/\\]/).includes('node_modules') ? undefined : true)
 	},
 	kit: {
-		adapter: adapter()
+		adapter: adapter(),
+		/** Canonical / og:url on prerendered routes (examples, privacy). Without this, build bakes `http://sveltekit-prerender/...`. */
+		prerender: {
+			origin: 'https://aligner.tinygods.dev'
+		}
 	}
 };
 
