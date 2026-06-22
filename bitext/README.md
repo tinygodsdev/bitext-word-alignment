@@ -1,4 +1,4 @@
-# Bitext Align
+# Word Aligner
 
 Single-page **word-by-word translation visualizer** — manual bilingual alignment, optional interlinear gloss, exports (PNG / SVG / PDF / HTML), and shareable `?data=` URLs.
 

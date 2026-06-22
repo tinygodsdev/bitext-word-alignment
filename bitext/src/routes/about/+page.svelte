@@ -10,9 +10,9 @@
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 
 	const TITLE = 'About';
-	const DISPLAY_NAME = 'Aligner';
+	const DISPLAY_NAME = 'Word Aligner';
 	const DESCRIPTION =
-		'Aligner (Bitext Align): multi-line word alignment, interlinear glosses and IPA, RTL scripts, word-splitting rules, per-line typography, exports (PNG, SVG, PDF, HTML), and shareable URLs — for learners, teachers, and linguists.';
+		'Word Aligner: multi-line word alignment, interlinear glosses and IPA, RTL scripts, word-splitting rules, per-line typography, exports (PNG, SVG, PDF, HTML), and shareable URLs — for learners, teachers, and linguists.';
 
 	const canonical = $derived(page.url.origin + page.url.pathname);
 	const ogImage = $derived(`${page.url.origin}/api/og`);
@@ -228,11 +228,8 @@
 	<p class="mt-4 text-lg text-gray-600 dark:text-gray-400">
 		<strong class="font-semibold text-gray-800 dark:text-gray-200">{DISPLAY_NAME}</strong> is a free,
 		browser-based tool for drawing word-to-word and morpheme-to-morpheme links between stacked lines of
-		text — for bilingual glosses, interlinear annotations, classroom handouts, and social posts. The same
-		project is also referred to as <strong class="font-semibold text-gray-800 dark:text-gray-200"
-			>Bitext Align</strong
-		>
-		in URLs and branding. Everything runs in your browser; your sentences are not stored on our servers
+		text — for bilingual glosses, interlinear annotations, classroom handouts, and social posts.
+		Everything runs in your browser; your sentences are not stored on our servers
 		unless you choose to share them.
 	</p>
 

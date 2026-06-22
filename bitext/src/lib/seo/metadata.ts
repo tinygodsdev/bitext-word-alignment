@@ -1,4 +1,4 @@
-export const SITE_NAME = 'Bitext Align';
+export const SITE_NAME = 'Word Aligner';
 
 /**
  * Title and description favor colloquial, user-first phrasing while keeping the formal category
@@ -8,4 +8,4 @@ export const SITE_NAME = 'Bitext Align';
  */
 export const DEFAULT_TITLE = 'Word-by-word translation visualizer — see which words match';
 export const DEFAULT_DESCRIPTION =
-	'Aligner (Bitext Align): free word-by-word translation visualizer. Stack multiple lines, link adjacent rows in the preview, optional gloss/IPA lines, exports (PNG, SVG, PDF, HTML), and shareable URLs. For learners, teachers, linguists, and conlang posts.';
+	'Word Aligner: free word-by-word translation visualizer. Stack multiple lines, link adjacent rows in the preview, optional gloss/IPA lines, exports (PNG, SVG, PDF, HTML), and shareable URLs. For learners, teachers, linguists, and conlang posts.';

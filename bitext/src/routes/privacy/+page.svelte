@@ -6,7 +6,7 @@
 
 	const TITLE = 'Privacy policy';
 	const DESCRIPTION =
-		'How Bitext Align handles your data: no accounts, no server-side storage of your sentences, and what third-party tools (Google Analytics, Tally) we load.';
+		'How Word Aligner handles your data: no accounts, no server-side storage of your sentences, and what third-party tools (Google Analytics, Tally) we load.';
 
 	const canonical = $derived(page.url.origin + page.url.pathname);
 	/** Last meaningful content review of this policy. Bump when wording changes. */

@@ -2,7 +2,7 @@
 
 **[aligner.tinygods.dev](https://aligner.tinygods.dev)**
 
-Aligner (also called *Bitext Align*) is a free web tool that shows **which word matches which** across stacked lines of text. Type or paste a sentence and its translation, click a word and then its match on the line above or below, and curved connectors draw the alignment between them. Add extra rows for **glosses** or **IPA**, then **export** the diagram or **share** it with a link.
+Word Aligner is a free web tool that shows **which word matches which** across stacked lines of text. Type or paste a sentence and its translation, click a word and then its match on the line above or below, and curved connectors draw the alignment between them. Add extra rows for **glosses** or **IPA**, then **export** the diagram or **share** it with a link.
 
 No accounts, no machine translation — you stay in control of every link. Great for lessons, social posts, grammar notes, and conlang documentation.
 
