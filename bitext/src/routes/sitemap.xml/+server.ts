@@ -12,6 +12,7 @@ export const GET: RequestHandler = ({ url }) => {
   <url><loc>${base}/examples</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
 ${exampleUrls}
   <url><loc>${base}/about</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>${base}/api</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>${base}/privacy</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
 </urlset>`;
 	return new Response(body, {
