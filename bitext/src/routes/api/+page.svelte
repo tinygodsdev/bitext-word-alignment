@@ -164,12 +164,13 @@
     "lines": ["Hello world", "Bonjour le monde"],
     "alignments": [
       [0, 0, 1, 0],
+      [0, 1, 1, 1],
       [0, 1, 1, 2]
     ]
   }'`}</pre>
 	<p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-		Links "Hello" → "Bonjour" (word 0 → word 0) and "world" → "monde" (word 1 → word 2; "le" is
-		word 1, "monde" is word 2).
+		Links "Hello" → "Bonjour" (word 0 → word 0). "world" → "le" + "monde" (words 1 and 2) — the
+		French article is part of the noun phrase, so both words share the same color.
 	</p>
 
 	<h3 class={subheadingClass}>Example — many-to-one (one word maps to several)</h3>
@@ -426,23 +427,24 @@
   -H "Content-Type: application/json" \\
   -d '{
     "lines": [
-      "Я ходил",
-      "I have been going",
-      "1SG.NOM PST.IPFV"
+      { "text": "Я ходил", "sizePx": 40 },
+      { "text": "1SG.NOM PST.IPFV", "sizePx": 22 },
+      { "text": "I have been going", "sizePx": 36 }
     ],
     "alignments": [
-      [0, 0, 1, 0],
-      [0, 1, 1, 1],
-      [0, 1, 1, 2],
-      [0, 1, 1, 3]
+      [0, 0, 1, 0], [0, 0, 1, 1],
+      [0, 1, 1, 2], [0, 1, 1, 3]
     ],
     "pairs": [
-      { "upper": 1, "lower": 2, "gapPx": 60, "showConnectors": false }
+      { "upper": 0, "lower": 1, "gapPx": 12, "showConnectors": false },
+      { "upper": 1, "lower": 2, "gapPx": 80, "showConnectors": false }
     ]
   }'`}</pre>
 	<p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-		Connectors are drawn between lines 0–1. Line 2 is a gloss row with a smaller gap and no
-		connectors.
+		Gloss is adjacent to source (lines 0–1) with a 12 px gap and hidden arcs — tokens are colored
+		but no lines are drawn. Dots in the gloss text are split characters: <span class={codeClass}>"1SG.NOM"</span>
+		becomes two tokens (word 0 = <em>1SG</em>, word 1 = <em>NOM</em>). The free translation sits
+		below with a larger gap.
 	</p>
 
 	<!-- ── Word indices ────────────────────────────────────────── -->

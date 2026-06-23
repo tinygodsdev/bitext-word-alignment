@@ -45,6 +45,16 @@ If uncertain about tokenization, call `GET https://aligner.tinygods.dev/api/alig
 }
 ```
 
+**One-to-many** (article + noun both correspond to one source word): include both target words.
+
+```json
+{
+  "lines": ["Hello world", "Bonjour le monde"],
+  "alignments": [[0,0,1,0], [0,1,1,1], [0,1,1,2]]
+}
+```
+"world" maps to both "le" (word 1) and "monde" (word 2) — they share a color.
+
 **RTL language** (Hebrew, Arabic, etc.): use a `LineInput` object with `"rtl": true` and a matching font.
 
 ```json
@@ -57,15 +67,29 @@ If uncertain about tokenization, call `GET https://aligner.tinygods.dev/api/alig
 }
 ```
 
-**3 lines with a gloss row**: add `pairs` to hide connectors on the gloss pair.
+**Interlinear gloss**: place the gloss line directly under the source (adjacent), connect source→gloss tokens, hide the arcs with `showConnectors: false`, use a small gap (12px). Put the free translation below the gloss with a larger gap and no connectors.
+
+`"1SG.NOM PST.IPFV"` — dots are default split chars, so this yields 4 tokens: `1SG`[0] `NOM`[1] `PST`[2] `IPFV`[3].
 
 ```json
 {
-  "lines": ["Я ходил", "I have been going", "1SG.NOM PST.IPFV"],
-  "alignments": [[0,0,1,0], [0,1,1,1], [0,1,1,2], [0,1,1,3]],
-  "pairs": [{"upper": 1, "lower": 2, "gapPx": 60, "showConnectors": false}]
+  "lines": [
+    {"text": "Я ходил", "sizePx": 40},
+    {"text": "1SG.NOM PST.IPFV", "sizePx": 22},
+    {"text": "I have been going", "sizePx": 36}
+  ],
+  "alignments": [
+    [0,0,1,0], [0,0,1,1],
+    [0,1,1,2], [0,1,1,3]
+  ],
+  "pairs": [
+    {"upper": 0, "lower": 1, "gapPx": 12, "showConnectors": false},
+    {"upper": 1, "lower": 2, "gapPx": 80, "showConnectors": false}
+  ]
 }
 ```
+
+Gloss tokens inherit colors from their source-word group. Arcs are hidden on both pairs; only the color coding is visible.
 
 ## Full parameter reference
 

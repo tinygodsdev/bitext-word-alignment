@@ -92,13 +92,14 @@ Returns the same `{ "url": "..." }` response. Useful for opening the editor pre-
 
 ## Examples
 
-### Simple two-language alignment
+### Simple two-language alignment (article + noun both linked to one source word)
 ```json
 {
   "lines": ["Hello world", "Bonjour le monde"],
-  "alignments": [[0,0,1,0], [0,1,1,2]]
+  "alignments": [[0,0,1,0], [0,1,1,1], [0,1,1,2]]
 }
 ```
+"world" maps to both "le" (word 1) and "monde" (word 2) — they share a color.
 
 ### Custom visual style (vivid, dark)
 ```json
@@ -134,16 +135,25 @@ Returns the same `{ "url": "..." }` response. Useful for opening the editor pre-
 }
 ```
 
-### Three lines — source + translation + gloss
+### Three lines — source + gloss + free translation
+Gloss is adjacent to source (lines 0–1), arcs hidden but colors shown. Translation is below.
+Dots in gloss are split chars: `"1SG.NOM PST.IPFV"` → tokens `1SG`[0] `NOM`[1] `PST`[2] `IPFV`[3].
+
 ```json
 {
   "lines": [
-    "Я ходил",
-    "I have been going",
-    "1SG.NOM PST.IPFV"
+    {"text": "Я ходил", "sizePx": 40},
+    {"text": "1SG.NOM PST.IPFV", "sizePx": 22},
+    {"text": "I have been going", "sizePx": 36}
   ],
-  "alignments": [[0,0,1,0], [0,1,1,1], [0,1,1,2], [0,1,1,3]],
-  "pairs": [{"upper": 1, "lower": 2, "gapPx": 60, "showConnectors": false}]
+  "alignments": [
+    [0,0,1,0], [0,0,1,1],
+    [0,1,1,2], [0,1,1,3]
+  ],
+  "pairs": [
+    {"upper": 0, "lower": 1, "gapPx": 12, "showConnectors": false},
+    {"upper": 1, "lower": 2, "gapPx": 80, "showConnectors": false}
+  ]
 }
 ```
 
