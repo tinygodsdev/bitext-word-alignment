@@ -77,18 +77,49 @@ Controls for a specific adjacent line pair. `lower` must equal `upper + 1`.
 
 Each tuple is `[lineA, wordA, lineB, wordB]`:
 - All indices are **0-based**
-- `lineA` and `lineB` must be **adjacent**: `|lineA − lineB| = 1`
-- Multiple tuples sharing the same word form a **color group** automatically
+- `lineA` and `lineB` must be **adjacent**: `|lineA − lineB| = 1` (you cannot connect across a line; stack intermediate tiers instead)
+- Multiple tuples sharing the same word form a **color group** automatically (one-to-many, many-to-one, and many-to-many all work)
 
 ---
 
-## GET /api/align (simple, no alignments)
+## Constraints and errors
+
+- **1–8 lines.** Fewer than 1 or more than 8 is rejected.
+- **Adjacency:** alignment lines must differ by exactly 1; `pairs` require `lower = upper + 1`.
+- **Index ranges:** line and word indices must be in range for the (tokenized) text.
+- Numeric settings are clamped, not rejected: `lineThickness`→1–8, `lineOpacity`→0.2–1, `sizePx`→12–64, line `gapPx`→0–56, pair `gapPx`→12–156.
+
+On invalid input the API returns **HTTP 400** with a JSON body:
+
+```json
+{ "error": "alignments[0]: word 4 out of range for line 0 (\"1SG.NOM go.PST.IPFV\" has 2 word(s))" }
+```
+
+The error message names the offending field, index, and the tokenized word count — read it to fix indices.
+
+---
+
+## Tokenization and word indices
+
+Word indices in `alignments` and `pairs` refer to **token positions**, so tokenize each line the way the service does before counting:
+
+- **Whitespace always splits.**
+- **`tokenSplitChars` (default `.-|`) also splits, and the split character is removed from the rendered output.** `"go.PST.IPFV"` → three tokens `go` `PST` `IPFV` with the dots gone. Override `tokenSplitChars` (e.g. to `"-|"`) to keep characters you want displayed.
+- **Punctuation stays attached by default** (the API does not split punctuation). `"Hello, world!"` → `Hello,`[0] `world!`[1].
+- **The merge char `+` (default) joins parts into one token** displayed with a space: `"is+playing"` is one token rendered `is playing`.
+- **RTL lines are indexed in reading order** — word 0 is the logically first word (rightmost on screen).
+
+Changing `tokenSplitChars` shifts every line's indices — recount after setting it.
+
+---
+
+## GET /api/align (simple, lines only)
 
 ```
 GET /api/align?lines=Hello+world&lines=Bonjour+le+monde
 ```
 
-Returns the same `{ "url": "..." }` response. Useful for opening the editor pre-filled with text, without pre-drawn links. Helpful for verifying word tokenization.
+Returns the same `{ "url": "..." }` response. **Lines only** — this endpoint ignores `alignments`, `settings`, and `pairs`; use POST for those. Useful for opening the editor pre-filled with text (no pre-drawn links) and for verifying how a line tokenizes: open the URL and count the word boxes.
 
 ---
 
@@ -107,7 +138,7 @@ Returns the same `{ "url": "..." }` response. Useful for opening the editor pre-
 ```json
 {
   "lines": ["Hello world", "Bonjour le monde"],
-  "alignments": [[0,0,1,0], [0,1,1,2]],
+  "alignments": [[0,0,1,0], [0,1,1,1], [0,1,1,2]],
   "settings": {
     "palette": "vivid",
     "lineStyle": "straight",

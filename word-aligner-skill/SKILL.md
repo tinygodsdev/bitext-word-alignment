@@ -14,12 +14,12 @@ Word Aligner generates shareable interactive diagrams showing which words in one
 
 ```json
 {
-  "lines": ["Hello world", "Bonjour le monde"],
-  "alignments": [[0, 0, 1, 0], [0, 1, 1, 2]]
+  "lines": ["I sleep", "Я сплю"],
+  "alignments": [[0, 0, 1, 0], [0, 1, 1, 1]]
 }
 ```
 
-`alignments` entries are `[lineA, wordA, lineB, wordB]` — 0-based indices, lines must be adjacent.
+`alignments` entries are `[lineA, wordA, lineB, wordB]`: word `wordA` of line `lineA` links to word `wordB` of line `lineB`. All indices are 0-based, and the two lines must be vertically adjacent (`|lineA − lineB| = 1`).
 
 ## Workflow
 
@@ -28,11 +28,19 @@ Word Aligner generates shareable interactive diagrams showing which words in one
 3. Call the API.
 4. Return the `url` to the user with a brief explanation.
 
-## Word index counting
+## Word index counting (read carefully — this is the #1 source of mistakes)
 
-Count left to right from 0, splitting on whitespace. Characters `.` `-` `|` also split. For RTL lines, word 0 is the logically first word (rightmost on screen).
+Word indices are token positions, so you must tokenize a line exactly the way the service does before assigning indices:
 
-If uncertain about tokenization, call `GET https://aligner.tinygods.dev/api/align?lines=your+text` first and open the URL to count word boxes in the editor.
+1. **Whitespace always splits.** `"I have been going"` → `I`[0] `have`[1] `been`[2] `going`[3].
+2. **The `tokenSplitChars` characters also split, and are then removed from the output.** The default set is `.-|`. So `"go.PST.IPFV"` becomes three *separate* tokens `go` `PST` `IPFV` and **the dots disappear from the rendered diagram**. This is usually not what you want for Leipzig glosses — see the gloss pattern below, which sets `tokenSplitChars` to `"-|"` to keep the dots.
+3. **Punctuation stays attached by default.** `"Hello, world!"` → `Hello,`[0] `world!`[1] (the comma and exclamation mark are part of the tokens, not separate).
+4. **The merge char `+` joins parts into one token** rendered with a space: `"is+playing"` is a single token (index counts as one word) that displays as `is playing`.
+5. **RTL lines:** word 0 is the logically first word (the rightmost one on screen for Hebrew/Arabic). Index in reading order, not visual order.
+
+Whenever you set `tokenSplitChars` in `settings`, recount every line's indices using that same split set — changing it shifts all the indices on every line.
+
+If unsure, call `GET https://aligner.tinygods.dev/api/align?lines=your+text` first and open the URL to count the word boxes in the editor.
 
 ## Common patterns
 
