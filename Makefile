@@ -9,8 +9,13 @@
 #   make examples-deps       — npm install + Playwright Chromium
 
 BITEXT := bitext
+SKILL_DIR := word-aligner-skill
+SKILL_ZIP := word-aligner-skill.zip
 
-.PHONY: examples-deps examples-previews examples-render examples-upload examples-build
+.PHONY: skill-zip examples-deps examples-previews examples-render examples-upload examples-build
+
+skill-zip:
+	zip -r $(SKILL_ZIP) $(SKILL_DIR)
 
 examples-deps:
 	cd $(BITEXT) && npm install && npx playwright install chromium
