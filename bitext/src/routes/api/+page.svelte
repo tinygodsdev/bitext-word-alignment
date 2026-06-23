@@ -15,12 +15,19 @@
 		'font-medium text-primary-700 underline decoration-primary-700/40 underline-offset-2 hover:text-primary-800 hover:decoration-primary-800 dark:text-primary-400 dark:decoration-primary-400/50 dark:hover:text-primary-300';
 
 	const headingClass = 'font-heading mt-10 text-xl font-semibold text-gray-900 dark:text-white';
+	const subheadingClass = 'mt-6 font-semibold text-gray-900 dark:text-white';
 
 	const codeClass =
 		'rounded bg-gray-100 px-1.5 py-0.5 font-mono text-sm text-gray-800 dark:bg-gray-800 dark:text-gray-200';
 
 	const preClass =
 		'overflow-x-auto rounded-md border border-gray-200 bg-gray-50 p-4 font-mono text-sm leading-relaxed text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200';
+
+	const tableClass = 'mt-4 overflow-x-auto rounded-md border border-gray-200 dark:border-gray-700';
+	const thClass = 'px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-300';
+	const tdClass = 'px-4 py-2 font-mono text-gray-800 dark:text-gray-200';
+	const tdDescClass = 'px-4 py-2 text-gray-700 dark:text-gray-300';
+	const tdTypeClass = 'px-4 py-2 text-gray-600 dark:text-gray-400';
 </script>
 
 <svelte:head>
@@ -64,36 +71,27 @@
 	>
 		<p class="m-0 font-medium text-gray-900 dark:text-white">On this page</p>
 		<ul class="mt-2 list-none space-y-1 p-0">
-			<li>
-				<a
-					href="#post-api-align"
-					class="block py-1 text-gray-700 underline decoration-gray-400/40 underline-offset-2 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-					>POST /api/align</a
-				>
-			</li>
-			<li>
-				<a
-					href="#get-api-align"
-					class="block py-1 text-gray-700 underline decoration-gray-400/40 underline-offset-2 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-					>GET /api/align (lines only)</a
-				>
-			</li>
-			<li>
-				<a
-					href="#word-indices"
-					class="block py-1 text-gray-700 underline decoration-gray-400/40 underline-offset-2 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-					>Word indices and tokenization</a
-				>
-			</li>
-			<li>
-				<a
-					href="#errors"
-					class="block py-1 text-gray-700 underline decoration-gray-400/40 underline-offset-2 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-					>Errors</a
-				>
-			</li>
+			{#each [
+				['#post-api-align', 'POST /api/align'],
+				['#get-api-align', 'GET /api/align (lines only)'],
+				['#line-options', 'Per-line options'],
+				['#settings', 'Visual settings'],
+				['#pairs', 'Pair controls'],
+				['#word-indices', 'Word indices and tokenization'],
+				['#errors', 'Errors'],
+			] as [href, label]}
+				<li>
+					<a
+						{href}
+						class="block py-1 text-gray-700 underline decoration-gray-400/40 underline-offset-2 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+						>{label}</a
+					>
+				</li>
+			{/each}
 		</ul>
 	</nav>
+
+	<!-- ── POST /api/align ─────────────────────────────────────── -->
 
 	<h2 id="post-api-align" class={headingClass}>POST /api/align</h2>
 	<p class="mt-3">
@@ -101,44 +99,65 @@
 		pre-filled.
 	</p>
 
-	<h3 class="mt-6 font-semibold text-gray-900 dark:text-white">Request</h3>
+	<h3 class={subheadingClass}>Request body</h3>
 	<p class="mt-2 text-sm"><span class={codeClass}>Content-Type: application/json</span></p>
 
-	<div class="mt-4 overflow-x-auto rounded-md border border-gray-200 dark:border-gray-700">
+	<div class={tableClass}>
 		<table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
 			<thead class="bg-gray-50 dark:bg-gray-800/60">
 				<tr>
-					<th class="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-300">Field</th>
-					<th class="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-300">Type</th>
-					<th class="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-300"
-						>Description</th
-					>
+					<th class={thClass}>Field</th>
+					<th class={thClass}>Type</th>
+					<th class={thClass}>Description</th>
 				</tr>
 			</thead>
 			<tbody class="divide-y divide-gray-100 dark:divide-gray-700/60">
 				<tr>
-					<td class="px-4 py-2 font-mono text-gray-800 dark:text-gray-200">lines</td>
-					<td class="px-4 py-2 text-gray-600 dark:text-gray-400">string[] (required)</td>
-					<td class="px-4 py-2 text-gray-700 dark:text-gray-300"
-						>Text lines, top to bottom. 1–8 lines.</td
+					<td class={tdClass}>lines</td>
+					<td class={tdTypeClass}>(string | LineInput)[] <em>required</em></td>
+					<td class={tdDescClass}
+						>Text lines, top to bottom. 1–8 entries. Each may be a plain string or a <a
+							href="#line-options"
+							class={linkClass}>LineInput</a
+						> object with per-line visual options.</td
 					>
 				</tr>
 				<tr class="bg-gray-50/50 dark:bg-gray-800/20">
-					<td class="px-4 py-2 font-mono text-gray-800 dark:text-gray-200">alignments</td>
-					<td class="px-4 py-2 text-gray-600 dark:text-gray-400">[int,int,int,int][] (optional)</td>
-					<td class="px-4 py-2 text-gray-700 dark:text-gray-300"
+					<td class={tdClass}>alignments</td>
+					<td class={tdTypeClass}>[int,int,int,int][] <em>optional</em></td>
+					<td class={tdDescClass}
 						>Word-alignment pairs as <span class={codeClass}>[lineA, wordA, lineB, wordB]</span>. Lines
-						A and B must be adjacent (<span class={codeClass}>|A−B| = 1</span>). Indices are 0-based.</td
+						A and B must be adjacent (<span class={codeClass}>|A−B| = 1</span>). Indices are 0-based.
+						Multiple pairs can share the same word (many-to-one) — they receive the same color
+						automatically.</td
+					>
+				</tr>
+				<tr>
+					<td class={tdClass}>settings</td>
+					<td class={tdTypeClass}>SettingsInput <em>optional</em></td>
+					<td class={tdDescClass}
+						>Global visual overrides: palette, line style, thickness, opacity, background. See <a
+							href="#settings"
+							class={linkClass}>Visual settings</a
+						>.</td
+					>
+				</tr>
+				<tr class="bg-gray-50/50 dark:bg-gray-800/20">
+					<td class={tdClass}>pairs</td>
+					<td class={tdTypeClass}>PairInput[] <em>optional</em></td>
+					<td class={tdDescClass}
+						>Per-pair controls: vertical gap between adjacent lines or hiding connectors for a specific
+						pair. See <a href="#pairs" class={linkClass}>Pair controls</a>.</td
 					>
 				</tr>
 			</tbody>
 		</table>
 	</div>
 
-	<h3 class="mt-6 font-semibold text-gray-900 dark:text-white">Response</h3>
+	<h3 class={subheadingClass}>Response</h3>
 	<pre class="{preClass} mt-3">{`{ "url": "https://${ALIGNER_SITE_HOST}/?data=..." }`}</pre>
 
-	<h3 class="mt-6 font-semibold text-gray-900 dark:text-white">Example</h3>
+	<h3 class={subheadingClass}>Example — simple alignment</h3>
 	<pre class="{preClass} mt-3">{`curl -X POST ${apiBase}/api/align \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -149,58 +168,310 @@
     ]
   }'`}</pre>
 	<p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-		This links "Hello" → "Bonjour" (word 0 of line 0 to word 0 of line 1) and "world" → "monde"
-		(word 1 of line 0 to word 2 of line 1 — "le" is word 1, "monde" is word 2).
+		Links "Hello" → "Bonjour" (word 0 → word 0) and "world" → "monde" (word 1 → word 2; "le" is
+		word 1, "monde" is word 2).
 	</p>
 
-	<p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
-		Response:
+	<h3 class={subheadingClass}>Example — many-to-one (one word maps to several)</h3>
+	<pre class="{preClass} mt-3">{`curl -X POST ${apiBase}/api/align \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "lines": ["Я ходил", "I have been going"],
+    "alignments": [
+      [0, 0, 1, 0],
+      [0, 1, 1, 1],
+      [0, 1, 1, 2],
+      [0, 1, 1, 3]
+    ]
+  }'`}</pre>
+	<p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+		"ходил" (word 1) maps to three English words. All three connections share the same color
+		automatically.
 	</p>
-	<pre class="{preClass} mt-2">{`{ "url": "https://${ALIGNER_SITE_HOST}/?data=..." }`}</pre>
+
+	<!-- ── GET /api/align ──────────────────────────────────────── -->
 
 	<h2 id="get-api-align" class={headingClass}>GET /api/align</h2>
 	<p class="mt-3">
-		Simple variant for quick links: pass lines as repeated query parameters. No alignments. Useful
-		for opening the editor pre-filled via a link.
+		Simple variant: pass lines as repeated query parameters. No alignments. Useful for opening the
+		editor pre-filled via a plain link.
 	</p>
-
 	<pre class="{preClass} mt-4">{`GET /api/align?lines=Hello+world&lines=Bonjour+le+monde`}</pre>
-
 	<p class="mt-3 text-sm">
-		<strong class="text-gray-900 dark:text-white">Parameters:</strong>
+		<strong class="text-gray-900 dark:text-white">Parameter:</strong>
 		<span class={codeClass}>lines</span> — repeat for each line (1–8).
 	</p>
 
-	<h2 id="word-indices" class={headingClass}>Word indices and tokenization</h2>
+	<!-- ── Per-line options ────────────────────────────────────── -->
+
+	<h2 id="line-options" class={headingClass}>Per-line options (LineInput)</h2>
 	<p class="mt-3">
-		Words are counted from 0, left to right as written. The default split rules: whitespace always
-		splits, and the characters <span class={codeClass}>.</span>
-		<span class={codeClass}>-</span>
-		<span class={codeClass}>|</span> also create word boundaries. Punctuation is not split into
-		separate tokens by default.
+		Instead of a plain string, each entry in <span class={codeClass}>lines</span> can be an object:
 	</p>
-	<p class="mt-3">Example — <em>"Bonjour le monde"</em>:</p>
-	<div class="mt-3 overflow-x-auto rounded-md border border-gray-200 dark:border-gray-700">
+
+	<div class={tableClass}>
 		<table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
 			<thead class="bg-gray-50 dark:bg-gray-800/60">
 				<tr>
-					<th class="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-300">Index</th>
-					<th class="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+					<th class={thClass}>Field</th>
+					<th class={thClass}>Type</th>
+					<th class={thClass}>Default</th>
+					<th class={thClass}>Description</th>
 				</tr>
 			</thead>
 			<tbody class="divide-y divide-gray-100 dark:divide-gray-700/60">
 				<tr>
-					<td class="px-4 py-2 font-mono text-gray-800 dark:text-gray-200">0</td>
-					<td class="px-4 py-2 text-gray-700 dark:text-gray-300">Bonjour</td>
+					<td class={tdClass}>text</td>
+					<td class={tdTypeClass}>string <em>required</em></td>
+					<td class={tdTypeClass}>—</td>
+					<td class={tdDescClass}>Line text.</td>
 				</tr>
 				<tr class="bg-gray-50/50 dark:bg-gray-800/20">
-					<td class="px-4 py-2 font-mono text-gray-800 dark:text-gray-200">1</td>
-					<td class="px-4 py-2 text-gray-700 dark:text-gray-300">le</td>
+					<td class={tdClass}>font</td>
+					<td class={tdTypeClass}>string</td>
+					<td class={tdTypeClass}>Inter</td>
+					<td class={tdDescClass}
+						>Google Fonts family name, e.g. <span class={codeClass}>"Noto Serif"</span>, <span
+							class={codeClass}>"Noto Sans Arabic"</span
+						>, <span class={codeClass}>"Noto Sans Hebrew"</span>.</td
+					>
 				</tr>
 				<tr>
-					<td class="px-4 py-2 font-mono text-gray-800 dark:text-gray-200">2</td>
-					<td class="px-4 py-2 text-gray-700 dark:text-gray-300">monde</td>
+					<td class={tdClass}>sizePx</td>
+					<td class={tdTypeClass}>integer 12–64</td>
+					<td class={tdTypeClass}>36</td>
+					<td class={tdDescClass}>Text size in px.</td>
 				</tr>
+				<tr class="bg-gray-50/50 dark:bg-gray-800/20">
+					<td class={tdClass}>gapPx</td>
+					<td class={tdTypeClass}>integer 0–56</td>
+					<td class={tdTypeClass}>14</td>
+					<td class={tdDescClass}>Horizontal gap between word tokens in px.</td>
+				</tr>
+				<tr>
+					<td class={tdClass}>rtl</td>
+					<td class={tdTypeClass}>boolean</td>
+					<td class={tdTypeClass}>false</td>
+					<td class={tdDescClass}
+						>Right-to-left layout. Use for Hebrew, Arabic, Farsi, Urdu, etc. Word indices remain
+						0-based left-to-right in logical order.</td
+					>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+
+	<h3 class={subheadingClass}>Example — Hebrew with RTL and custom font</h3>
+	<pre class="{preClass} mt-3">{`curl -X POST ${apiBase}/api/align \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "lines": [
+      { "text": "שלום עולם", "rtl": true, "sizePx": 48, "font": "Noto Sans Hebrew" },
+      { "text": "Hello world", "sizePx": 40 }
+    ],
+    "alignments": [
+      [0, 0, 1, 0],
+      [0, 1, 1, 1]
+    ]
+  }'`}</pre>
+
+	<!-- ── Visual settings ─────────────────────────────────────── -->
+
+	<h2 id="settings" class={headingClass}>Visual settings (SettingsInput)</h2>
+	<p class="mt-3">
+		The optional <span class={codeClass}>settings</span> object overrides global visual parameters.
+		Unset fields inherit defaults.
+	</p>
+
+	<div class={tableClass}>
+		<table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+			<thead class="bg-gray-50 dark:bg-gray-800/60">
+				<tr>
+					<th class={thClass}>Field</th>
+					<th class={thClass}>Values</th>
+					<th class={thClass}>Default</th>
+					<th class={thClass}>Description</th>
+				</tr>
+			</thead>
+			<tbody class="divide-y divide-gray-100 dark:divide-gray-700/60">
+				<tr>
+					<td class={tdClass}>palette</td>
+					<td class={tdTypeClass}
+						><span class={codeClass}>pastel</span> <span class={codeClass}>vivid</span>
+						<span class={codeClass}>academic</span></td
+					>
+					<td class={tdTypeClass}>pastel</td>
+					<td class={tdDescClass}>Color palette for connection lines and token tints.</td>
+				</tr>
+				<tr class="bg-gray-50/50 dark:bg-gray-800/20">
+					<td class={tdClass}>lineStyle</td>
+					<td class={tdTypeClass}
+						><span class={codeClass}>curved</span> <span class={codeClass}>straight</span></td
+					>
+					<td class={tdTypeClass}>curved</td>
+					<td class={tdDescClass}>Shape of connection lines.</td>
+				</tr>
+				<tr>
+					<td class={tdClass}>lineThickness</td>
+					<td class={tdTypeClass}>number 1–8</td>
+					<td class={tdTypeClass}>3</td>
+					<td class={tdDescClass}>Stroke width of connection lines.</td>
+				</tr>
+				<tr class="bg-gray-50/50 dark:bg-gray-800/20">
+					<td class={tdClass}>lineOpacity</td>
+					<td class={tdTypeClass}>number 0.2–1</td>
+					<td class={tdTypeClass}>1</td>
+					<td class={tdDescClass}>Opacity of connection lines.</td>
+				</tr>
+				<tr>
+					<td class={tdClass}>background</td>
+					<td class={tdTypeClass}
+						><span class={codeClass}>light</span> <span class={codeClass}>dark</span></td
+					>
+					<td class={tdTypeClass}>light</td>
+					<td class={tdDescClass}>Preview background color.</td>
+				</tr>
+				<tr class="bg-gray-50/50 dark:bg-gray-800/20">
+					<td class={tdClass}>theme</td>
+					<td class={tdTypeClass}
+						><span class={codeClass}>light</span> <span class={codeClass}>dark</span></td
+					>
+					<td class={tdTypeClass}>light</td>
+					<td class={tdDescClass}>UI theme (affects token chip color).</td>
+				</tr>
+				<tr>
+					<td class={tdClass}>showNumbers</td>
+					<td class={tdTypeClass}>boolean</td>
+					<td class={tdTypeClass}>false</td>
+					<td class={tdDescClass}>Show line numbers next to each line.</td>
+				</tr>
+				<tr class="bg-gray-50/50 dark:bg-gray-800/20">
+					<td class={tdClass}>colorTokensByLink</td>
+					<td class={tdTypeClass}>boolean</td>
+					<td class={tdTypeClass}>true</td>
+					<td class={tdDescClass}>Tint word tokens in the color of their connection.</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+
+	<h3 class={subheadingClass}>Example — vivid palette, straight lines, dark background</h3>
+	<pre class="{preClass} mt-3">{`curl -X POST ${apiBase}/api/align \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "lines": ["Hello world", "Bonjour le monde"],
+    "alignments": [[0, 0, 1, 0], [0, 1, 1, 2]],
+    "settings": {
+      "palette": "vivid",
+      "lineStyle": "straight",
+      "background": "dark",
+      "theme": "dark",
+      "lineThickness": 2
+    }
+  }'`}</pre>
+
+	<!-- ── Pair controls ───────────────────────────────────────── -->
+
+	<h2 id="pairs" class={headingClass}>Pair controls (PairInput)</h2>
+	<p class="mt-3">
+		The optional <span class={codeClass}>pairs</span> array lets you adjust the vertical gap between
+		specific adjacent line pairs, or hide connectors entirely for a pair (useful when some lines are
+		glosses that annotate but do not align to the line above).
+	</p>
+
+	<div class={tableClass}>
+		<table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+			<thead class="bg-gray-50 dark:bg-gray-800/60">
+				<tr>
+					<th class={thClass}>Field</th>
+					<th class={thClass}>Type</th>
+					<th class={thClass}>Default</th>
+					<th class={thClass}>Description</th>
+				</tr>
+			</thead>
+			<tbody class="divide-y divide-gray-100 dark:divide-gray-700/60">
+				<tr>
+					<td class={tdClass}>upper</td>
+					<td class={tdTypeClass}>integer <em>required</em></td>
+					<td class={tdTypeClass}>—</td>
+					<td class={tdDescClass}>0-based index of the upper line.</td>
+				</tr>
+				<tr class="bg-gray-50/50 dark:bg-gray-800/20">
+					<td class={tdClass}>lower</td>
+					<td class={tdTypeClass}>integer <em>required</em></td>
+					<td class={tdTypeClass}>—</td>
+					<td class={tdDescClass}>0-based index of the lower line (must equal upper + 1).</td>
+				</tr>
+				<tr>
+					<td class={tdClass}>gapPx</td>
+					<td class={tdTypeClass}>integer 12–156</td>
+					<td class={tdTypeClass}>120</td>
+					<td class={tdDescClass}>Vertical gap between the two lines in px.</td>
+				</tr>
+				<tr class="bg-gray-50/50 dark:bg-gray-800/20">
+					<td class={tdClass}>showConnectors</td>
+					<td class={tdTypeClass}>boolean</td>
+					<td class={tdTypeClass}>true</td>
+					<td class={tdDescClass}
+						>When <span class={codeClass}>false</span>, connection lines are not drawn between this pair.
+						Alignment data is still encoded.</td
+					>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+
+	<h3 class={subheadingClass}>Example — 3 lines, gloss row with tighter gap and no connectors</h3>
+	<pre class="{preClass} mt-3">{`curl -X POST ${apiBase}/api/align \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "lines": [
+      "Я ходил",
+      "I have been going",
+      "1SG.NOM PST.IPFV"
+    ],
+    "alignments": [
+      [0, 0, 1, 0],
+      [0, 1, 1, 1],
+      [0, 1, 1, 2],
+      [0, 1, 1, 3]
+    ],
+    "pairs": [
+      { "upper": 1, "lower": 2, "gapPx": 60, "showConnectors": false }
+    ]
+  }'`}</pre>
+	<p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+		Connectors are drawn between lines 0–1. Line 2 is a gloss row with a smaller gap and no
+		connectors.
+	</p>
+
+	<!-- ── Word indices ────────────────────────────────────────── -->
+
+	<h2 id="word-indices" class={headingClass}>Word indices and tokenization</h2>
+	<p class="mt-3">
+		Words are counted from 0, left to right as written (logical order — even for RTL lines). The
+		default split rules: whitespace always splits, and the characters <span class={codeClass}>.</span
+		>
+		<span class={codeClass}>-</span>
+		<span class={codeClass}>|</span> also create word boundaries. Punctuation is not split into separate
+		tokens by default.
+	</p>
+	<p class="mt-3">Example — <em>"Bonjour le monde"</em>:</p>
+	<div class={tableClass}>
+		<table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+			<thead class="bg-gray-50 dark:bg-gray-800/60">
+				<tr>
+					<th class={thClass}>Index</th>
+					<th class={thClass}>Word</th>
+				</tr>
+			</thead>
+			<tbody class="divide-y divide-gray-100 dark:divide-gray-700/60">
+				{#each [['0', 'Bonjour'], ['1', 'le'], ['2', 'monde']] as [idx, word]}
+					<tr class={idx === '1' ? 'bg-gray-50/50 dark:bg-gray-800/20' : ''}>
+						<td class={tdClass}>{idx}</td>
+						<td class="px-4 py-2 text-gray-700 dark:text-gray-300">{word}</td>
+					</tr>
+				{/each}
 			</tbody>
 		</table>
 	</div>
@@ -209,12 +480,11 @@
 		returned URL and count the word boxes in the editor.
 	</p>
 
-	<h2 id="errors" class={headingClass}>Errors</h2>
-	<p class="mt-3">
-		Errors return HTTP 400 with a JSON body:
-	</p>
-	<pre class="{preClass} mt-3">{`{ "error": "alignments[0]: lines 0 and 2 are not adjacent" }`}</pre>
+	<!-- ── Errors ─────────────────────────────────────────────── -->
 
+	<h2 id="errors" class={headingClass}>Errors</h2>
+	<p class="mt-3">Errors return HTTP 400 with a JSON body:</p>
+	<pre class="{preClass} mt-3">{`{ "error": "alignments[0]: lines 0 and 2 are not adjacent" }`}</pre>
 	<p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
 		All endpoints support CORS (<span class={codeClass}>Access-Control-Allow-Origin: *</span>).
 	</p>

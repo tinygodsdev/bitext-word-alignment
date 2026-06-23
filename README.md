@@ -49,6 +49,35 @@ Tune colors, tokenization, and fonts in settings, then export or share.
 - **Interlinear translation** places a gloss directly under each source word — compact, but it hides reordering. Aligner keeps both sentences on their own line and draws connectors, so reorderings, splits, and merges stay obvious.
 - **Parallel text** is side-by-side bilingual reading for long-form study. Aligner focuses on one sentence pair at a time with explicit connectors showing which tokens correspond.
 
+## API
+
+Word Aligner has a free HTTP API for generating alignment links programmatically.
+
+```
+POST https://aligner.tinygods.dev/api/align
+Content-Type: application/json
+
+{
+  "lines": ["Hello world", "Bonjour le monde"],
+  "alignments": [[0, 0, 1, 0], [0, 1, 1, 2]]
+}
+```
+
+Returns `{ "url": "https://aligner.tinygods.dev/?data=..." }`.
+
+Supports per-line options (font, size, RTL), global visual settings (palette, line style, background), pair-level gap control, and multi-line stacks with selective connectors.
+
+- **API docs:** [aligner.tinygods.dev/api](https://aligner.tinygods.dev/api)
+- **OpenAPI schema:** [aligner.tinygods.dev/api/align/openapi.json](https://aligner.tinygods.dev/api/align/openapi.json)
+
+### Using Word Aligner as an AI agent tool
+
+The file [`.agents/tools/word-aligner-api.md`](.agents/tools/word-aligner-api.md) is a skill prompt that teaches AI assistants (Claude, ChatGPT, etc.) how to use the API. Add it as a custom instruction or system prompt to enable a flow like:
+
+> "Translate 'я хочу спать' into English and show me the word alignment."
+
+The agent translates, calls the API, and returns a shareable link.
+
 ## Learn more
 
 - **App:** [aligner.tinygods.dev](https://aligner.tinygods.dev)
