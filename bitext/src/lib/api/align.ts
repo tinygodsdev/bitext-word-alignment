@@ -48,6 +48,18 @@ export interface SettingsInput {
 	showNumbers?: boolean;
 	/** Tint word tokens in the color of their connection. */
 	colorTokensByLink?: boolean;
+	/**
+	 * Characters (besides whitespace) that split text into separate word tokens.
+	 * Default is ".-|". For Leipzig glosses, set "-|" so periods stay inside a token
+	 * (e.g. "go.PST.IPFV" is one token instead of three). The split character itself is
+	 * not drawn, so any character you keep here disappears from the rendered text.
+	 */
+	tokenSplitChars?: string;
+	/**
+	 * Single character that joins parts into one alignment token while rendering as a space
+	 * (e.g. "is+playing" shows "is playing" but counts as one word). Default is "+".
+	 */
+	tokenMergeChar?: string;
 }
 
 /** Per-adjacent-pair controls. `upper` and `lower` are 0-based line indices (lower = upper + 1). */
@@ -119,6 +131,10 @@ function parseSettingsInput(val: unknown): { ok: SettingsInput } | { err: string
 		return { err: 'settings.showNumbers must be a boolean' };
 	if (v.colorTokensByLink !== undefined && typeof v.colorTokensByLink !== 'boolean')
 		return { err: 'settings.colorTokensByLink must be a boolean' };
+	if (v.tokenSplitChars !== undefined && typeof v.tokenSplitChars !== 'string')
+		return { err: 'settings.tokenSplitChars must be a string' };
+	if (v.tokenMergeChar !== undefined && (typeof v.tokenMergeChar !== 'string' || v.tokenMergeChar.length > 1))
+		return { err: 'settings.tokenMergeChar must be a single character' };
 
 	return {
 		ok: {
@@ -129,7 +145,9 @@ function parseSettingsInput(val: unknown): { ok: SettingsInput } | { err: string
 			lineThickness: typeof v.lineThickness === 'number' ? v.lineThickness : undefined,
 			lineOpacity: typeof v.lineOpacity === 'number' ? v.lineOpacity : undefined,
 			showNumbers: typeof v.showNumbers === 'boolean' ? v.showNumbers : undefined,
-			colorTokensByLink: typeof v.colorTokensByLink === 'boolean' ? v.colorTokensByLink : undefined
+			colorTokensByLink: typeof v.colorTokensByLink === 'boolean' ? v.colorTokensByLink : undefined,
+			tokenSplitChars: typeof v.tokenSplitChars === 'string' ? v.tokenSplitChars : undefined,
+			tokenMergeChar: typeof v.tokenMergeChar === 'string' ? v.tokenMergeChar : undefined
 		}
 	};
 }

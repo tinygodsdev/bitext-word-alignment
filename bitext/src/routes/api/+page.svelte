@@ -352,6 +352,27 @@
 					<td class={tdTypeClass}>true</td>
 					<td class={tdDescClass}>Tint word tokens in the color of their connection.</td>
 				</tr>
+				<tr>
+					<td class={tdClass}>tokenSplitChars</td>
+					<td class={tdTypeClass}>string</td>
+					<td class={tdTypeClass}><span class={codeClass}>.-|</span></td>
+					<td class={tdDescClass}
+						>Characters (besides whitespace) that split text into tokens. The split character is
+						<strong>not</strong> rendered. Set to <span class={codeClass}>-|</span> to keep periods
+						inside Leipzig gloss morphemes (e.g. <span class={codeClass}>go.PST.IPFV</span> stays one
+						token).</td
+					>
+				</tr>
+				<tr class="bg-gray-50/50 dark:bg-gray-800/20">
+					<td class={tdClass}>tokenMergeChar</td>
+					<td class={tdTypeClass}>string (1 char)</td>
+					<td class={tdTypeClass}><span class={codeClass}>+</span></td>
+					<td class={tdDescClass}
+						>Joins parts into one token while rendering as a space, e.g. <span class={codeClass}
+							>is+playing</span
+						> → "is playing" (one word).</td
+					>
+				</tr>
 			</tbody>
 		</table>
 	</div>
@@ -422,29 +443,31 @@
 		</table>
 	</div>
 
-	<h3 class={subheadingClass}>Example — 3 lines, gloss row with tighter gap and no connectors</h3>
+	<h3 class={subheadingClass}>Example — interlinear (Leipzig) gloss</h3>
 	<pre class="{preClass} mt-3">{`curl -X POST ${apiBase}/api/align \\
   -H "Content-Type: application/json" \\
   -d '{
     "lines": [
+      { "text": "1SG.NOM go.PST.IPFV", "sizePx": 22 },
       { "text": "Я ходил", "sizePx": 40 },
-      { "text": "1SG.NOM PST.IPFV", "sizePx": 22 },
       { "text": "I have been going", "sizePx": 36 }
     ],
     "alignments": [
-      [0, 0, 1, 0], [0, 0, 1, 1],
-      [0, 1, 1, 2], [0, 1, 1, 3]
+      [0, 0, 1, 0], [0, 1, 1, 1],
+      [1, 0, 2, 0],
+      [1, 1, 2, 1], [1, 1, 2, 2], [1, 1, 2, 3]
     ],
+    "settings": { "tokenSplitChars": "-|" },
     "pairs": [
-      { "upper": 0, "lower": 1, "gapPx": 12, "showConnectors": false },
-      { "upper": 1, "lower": 2, "gapPx": 80, "showConnectors": false }
+      { "upper": 0, "lower": 1, "gapPx": 12, "showConnectors": false }
     ]
   }'`}</pre>
 	<p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-		Gloss is adjacent to source (lines 0–1) with a 12 px gap and hidden arcs — tokens are colored
-		but no lines are drawn. Dots in the gloss text are split characters: <span class={codeClass}>"1SG.NOM"</span>
-		becomes two tokens (word 0 = <em>1SG</em>, word 1 = <em>NOM</em>). The free translation sits
-		below with a larger gap.
+		The gloss tier sits directly above the source (lines 0–1) with a tight 12 px gap and hidden arcs
+		— its tokens are color-matched to the source words but no lines are drawn. The source→translation
+		pair keeps its arcs. Note <span class={codeClass}>"tokenSplitChars": "-|"</span>: this drops the
+		period from the split set so a Leipzig morpheme like <span class={codeClass}>go.PST.IPFV</span>
+		stays a single token instead of rendering as <span class={codeClass}>goPSTIPFV</span>.
 	</p>
 
 	<!-- ── Word indices ────────────────────────────────────────── -->
@@ -457,6 +480,14 @@
 		<span class={codeClass}>-</span>
 		<span class={codeClass}>|</span> also create word boundaries. Punctuation is not split into separate
 		tokens by default.
+	</p>
+	<p class="mt-3">
+		The split character itself is <strong>not rendered</strong> — it is consumed as a boundary. So
+		<span class={codeClass}>go.PST.IPFV</span> with the default split set displays as three tokens
+		<span class={codeClass}>go</span> <span class={codeClass}>PST</span> <span class={codeClass}
+			>IPFV</span
+		> with the dots removed. If you need the period to stay (common in Leipzig glosses), override
+		<span class={codeClass}>settings.tokenSplitChars</span> to <span class={codeClass}>"-|"</span>.
 	</p>
 	<p class="mt-3">Example — <em>"Bonjour le monde"</em>:</p>
 	<div class={tableClass}>

@@ -205,6 +205,17 @@ export const GET: RequestHandler = ({ url }) => {
 						colorTokensByLink: {
 							type: 'boolean',
 							description: 'Tint word tokens in the color of their connection. Default: true.'
+						},
+						tokenSplitChars: {
+							type: 'string',
+							description:
+								'Characters (besides whitespace) that split text into separate word tokens. Default: ".-|". For Leipzig glosses set "-|" so periods stay inside a token (e.g. "go.PST.IPFV" is one token). The split character itself is not rendered.'
+						},
+						tokenMergeChar: {
+							type: 'string',
+							maxLength: 1,
+							description:
+								'Single character that joins parts into one token while rendering as a space (e.g. "is+playing" → "is playing", one word). Default: "+".'
 						}
 					}
 				},

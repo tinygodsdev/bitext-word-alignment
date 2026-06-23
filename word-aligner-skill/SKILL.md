@@ -67,30 +67,36 @@ If uncertain about tokenization, call `GET https://aligner.tinygods.dev/api/alig
 }
 ```
 
-**Interlinear gloss**: place the gloss line directly under the source (adjacent), connect source→gloss tokens, hide the arcs with `showConnectors: false`, use a small gap (12px). Put the free translation below the gloss with a larger gap and no connectors.
+**Interlinear (Leipzig) gloss** — three lines: gloss on top, source in the middle, free translation at the bottom.
 
-`"1SG.NOM PST.IPFV"` — dots are default split chars, so this yields 4 tokens: `1SG`[0] `NOM`[1] `PST`[2] `IPFV`[3].
+Important: a Leipzig gloss uses periods to pack grammatical features into one morpheme (`go.PST.IPFV` = "go" + past + imperfective, **one** token). The default `tokenSplitChars` is `".-|"`, which would split on the period and hide it — rendering `goPSTIPFV`. To keep the periods, set `"tokenSplitChars": "-|"` (drop the dot).
+
+Layout rules:
+- Gloss sits directly above the source: hide its connector arcs (`showConnectors: false`) and use a tight gap (`gapPx: 12`). The gloss tokens still get colors via their connections to the source.
+- The source→translation pair keeps its arcs (omit it from `pairs`).
+- Connect each gloss token to its source word, each source word to its translation word(s).
 
 ```json
 {
   "lines": [
+    {"text": "1SG.NOM go.PST.IPFV", "sizePx": 22},
     {"text": "Я ходил", "sizePx": 40},
-    {"text": "1SG.NOM PST.IPFV", "sizePx": 22},
     {"text": "I have been going", "sizePx": 36}
   ],
   "alignments": [
-    [0,0,1,0], [0,0,1,1],
-    [0,1,1,2], [0,1,1,3]
+    [0,0,1,0], [0,1,1,1],
+    [1,0,2,0],
+    [1,1,2,1], [1,1,2,2], [1,1,2,3]
   ],
+  "settings": {"tokenSplitChars": "-|"},
   "pairs": [
-    {"upper": 0, "lower": 1, "gapPx": 12, "showConnectors": false},
-    {"upper": 1, "lower": 2, "gapPx": 80, "showConnectors": false}
+    {"upper": 0, "lower": 1, "gapPx": 12, "showConnectors": false}
   ]
 }
 ```
 
-Gloss tokens inherit colors from their source-word group. Arcs are hidden on both pairs; only the color coding is visible.
+Line 0 (gloss) has 2 whitespace-separated tokens: `1SG.NOM`[0] and `go.PST.IPFV`[1]. "ходил" maps to "have been going" (one-to-many, shared color); the gloss above it is color-matched but arc-free.
 
 ## Full parameter reference
 
-See [references/api.md](references/api.md) for the complete parameter tables: `LineInput`, `SettingsInput` (palette, lineStyle, lineThickness, lineOpacity, background, theme, showNumbers, colorTokensByLink), and `PairInput` (gapPx, showConnectors).
+See [references/api.md](references/api.md) for the complete parameter tables: `LineInput`, `SettingsInput` (palette, lineStyle, lineThickness, lineOpacity, background, theme, showNumbers, colorTokensByLink, tokenSplitChars, tokenMergeChar), and `PairInput` (gapPx, showConnectors).

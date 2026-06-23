@@ -50,6 +50,8 @@ Global visual overrides. All fields optional; unset fields use defaults.
 | `theme`             | `light` `dark`              | `light`   | UI theme (affects token chip color) |
 | `showNumbers`       | boolean                     | `false`   | Show line numbers next to each line |
 | `colorTokensByLink` | boolean                     | `true`    | Tint word tokens in the color of their connection |
+| `tokenSplitChars`   | string                      | `.-\|`    | Characters (besides whitespace) that split text into tokens. The split char is **not** rendered. Set to `-\|` to keep periods inside Leipzig gloss morphemes (`go.PST.IPFV` = one token) |
+| `tokenMergeChar`    | string (1 char)             | `+`       | Joins parts into one token while rendering as a space, e.g. `is+playing` → `is playing` (one word) |
 
 **Palette colors:**
 - `pastel` — soft pink, blue, green, yellow, purple, cyan (great for educational content)
@@ -135,44 +137,55 @@ Returns the same `{ "url": "..." }` response. Useful for opening the editor pre-
 }
 ```
 
-### Three lines — source + gloss + free translation
-Gloss is adjacent to source (lines 0–1), arcs hidden but colors shown. Translation is below.
-Dots in gloss are split chars: `"1SG.NOM PST.IPFV"` → tokens `1SG`[0] `NOM`[1] `PST`[2] `IPFV`[3].
+### Interlinear (Leipzig) gloss — gloss / source / free translation
+Gloss on top, source in the middle, free translation at the bottom. The gloss→source pair has
+its arcs hidden (`showConnectors: false`) and a tight 12 px gap; gloss tokens stay color-coded.
+The source→translation pair keeps its arcs.
+
+Set `tokenSplitChars` to `"-|"` (drop the dot) so Leipzig periods stay inside a morpheme:
+`"go.PST.IPFV"` is one token, not three.
 
 ```json
 {
   "lines": [
+    {"text": "1SG.NOM go.PST.IPFV", "sizePx": 22},
     {"text": "Я ходил", "sizePx": 40},
-    {"text": "1SG.NOM PST.IPFV", "sizePx": 22},
     {"text": "I have been going", "sizePx": 36}
   ],
   "alignments": [
-    [0,0,1,0], [0,0,1,1],
-    [0,1,1,2], [0,1,1,3]
+    [0,0,1,0], [0,1,1,1],
+    [1,0,2,0],
+    [1,1,2,1], [1,1,2,2], [1,1,2,3]
   ],
+  "settings": {"tokenSplitChars": "-|"},
   "pairs": [
-    {"upper": 0, "lower": 1, "gapPx": 12, "showConnectors": false},
-    {"upper": 1, "lower": 2, "gapPx": 80, "showConnectors": false}
+    {"upper": 0, "lower": 1, "gapPx": 12, "showConnectors": false}
   ]
 }
 ```
 
-### Four lines with per-line typography
+### Four tiers — gloss / IPA / source / translation
+A full Leipzig stack. The three top tiers (gloss, IPA, source) are tightly stacked with arcs
+hidden; only the source→translation pair draws arcs. `tokenSplitChars: "-|"` keeps the periods
+inside gloss morphemes.
+
 ```json
 {
   "lines": [
-    {"text": "Ich habe geschlafen", "font": "Noto Sans", "sizePx": 40},
-    {"text": "I have slept", "sizePx": 40},
-    {"text": "ich-hab-e geschlafen", "sizePx": 20},
-    {"text": "1SG-AUX-1SG slept.PTCP", "sizePx": 20}
+    {"text": "1SG eat.PRS.1SG INDF.F apple", "sizePx": 22},
+    {"text": "ʒə mɑ̃ʒ yn pɔm", "font": "Noto Sans", "sizePx": 26},
+    {"text": "Je mange une pomme", "sizePx": 40},
+    {"text": "I eat an apple", "sizePx": 30}
   ],
   "alignments": [
-    [0,0,1,0], [0,1,1,1], [0,2,1,2],
-    [2,0,3,0], [2,1,3,1]
+    [0,0,1,0], [0,1,1,1], [0,2,1,2], [0,3,1,3],
+    [1,0,2,0], [1,1,2,1], [1,2,2,2], [1,3,2,3],
+    [2,0,3,0], [2,1,3,1], [2,2,3,2], [2,3,3,3]
   ],
+  "settings": {"tokenSplitChars": "-|"},
   "pairs": [
-    {"upper": 1, "lower": 2, "gapPx": 40, "showConnectors": false},
-    {"upper": 2, "lower": 3, "gapPx": 60}
+    {"upper": 0, "lower": 1, "gapPx": 12, "showConnectors": false},
+    {"upper": 1, "lower": 2, "gapPx": 12, "showConnectors": false}
   ]
 }
 ```
