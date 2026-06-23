@@ -98,6 +98,22 @@ describe('buildAlignUrl', () => {
 		expect(state.project.connections[0]!.lowerTokenId).toBe('l1-2'); // "monde"
 	});
 
+	it('shared token gets the same color on both connections (many-to-one grouping)', () => {
+		// "спать" → "to" and "спать" → "sleep": both connections must share a color
+		const result = buildAlignUrl(ORIGIN, {
+			lines: ['я хочу спать', 'I want to sleep'],
+			alignments: [
+				[0, 2, 1, 2],
+				[0, 2, 1, 3]
+			]
+		});
+		if (!('url' in result)) throw new Error('expected url');
+		const state = decodeState(new URL(result.url).searchParams.get('data'));
+		const conns = state.project.connections;
+		expect(conns).toHaveLength(2);
+		expect(conns[0]!.color).toBe(conns[1]!.color);
+	});
+
 	it('handles 3 lines with alignments between each adjacent pair', () => {
 		const result = buildAlignUrl(ORIGIN, {
 			lines: ['A B', 'C D', 'E F'],

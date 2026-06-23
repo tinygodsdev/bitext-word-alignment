@@ -1,7 +1,6 @@
 import { encodeState } from '$lib/serialization/encode.js';
 import { tokenize, tokenizeOptionsFromVisualSettings } from '$lib/domain/tokens.js';
-import { createConnectionId, type Connection } from '$lib/domain/alignment.js';
-import { assignColorsInOrder } from '$lib/domain/palettes.js';
+import { createConnectionId, pendingAlignmentColor, type Connection } from '$lib/domain/alignment.js';
 import {
 	defaultVisualSettingsV2,
 	SCHEMA_VERSION,
@@ -67,7 +66,6 @@ export function buildAlignUrl(origin: string, req: AlignRequest): AlignResult {
 	}));
 
 	const tokensByLine = lineObjects.map((line) => tokenize(line.rawText, line.id, tzOpts));
-	const colors = assignColorsInOrder(settings.palette, Math.max(alignments.length, 1));
 
 	const connections: Connection[] = [];
 	for (let idx = 0; idx < alignments.length; idx++) {
@@ -99,12 +97,10 @@ export function buildAlignUrl(origin: string, req: AlignRequest): AlignResult {
 				err: `alignments[${idx}]: word ${lowerWordIdx} out of range for line ${lowerIdx} ("${lines[lowerIdx]}" has ${lowerTokens.length} word(s))`
 			};
 
-		connections.push({
-			id: createConnectionId(),
-			upperTokenId: upperTokens[upperWordIdx]!.id,
-			lowerTokenId: lowerTokens[lowerWordIdx]!.id,
-			color: colors[idx % colors.length]
-		});
+		const upperTokenId = upperTokens[upperWordIdx]!.id;
+		const lowerTokenId = lowerTokens[lowerWordIdx]!.id;
+		const color = pendingAlignmentColor(connections, [upperTokenId], [lowerTokenId], settings.palette);
+		connections.push({ id: createConnectionId(), upperTokenId, lowerTokenId, color });
 	}
 
 	const state: AppStateV2 = {

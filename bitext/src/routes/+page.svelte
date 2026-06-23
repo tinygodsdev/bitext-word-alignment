@@ -34,6 +34,7 @@
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { editorExamples, type ExampleId } from '$lib/state/examples.js';
 	import { TALLY_FORM_ID } from '$lib/brand.js';
+	import SiteFooter from '$lib/components/layout/SiteFooter.svelte';
 	import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, SITE_NAME } from '$lib/seo/metadata.js';
 	import type { PageProps } from './$types';
 	import type { Component } from 'svelte';
@@ -125,7 +126,6 @@
 
 	const authorSite = 'https://danipolani.github.io/en/';
 	const toolsPage = 'https://danipolani.github.io/en/blog/tools/';
-	const year = new Date().getFullYear();
 
 	/** How much to trim from the top and bottom of each example image (CSS length, e.g. %, px). */
 	const EXAMPLES_IMAGE_VERTICAL_CROP = '10%';
@@ -556,37 +556,5 @@
 	<LineEditModal />
 	<LineSettingsSheet />
 
-	<footer
-		class="mt-12 border-t border-gray-200 pt-8 text-center text-base leading-relaxed text-gray-600 dark:border-gray-700 dark:text-gray-400"
-	>
-		<p>
-			Created by
-			<a
-				href={authorSite}
-				class="font-medium text-primary-700 underline decoration-primary-700/40 underline-offset-2 hover:text-primary-800 hover:decoration-primary-800 dark:text-primary-400 dark:decoration-primary-400/50 dark:hover:text-primary-300"
-				target="_blank"
-				rel="noopener noreferrer">Dani</a
-			>. See other
-			<a
-				href={toolsPage}
-				class="font-medium text-primary-700 underline decoration-primary-700/40 underline-offset-2 hover:text-primary-800 hover:decoration-primary-800 dark:text-primary-400 dark:decoration-primary-400/50 dark:hover:text-primary-300"
-				target="_blank"
-				rel="noopener noreferrer">tools</a
-			> for linguistics and conlanging.
-		</p>
-		<p class="mt-2 text-gray-500 dark:text-gray-500">
-			© {year} Dani Polani ·
-			<a
-				href={resolve('/about')}
-				class="text-gray-600 underline decoration-gray-400/50 underline-offset-2 hover:text-gray-900 hover:decoration-gray-500/60 dark:text-gray-400 dark:decoration-gray-500/50 dark:hover:text-gray-200 dark:hover:decoration-gray-400/60"
-				>About</a
-			>
-			·
-			<a
-				href={resolve('/privacy')}
-				class="text-gray-600 underline decoration-gray-400/50 underline-offset-2 hover:text-gray-900 hover:decoration-gray-500/60 dark:text-gray-400 dark:decoration-gray-500/50 dark:hover:text-gray-200 dark:hover:decoration-gray-400/60"
-				>Privacy policy</a
-			>
-		</p>
-	</footer>
+	<SiteFooter />
 </main>
