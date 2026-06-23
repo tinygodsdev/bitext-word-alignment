@@ -22,10 +22,14 @@ export function deflateBase64url(s: string): string {
 	return toBase64url(bytes);
 }
 
+const MAX_DECOMPRESSED_BYTES = 2 * 1024 * 1024; // 2 MB
+
 export function inflateBase64url(s: string): string | null {
 	try {
 		const bytes = fromBase64url(s);
-		return strFromU8(inflateSync(bytes));
+		const decompressed = strFromU8(inflateSync(bytes));
+		if (decompressed.length > MAX_DECOMPRESSED_BYTES) return null;
+		return decompressed;
 	} catch {
 		return null;
 	}

@@ -72,13 +72,15 @@
 		{
 			src: '/screenshots/edit-popover-turkish-line-3.png',
 			alt: 'Popover for editing line 3: typography controls for font family, text size, word spacing, line reorder arrows, and delete, above a Turkish token row.',
-			caption: 'Popover on a line: font, size, spacing, reorder, and whether to draw connectors to the row below.',
+			caption:
+				'Popover on a line: font, size, spacing, reorder, and whether to draw connectors to the row below.',
 			narrow: true
 		},
 		{
 			src: '/screenshots/edit-line-modal-turkish-line-3.png',
 			alt: 'Edit line modal for line 3: Turkish text with pipe characters as morpheme boundaries, a summary of split and join rules, optional right-to-left row toggle, color-coded token preview chips, and Done.',
-			caption: 'Edit line dialog: change the sentence and see how it splits into highlighted word boxes.',
+			caption:
+				'Edit line dialog: change the sentence and see how it splits into highlighted word boxes.',
 			narrow: true
 		}
 	];
@@ -228,9 +230,8 @@
 	<p class="mt-4 text-lg text-gray-600 dark:text-gray-400">
 		<strong class="font-semibold text-gray-800 dark:text-gray-200">{DISPLAY_NAME}</strong> is a free,
 		browser-based tool for drawing word-to-word and morpheme-to-morpheme links between stacked lines of
-		text — for bilingual glosses, interlinear annotations, classroom handouts, and social posts.
-		Everything runs in your browser; your sentences are not stored on our servers
-		unless you choose to share them.
+		text — for bilingual glosses, interlinear annotations, classroom handouts, and social posts. Everything
+		runs in your browser; your sentences are not stored on our servers unless you choose to share them.
 	</p>
 
 	<nav
@@ -252,18 +253,22 @@
 
 	<h2 id="doc-line-editor" class={headingClass}>Line editor</h2>
 	<p class="mt-3">
-		You can add several lines (for example source, IPA, glosses, and a free translation). Each line has
-		its own font (Google Fonts or an uploaded file), text size, horizontal spacing between words, and
-		optional right-to-left layout for scripts such as Hebrew or Arabic. Lines can be reordered so that
-		only <strong class="text-gray-900 dark:text-white">adjacent</strong> rows are linkable —
+		You can add several lines (for example source, IPA, glosses, and a free translation). Each line
+		has its own font (Google Fonts or an uploaded file), text size, horizontal spacing between
+		words, and optional right-to-left layout for scripts such as Hebrew or Arabic. Lines can be
+		reordered so that only <strong class="text-gray-900 dark:text-white">adjacent</strong> rows are
+		linkable —
 		{DISPLAY_NAME} always links the line above to the line directly below it. Open a line’s popover for
-		quick typography controls, or the full <strong class="text-gray-900 dark:text-white">Edit line</strong>
+		quick typography controls, or the full
+		<strong class="text-gray-900 dark:text-white">Edit line</strong>
 		dialog to change text and see a live preview of how it splits into word boxes.
 	</p>
 	<div class="mt-6 flex flex-col gap-6">
 		{#each lineEditorShots as shot, i (shot.src)}
 			<figure
-				class="{lineEditorFigureShell} {shot.narrow ? 'mx-auto w-full max-w-md' : 'mx-auto w-full max-w-2xl'}"
+				class="{lineEditorFigureShell} {shot.narrow
+					? 'mx-auto w-full max-w-md'
+					: 'mx-auto w-full max-w-2xl'}"
 			>
 				<div class={lineEditorShotFrame}>
 					<img
@@ -283,11 +288,13 @@
 
 	<h2 id="doc-preview" class={headingClass}>Preview and alignment</h2>
 	<p class="mt-3">
-		Click tokens to create colored alignment links. Many-to-many groupings share one color so you can
-		see which tokens belong to the same correspondence. For each pair of adjacent lines you can
-		adjust the vertical gap and optionally <strong class="text-gray-900 dark:text-white">hide the connector curves</strong>
-		while keeping the links in the data model — useful when a gloss row sits tight under a sentence.
-		The preview supports a clean “hide chrome” mode and fullscreen for screenshots.
+		Click tokens to create colored alignment links. Many-to-many groupings share one color so you
+		can see which tokens belong to the same correspondence. For each pair of adjacent lines you can
+		adjust the vertical gap and optionally <strong class="text-gray-900 dark:text-white"
+			>hide the connector curves</strong
+		>
+		while keeping the links in the data model — useful when a gloss row sits tight under a sentence. The
+		preview supports a clean “hide chrome” mode and fullscreen for screenshots.
 	</p>
 	<div class="mt-6 space-y-8">
 		{#each previewShots as shot (shot.src)}
@@ -320,16 +327,16 @@
 			also hide preview controls for a clean screenshot and open fullscreen from the preview toolbar.
 		</li>
 		<li>
-			<strong class="text-gray-900 dark:text-white">Colors</strong> — color palettes for links, and
-			whether matching words are highlighted by coloring the text or the word background (including in
-			exports when that option is on).
+			<strong class="text-gray-900 dark:text-white">Colors</strong> — color palettes for links, and whether
+			matching words are highlighted by coloring the text or the word background (including in exports
+			when that option is on).
 		</li>
 		<li>
 			<strong class="text-gray-900 dark:text-white">Tokens</strong> — in the UI this tab is labeled
 			“Tokens”; internally we talk about
-			<strong class="text-gray-900 dark:text-white">tokenization</strong>, meaning
-			“how your text is cut into clickable word boxes.” Here you can show line numbers; choose extra
-			characters that force a new word (for example <code class="font-mono text-sm">|</code> or
+			<strong class="text-gray-900 dark:text-white">tokenization</strong>, meaning “how your text is
+			cut into clickable word boxes.” Here you can show line numbers; choose extra characters that
+			force a new word (for example <code class="font-mono text-sm">|</code> or
 			<code class="font-mono text-sm">-</code> when you need morpheme boundaries); set a
 			<strong class="text-gray-900 dark:text-white">join</strong> character so two written words still
 			count as one box for linking (shown with a space in the preview); and optionally split punctuation
@@ -341,8 +348,8 @@
 		</li>
 	</ul>
 	<p class="mt-3 text-sm text-gray-600 dark:text-gray-400">
-		The short summary next to the line editor (“Whitespace splits words…”) mirrors the same rules as the
-		Tokens tab; use the gear button there to jump straight to those controls.
+		The short summary next to the line editor (“Whitespace splits words…”) mirrors the same rules as
+		the Tokens tab; use the gear button there to jump straight to those controls.
 	</p>
 	<div class="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
 		{#each settingsTabShots as shot (shot.src)}
@@ -359,12 +366,13 @@
 
 	<h2 id="doc-export-share" class={headingClass}>Export and share</h2>
 	<p class="mt-3">
-		Download the visualization as <strong class="text-gray-900 dark:text-white">PNG, SVG, PDF,</strong>
-		or a self-contained <strong class="text-gray-900 dark:text-white">HTML</strong> file. You can also
-		build a <strong class="text-gray-900 dark:text-white">share link</strong>: the full project and
-		visual settings are encoded in the <code class="font-mono text-sm text-gray-800 dark:text-gray-200"
-			>?data=</code
+		Download the visualization as <strong class="text-gray-900 dark:text-white"
+			>PNG, SVG, PDF,</strong
 		>
+		or a self-contained <strong class="text-gray-900 dark:text-white">HTML</strong> file. You can
+		also build a <strong class="text-gray-900 dark:text-white">share link</strong>: the full project
+		and visual settings are encoded in the
+		<code class="font-mono text-sm text-gray-800 dark:text-gray-200">?data=</code>
 		URL parameter so anyone who opens the link sees the same alignment. The Share dialog adds a QR code,
 		social targets, and a <strong class="text-gray-900 dark:text-white">Data object</strong> action for
 		JSON shaped like a curated preset (useful for authors and debugging).
@@ -384,11 +392,11 @@
 
 	<h2 id="doc-examples" class={headingClass}>Examples and motion demos</h2>
 	<p class="mt-3">
-		Use <strong class="text-gray-900 dark:text-white">Load example</strong> on the main page to open
-		curated projects (simple bilingual pair, Turkish interlinear with IPA and glosses, Hebrew and
-		Arabic with English, Tagalog compounds, Japanese–Chinese–English, and more). They illustrate RTL,
-		multi-line stacks, and tricky word-splitting cases. The clips below are the same motion demos as on
-		the home page: linking in the editor, and a conlang layout with a custom font and glosses.
+		Use <strong class="text-gray-900 dark:text-white">Load example</strong> on the main page to open curated
+		projects (simple bilingual pair, Turkish interlinear with IPA and glosses, Hebrew and Arabic with
+		English, Tagalog compounds, Japanese–Chinese–English, and more). They illustrate RTL, multi-line stacks,
+		and tricky word-splitting cases. The clips below are the same motion demos as on the home page: linking
+		in the editor, and a conlang layout with a custom font and glosses.
 	</p>
 	<div class="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
 		<figure class="m-0">
@@ -429,9 +437,10 @@
 
 	<h2 id="doc-partners" class={headingClass}>Partner links</h2>
 	<p class="mt-3">
-		{DISPLAY_NAME} stays free and without aggressive ads. Hosting and ongoing upkeep still have a cost, so
-		we add a few optional partner links - use them if you were already considering the service. It will help us keep the site running. The
-		referral bonuses come from the provider. Here I recommend the services that I happily use myself. 
+		{DISPLAY_NAME} stays free and without aggressive ads. Hosting and ongoing upkeep still have a cost,
+		so we add a few optional partner links - use them if you were already considering the service. It
+		will help us keep the site running. The referral bonuses come from the provider. Here I recommend
+		the services that I happily use myself.
 	</p>
 	<div class="mt-5 flex min-w-0 flex-col gap-4">
 		<PartnerBannerPreply />
@@ -442,7 +451,7 @@
 
 	<h2 id="doc-contact" class={headingClass}>Contact</h2>
 	<p class="mt-3">
-		Questions or feedback about {DISPLAY_NAME}:{' '}
+		Questions or feedback about {DISPLAY_NAME}:
 		<a href={`mailto:${SITE_CONTACT_EMAIL}`} class={linkClass}>{SITE_CONTACT_EMAIL}</a>
 		<span class="text-gray-400 dark:text-gray-600"> · </span>
 		<button

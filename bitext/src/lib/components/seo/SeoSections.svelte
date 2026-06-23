@@ -31,10 +31,10 @@
 	<p>
 		For conlangers, the visualizer is a lightweight way to show how a constructed language maps onto
 		English in a specific example. Add extra lines for
-		<strong class="font-medium text-gray-900 dark:text-white">glosses or IPA</strong> (and stack them next
-		to the sentences they annotate), tune how text splits into word-sized boxes under
-		<strong class="font-medium text-gray-900 dark:text-white">Settings → Tokens</strong>, and export the
-		result for a blog post, a forum thread, or a conlang community share.
+		<strong class="font-medium text-gray-900 dark:text-white">glosses or IPA</strong> (and stack
+		them next to the sentences they annotate), tune how text splits into word-sized boxes under
+		<strong class="font-medium text-gray-900 dark:text-white">Settings → Tokens</strong>, and export
+		the result for a blog post, a forum thread, or a conlang community share.
 	</p>
 
 	<h3 class="font-heading mt-6 text-xl font-semibold text-gray-900 dark:text-white">
@@ -83,11 +83,11 @@
 		Can I align phrases, not just single words?
 	</h4>
 	<p>
-		Yes. Each link joins two word-sized boxes on neighboring lines. You can add several links from the
-		same word to different partners (one-to-many or many-to-one) by clicking that word again and choosing
-		another match on the adjacent row. To treat two written words as a single box—for example a fixed
-		expression—use the join character under <strong class="font-medium text-gray-900 dark:text-white"
-			>Settings → Tokens</strong
+		Yes. Each link joins two word-sized boxes on neighboring lines. You can add several links from
+		the same word to different partners (one-to-many or many-to-one) by clicking that word again and
+		choosing another match on the adjacent row. To treat two written words as a single box—for
+		example a fixed expression—use the join character under <strong
+			class="font-medium text-gray-900 dark:text-white">Settings → Tokens</strong
 		>.
 	</p>
 
@@ -95,15 +95,15 @@
 		Is this a full machine translator?
 	</h4>
 	<p>
-		No. You type or paste the text yourself—the app does not translate it for you. The value is in the
-		visualization and the manual control over which words count as matches.
+		No. You type or paste the text yourself—the app does not translate it for you. The value is in
+		the visualization and the manual control over which words count as matches.
 	</p>
 
 	<h4 class="font-heading mt-4 text-base font-semibold text-gray-900 dark:text-white">
 		Can I export the alignment as an image?
 	</h4>
 	<p>
-		Yes. PNG, SVG, PDF, and a self-contained HTML file are all supported, along with a shareable link
-		that encodes every line of text, every connector, and your visual settings.
+		Yes. PNG, SVG, PDF, and a self-contained HTML file are all supported, along with a shareable
+		link that encodes every line of text, every connector, and your visual settings.
 	</p>
 </section>

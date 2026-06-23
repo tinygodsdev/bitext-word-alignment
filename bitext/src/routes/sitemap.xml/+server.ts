@@ -4,7 +4,8 @@ import { GALLERY_EXAMPLES } from '$lib/examples/catalog.js';
 export const GET: RequestHandler = ({ url }) => {
 	const base = url.origin;
 	const exampleUrls = GALLERY_EXAMPLES.map(
-		(e) => `  <url><loc>${base}/examples/${e.slug}</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>`
+		(e) =>
+			`  <url><loc>${base}/examples/${e.slug}</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>`
 	).join('\n');
 	const body = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

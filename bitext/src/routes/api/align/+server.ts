@@ -19,6 +19,8 @@ export const GET: RequestHandler = ({ url }) => {
 		);
 	if (lines.length > 8)
 		return json({ error: 'Maximum 8 lines allowed' }, { status: 400, headers: CORS });
+	if (lines.reduce((sum, l) => sum + l.length, 0) > 80_000)
+		return json({ error: 'Total lines text exceeds maximum size' }, { status: 400, headers: CORS });
 
 	const result = buildAlignUrl(url.origin, { lines });
 	if ('err' in result) return json({ error: result.err }, { status: 400, headers: CORS });

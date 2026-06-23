@@ -1,7 +1,11 @@
 export const prerender = true;
 
 import { error } from '@sveltejs/kit';
-import { findGalleryBySlug, galleryPreviewImageFor, GALLERY_EXAMPLES } from '$lib/examples/catalog.js';
+import {
+	findGalleryBySlug,
+	galleryPreviewImageFor,
+	GALLERY_EXAMPLES
+} from '$lib/examples/catalog.js';
 import { getExamplePagePartnerId } from '$lib/partners/home-rotation.js';
 import type { PageLoad } from './$types';
 

@@ -7,15 +7,15 @@ let hbPromise: Promise<HarfbuzzModule> | null = null;
 /** Minimal typing for the object returned by hbjs(instance). */
 export type HarfbuzzModule = {
 	createBlob: (data: ArrayBuffer) => { ptr: number; destroy: () => void };
-	createFace: (blob: ReturnType<HarfbuzzModule['createBlob']>, index: number) => {
+	createFace: (
+		blob: ReturnType<HarfbuzzModule['createBlob']>,
+		index: number
+	) => {
 		ptr: number;
 		upem: number;
 		destroy: () => void;
 	};
-	createFont: (
-		face: ReturnType<HarfbuzzModule['createFace']>,
-		ptr?: number
-	) => HarfbuzzFont;
+	createFont: (face: ReturnType<HarfbuzzModule['createFace']>, ptr?: number) => HarfbuzzFont;
 	createBuffer: () => HarfbuzzBuffer;
 	shape: (font: HarfbuzzFont, buffer: HarfbuzzBuffer, features?: string) => void;
 };

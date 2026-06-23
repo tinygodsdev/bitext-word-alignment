@@ -35,8 +35,7 @@ const WIKIPEDIA_GALLERY_ENTRIES = [
 		description:
 			'Southern Min (Taiwanese) sentence with morpheme glosses and English: “I have not yet decided when I shall return”.',
 		body: `Languages: Taiwanese Minnan (Hokkien, POJ romanization) → English. Based on the multi-line example in Wikipedia citing Ko & Tan’s beginner vocabulary — here condensed to gloss, source, and translation rows.\n\nWhat it demonstrates: tone-marked compounds (iáu-boē, koat-tēng), left-aligned word glosses, and a free translation that does not match source word order one-to-one.`,
-		imageAlt:
-			'Taiwanese Minnan sentence with interlinear English glosses for decide and return'
+		imageAlt: 'Taiwanese Minnan sentence with interlinear English glosses for decide and return'
 	},
 	{
 		slug: 'lezgian-morpheme-gloss',
@@ -45,8 +44,7 @@ const WIKIPEDIA_GALLERY_ENTRIES = [
 		description:
 			'Lezgian (Northeast Caucasian) farm sentence — hyphen-aligned morphemes, OBL/GEN case tags, and FUT/NEG inflection.',
 		body: `Languages: Lezgian → English. The Wikipedia example Gila abur-u-n ferma hamišaluǧ güǧüna amuqʼ-da-č illustrates the Leipzig rule that gloss lines must contain the same number of hyphens as the object line.\n\nWhat it demonstrates: ergative/absolutive-style case stacking on nouns, verb future + negation as separate morphemes, and a long free translation (“Now their farm will not stay behind forever”).`,
-		imageAlt:
-			'Lezgian interlinear gloss with OBL GEN case markers and English translation'
+		imageAlt: 'Lezgian interlinear gloss with OBL GEN case markers and English translation'
 	},
 	{
 		slug: 'turkish-infinitive-gloss-come-out',
@@ -82,8 +80,7 @@ const WIKIPEDIA_GALLERY_ENTRIES = [
 		description:
 			'Turkish “I left the room quickly” — ablative -dan, comitative -lı, and past 1sg -tım aligned to English.',
 		body: `Languages: Turkish → English. Wikipedia’s Odadan hızlı çıktım example shows morpheme-aligned glosses for case (ABL, COM) and verbal inflection (PFV, 1sg) on a single clause.\n\nWhat it demonstrates: agglutinative word structure and how English reorders “room”, “quickly”, and “left” relative to Turkish oda-dan hız-lı çık-tı-m.`,
-		imageAlt:
-			'Turkish sentence with ABL and COM case glosses aligned to I left the room quickly'
+		imageAlt: 'Turkish sentence with ABL and COM case glosses aligned to I left the room quickly'
 	},
 	{
 		slug: 'french-clitic-pronoun-gloss',
@@ -101,8 +98,7 @@ const WIKIPEDIA_GALLERY_ENTRIES = [
 		description:
 			'Four Tagalog verb forms — sulat, su~sulat, sumulat, sumusulat — with aspect/mood glosses and English equivalents.',
 		body: `Languages: Tagalog → English. Wikipedia’s affixation section uses Tagalog write paradigms to show contemplative reduplication, agent trigger infixes, and combined forms.\n\nWhat it demonstrates: paradigm-style interlinear rows (multiple forms in one diagram) rather than a single sentence — handy for morphology cheat sheets.`,
-		imageAlt:
-			'Tagalog verb paradigm sulat sumulat with aspect glosses and English translations'
+		imageAlt: 'Tagalog verb paradigm sulat sumulat with aspect glosses and English translations'
 	},
 	{
 		slug: 'german-umlaut-plural-gloss',
@@ -145,9 +141,7 @@ const WIKIPEDIA_GALLERY_ENTRIES = [
 	}
 ] satisfies Omit<GalleryExampleEntry, 'sourceAttribution'>[];
 
-export const WIKIPEDIA_GALLERY: GalleryExampleEntry[] = WIKIPEDIA_GALLERY_ENTRIES.map(
-	(entry) => ({
-		...entry,
-		sourceAttribution: WIKIPEDIA_INTERLINEAR_GLOSS_SOURCE
-	})
-);
+export const WIKIPEDIA_GALLERY: GalleryExampleEntry[] = WIKIPEDIA_GALLERY_ENTRIES.map((entry) => ({
+	...entry,
+	sourceAttribution: WIKIPEDIA_INTERLINEAR_GLOSS_SOURCE
+}));

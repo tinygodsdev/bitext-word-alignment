@@ -13,7 +13,9 @@
 		'Browse word alignment and interlinear gloss examples — bilingual pairs, Turkish IPA stacks, RTL scripts, Tagalog compounds, and Japanese–Chinese–English word order. Open any example in the Aligner editor.';
 
 	const canonical = $derived(page.url.origin + page.url.pathname);
-	const ogImage = $derived(galleryPreviewImageUrl(data.examples[0]?.slug ?? 'english-french-word-alignment'));
+	const ogImage = $derived(
+		galleryPreviewImageUrl(data.examples[0]?.slug ?? 'english-french-word-alignment')
+	);
 
 	const linkClass =
 		'font-medium text-primary-700 underline decoration-primary-700/40 underline-offset-2 hover:text-primary-800 hover:decoration-primary-800 dark:text-primary-400 dark:decoration-primary-400/50 dark:hover:text-primary-300';
@@ -74,8 +76,13 @@
 						/>
 					</a>
 					<div class="flex flex-1 flex-col p-4">
-						<h2 class="font-heading m-0 text-lg font-semibold leading-snug text-gray-900 dark:text-white">
-							<a href={resolve(`/examples/${ex.slug}`)} class="text-inherit no-underline hover:underline">
+						<h2
+							class="font-heading m-0 text-lg font-semibold leading-snug text-gray-900 dark:text-white"
+						>
+							<a
+								href={resolve(`/examples/${ex.slug}`)}
+								class="text-inherit no-underline hover:underline"
+							>
 								{ex.title}
 							</a>
 						</h2>

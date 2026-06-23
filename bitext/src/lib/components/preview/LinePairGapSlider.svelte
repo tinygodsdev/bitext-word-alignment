@@ -39,8 +39,9 @@
 			<div class="flex min-w-0 flex-1 justify-end bg-transparent">
 				<div class="pointer-events-auto flex items-center gap-1.5 bg-transparent">
 					<span
-						class="shrink-0 tabular-nums text-[10px] {previewDark ? 'text-gray-400' : 'text-gray-500'}"
-						>{gapPx}px</span
+						class="shrink-0 tabular-nums text-[10px] {previewDark
+							? 'text-gray-400'
+							: 'text-gray-500'}">{gapPx}px</span
 					>
 					<Range
 						appearance="auto"

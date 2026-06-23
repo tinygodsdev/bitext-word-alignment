@@ -176,9 +176,7 @@
 
 <JsonLd />
 
-<main
-	class="w-full min-w-0 overflow-x-hidden px-4 pt-4 pb-8 sm:px-6 md:pt-6 md:pb-12 lg:px-10"
->
+<main class="w-full min-w-0 overflow-x-hidden px-4 pt-4 pb-8 sm:px-6 md:pt-6 md:pb-12 lg:px-10">
 	<header class="mb-8 border-b border-gray-200 pb-8 dark:border-gray-700">
 		<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
 			<h1
@@ -262,9 +260,9 @@
 				<p
 					class="mt-0 max-w-prose text-base leading-relaxed text-gray-600 dark:text-gray-400 lg:text-[1.05rem]"
 				>
-					See exactly which word matches which across stacked lines. Add rows for glosses or IPA if you
-					need them, click a word then its match on the line above or below, and export or share the
-					diagram—great for lessons, posts, or conlang notes.
+					See exactly which word matches which across stacked lines. Add rows for glosses or IPA if
+					you need them, click a word then its match on the line above or below, and export or share
+					the diagram—great for lessons, posts, or conlang notes.
 				</p>
 				<p class="mt-4 max-w-prose text-sm leading-relaxed text-gray-600 dark:text-gray-400">
 					Created by
@@ -392,10 +390,7 @@
 						</div>
 					</div>
 				</div>
-				<p
-					class="mb-2 text-sm leading-snug text-gray-600 lg:hidden dark:text-gray-400"
-					role="note"
-				>
+				<p class="mb-2 text-sm leading-snug text-gray-600 lg:hidden dark:text-gray-400" role="note">
 					Narrow screen: try landscape orientation or reduce line size in line settings—layouts stay
 					readable with a bit more horizontal space.
 				</p>

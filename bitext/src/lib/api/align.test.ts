@@ -25,12 +25,16 @@ describe('parseAlignBody', () => {
 	});
 
 	it('rejects more than 8 lines', () => {
-		expect(parseAlignBody({ lines: Array(9).fill('x') })).toMatchObject({ err: expect.any(String) });
+		expect(parseAlignBody({ lines: Array(9).fill('x') })).toMatchObject({
+			err: expect.any(String)
+		});
 	});
 
 	it('accepts string lines without alignments (backward compat)', () => {
 		const result = parseAlignBody({ lines: ['Hello', 'Bonjour'] });
-		expect(result).toMatchObject({ ok: { lines: [{ text: 'Hello' }, { text: 'Bonjour' }], alignments: [] } });
+		expect(result).toMatchObject({
+			ok: { lines: [{ text: 'Hello' }, { text: 'Bonjour' }], alignments: [] }
+		});
 	});
 
 	it('accepts string lines with alignments', () => {
@@ -48,7 +52,9 @@ describe('parseAlignBody', () => {
 	});
 
 	it('rejects object line missing text', () => {
-		expect(parseAlignBody({ lines: [{ font: 'Noto Serif' }] })).toMatchObject({ err: expect.any(String) });
+		expect(parseAlignBody({ lines: [{ font: 'Noto Serif' }] })).toMatchObject({
+			err: expect.any(String)
+		});
 	});
 
 	it('rejects alignment tuples that are not length-4 integer arrays', () => {
@@ -204,9 +210,9 @@ describe('buildAlignUrl', () => {
 	});
 
 	it('rejects invalid tokenMergeChar (more than one character)', () => {
-		expect(
-			parseAlignBody({ lines: ['a', 'b'], settings: { tokenMergeChar: '++' } })
-		).toMatchObject({ err: expect.stringContaining('tokenMergeChar') });
+		expect(parseAlignBody({ lines: ['a', 'b'], settings: { tokenMergeChar: '++' } })).toMatchObject(
+			{ err: expect.stringContaining('tokenMergeChar') }
+		);
 	});
 
 	it('applies per-line options (font, sizePx, rtl)', () => {
@@ -252,9 +258,9 @@ describe('buildAlignUrl', () => {
 	});
 
 	it('rejects line index out of range', () => {
-		expect(
-			buildAlignUrl(ORIGIN, { lines: ['a', 'b'], alignments: [[0, 0, 5, 0]] })
-		).toMatchObject({ err: expect.stringContaining('lineB=5') });
+		expect(buildAlignUrl(ORIGIN, { lines: ['a', 'b'], alignments: [[0, 0, 5, 0]] })).toMatchObject({
+			err: expect.stringContaining('lineB=5')
+		});
 	});
 
 	it('rejects non-adjacent lines', () => {

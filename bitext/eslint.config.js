@@ -36,6 +36,9 @@ export default defineConfig(
 	{
 		// Override or add rule settings here, such as:
 		// 'svelte/button-has-type': 'error'
-		rules: {}
+		rules: {
+			// <a href> tags don't need resolve() — only goto()/pushState()/replaceState() do.
+			'svelte/no-navigation-without-resolve': ['error', { ignoreLinks: true }]
+		}
 	}
 );

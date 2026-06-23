@@ -59,7 +59,7 @@
 		</p>
 	</header>
 
-	{#each bodyParagraphs as paragraph}
+	{#each bodyParagraphs as paragraph (paragraph)}
 		<p class="max-w-prose text-base leading-relaxed">{paragraph}</p>
 	{/each}
 
@@ -77,7 +77,9 @@
 	{/if}
 
 	<figure class="my-8 m-0">
-		<div class="overflow-hidden rounded-md border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/40">
+		<div
+			class="overflow-hidden rounded-md border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/40"
+		>
 			<img
 				src={previewImageUrl}
 				alt={entry.imageAlt}
@@ -94,9 +96,7 @@
 
 	<div class="mt-8 flex flex-wrap items-center gap-x-4 gap-y-3">
 		<a href={resolve('/examples')} class="{linkClass} text-sm">← All examples</a>
-		<a href="{resolve('/')}?example={exampleSlug}" class={ctaClass}>
-			Open in Editor
-		</a>
+		<a href="{resolve('/')}?example={exampleSlug}" class={ctaClass}> Open in Editor </a>
 	</div>
 
 	<div class="mt-10">

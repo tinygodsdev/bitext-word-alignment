@@ -29,8 +29,8 @@
 		Created by
 		<a href={authorSite} class={linkClass} target="_blank" rel="noopener noreferrer">Dani Polani</a
 		>. More
-		<a href={toolsPage} class={linkClass} target="_blank" rel="noopener noreferrer">tools</a> for
-		linguistics and conlanging.
+		<a href={toolsPage} class={linkClass} target="_blank" rel="noopener noreferrer">tools</a> for linguistics
+		and conlanging.
 	</p>
 	<p class="mt-4">
 		<button

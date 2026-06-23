@@ -16,8 +16,7 @@
 	let { line, index, total }: { line: LineV2; index: number; total: number } = $props();
 
 	/** Below `sm`: stacked; `sm`–`lg`: one row of four; `lg+`: 2×2 (popover / wide). */
-	const controlsGridClass =
-		'mb-3 grid grid-cols-1 gap-3 sm:grid-cols-4 lg:grid-cols-2';
+	const controlsGridClass = 'mb-3 grid grid-cols-1 gap-3 sm:grid-cols-4 lg:grid-cols-2';
 
 	const sel =
 		'block w-full max-w-full rounded-none border border-gray-300 bg-gray-50 px-2 py-2 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-500';

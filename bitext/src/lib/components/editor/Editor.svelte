@@ -49,9 +49,7 @@
 			<p
 				class="m-0 max-w-full text-right text-sm leading-snug text-gray-600 dark:text-gray-400 [&>span]:mr-1 [&>span]:last:mr-0"
 			>
-				<span
-					class="inline md:hidden [&>span]:mr-1 [&>span]:inline [&>span]:last:mr-0"
-				>
+				<span class="inline md:hidden [&>span]:mr-1 [&>span]:inline [&>span]:last:mr-0">
 					<span class="sr-only">Whitespace splits words.</span>
 					<span
 						>Split: <code class="{chipClass} max-w-[min(100vw-4rem,24rem)] break-all"
@@ -65,9 +63,7 @@
 						></span
 					>
 				</span>
-				<span
-					class="hidden md:inline [&>span]:mr-1 [&>span]:inline [&>span]:last:mr-0"
-				>
+				<span class="hidden md:inline [&>span]:mr-1 [&>span]:inline [&>span]:last:mr-0">
 					<span>Whitespace splits words.</span>
 					<span>Extra split: <code class={chipClass}>{tok.extraSplitChars}</code>.</span>
 					<span>Join: <code class={chipClass}>{tok.joinChars}</code>.</span>

@@ -1,7 +1,12 @@
 import opentype from 'opentype.js';
 import type { LineV2 } from '$lib/serialization/schema.js';
 import { loadCustomFontBlob } from './custom-fonts.js';
-import { getHarfBuzz, type HarfbuzzFont, type HarfbuzzModule, type HbGlyphJson } from './harfbuzz-loader.js';
+import {
+	getHarfBuzz,
+	type HarfbuzzFont,
+	type HarfbuzzModule,
+	type HbGlyphJson
+} from './harfbuzz-loader.js';
 
 /**
  * Rewrites `<text>` elements that use a user-uploaded font into `<g><path/></g>` vector outlines.
@@ -58,10 +63,7 @@ class HarfbuzzSession {
 	private readonly blob: ReturnType<HarfbuzzModule['createBlob']>;
 	private readonly face: ReturnType<HarfbuzzModule['createFace']>;
 
-	constructor(
-		hb: HarfbuzzModule,
-		buffer: ArrayBuffer
-	) {
+	constructor(hb: HarfbuzzModule, buffer: ArrayBuffer) {
 		this.hb = hb;
 		this.blob = hb.createBlob(buffer);
 		this.face = hb.createFace(this.blob, 0);

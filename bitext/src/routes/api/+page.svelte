@@ -52,7 +52,9 @@
 		</nav>
 	</header>
 
-	<h1 class="font-heading text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl dark:text-white">
+	<h1
+		class="font-heading text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl dark:text-white"
+	>
 		API
 	</h1>
 	<p class="mt-4 text-lg text-gray-600 dark:text-gray-400">
@@ -71,15 +73,7 @@
 	>
 		<p class="m-0 font-medium text-gray-900 dark:text-white">On this page</p>
 		<ul class="mt-2 list-none space-y-1 p-0">
-			{#each [
-				['#post-api-align', 'POST /api/align'],
-				['#get-api-align', 'GET /api/align (lines only)'],
-				['#line-options', 'Per-line options'],
-				['#settings', 'Visual settings'],
-				['#pairs', 'Pair controls'],
-				['#word-indices', 'Word indices and tokenization'],
-				['#errors', 'Errors'],
-			] as [href, label]}
+			{#each [['#post-api-align', 'POST /api/align'], ['#get-api-align', 'GET /api/align (lines only)'], ['#line-options', 'Per-line options'], ['#settings', 'Visual settings'], ['#pairs', 'Pair controls'], ['#word-indices', 'Word indices and tokenization'], ['#errors', 'Errors']] as [href, label] (href)}
 				<li>
 					<a
 						{href}
@@ -126,10 +120,10 @@
 					<td class={tdClass}>alignments</td>
 					<td class={tdTypeClass}>[int,int,int,int][] <em>optional</em></td>
 					<td class={tdDescClass}
-						>Word-alignment pairs as <span class={codeClass}>[lineA, wordA, lineB, wordB]</span>. Lines
-						A and B must be adjacent (<span class={codeClass}>|A−B| = 1</span>). Indices are 0-based.
-						Multiple pairs can share the same word (many-to-one) — they receive the same color
-						automatically.</td
+						>Word-alignment pairs as <span class={codeClass}>[lineA, wordA, lineB, wordB]</span>.
+						Lines A and B must be adjacent (<span class={codeClass}>|A−B| = 1</span>). Indices are
+						0-based. Multiple pairs can share the same word (many-to-one) — they receive the same
+						color automatically.</td
 					>
 				</tr>
 				<tr>
@@ -146,8 +140,8 @@
 					<td class={tdClass}>pairs</td>
 					<td class={tdTypeClass}>PairInput[] <em>optional</em></td>
 					<td class={tdDescClass}
-						>Per-pair controls: vertical gap between adjacent lines or hiding connectors for a specific
-						pair. See <a href="#pairs" class={linkClass}>Pair controls</a>.</td
+						>Per-pair controls: vertical gap between adjacent lines or hiding connectors for a
+						specific pair. See <a href="#pairs" class={linkClass}>Pair controls</a>.</td
 					>
 				</tr>
 			</tbody>
@@ -197,7 +191,7 @@
 		Simple variant: pass lines as repeated query parameters. No alignments. Useful for opening the
 		editor pre-filled via a plain link.
 	</p>
-	<pre class="{preClass} mt-4">{`GET /api/align?lines=Hello+world&lines=Bonjour+le+monde`}</pre>
+	<pre class="{preClass} mt-4">GET /api/align?lines=Hello+world&lines=Bonjour+le+monde</pre>
 	<p class="mt-3 text-sm">
 		<strong class="text-gray-900 dark:text-white">Parameter:</strong>
 		<span class={codeClass}>lines</span> — repeat for each line (1–8).
@@ -232,9 +226,9 @@
 					<td class={tdTypeClass}>string</td>
 					<td class={tdTypeClass}>Inter</td>
 					<td class={tdDescClass}
-						>Google Fonts family name, e.g. <span class={codeClass}>"Noto Serif"</span>, <span
-							class={codeClass}>"Noto Sans Arabic"</span
-						>, <span class={codeClass}>"Noto Sans Hebrew"</span>.</td
+						>Google Fonts family name, e.g. <span class={codeClass}>"Noto Serif"</span>,
+						<span class={codeClass}>"Noto Sans Arabic"</span>,
+						<span class={codeClass}>"Noto Sans Hebrew"</span>.</td
 					>
 				</tr>
 				<tr>
@@ -280,8 +274,8 @@
 
 	<h2 id="settings" class={headingClass}>Visual settings (SettingsInput)</h2>
 	<p class="mt-3">
-		The optional <span class={codeClass}>settings</span> object overrides global visual parameters.
-		Unset fields inherit defaults.
+		The optional <span class={codeClass}>settings</span> object overrides global visual parameters. Unset
+		fields inherit defaults.
 	</p>
 
 	<div class={tableClass}>
@@ -396,9 +390,9 @@
 
 	<h2 id="pairs" class={headingClass}>Pair controls (PairInput)</h2>
 	<p class="mt-3">
-		The optional <span class={codeClass}>pairs</span> array lets you adjust the vertical gap between
-		specific adjacent line pairs, or hide connectors entirely for a pair (useful when some lines are
-		glosses that annotate but do not align to the line above).
+		The optional <span class={codeClass}>pairs</span> array lets you adjust the vertical gap between specific
+		adjacent line pairs, or hide connectors entirely for a pair (useful when some lines are glosses that
+		annotate but do not align to the line above).
 	</p>
 
 	<div class={tableClass}>
@@ -435,8 +429,8 @@
 					<td class={tdTypeClass}>boolean</td>
 					<td class={tdTypeClass}>true</td>
 					<td class={tdDescClass}
-						>When <span class={codeClass}>false</span>, connection lines are not drawn between this pair.
-						Alignment data is still encoded.</td
+						>When <span class={codeClass}>false</span>, connection lines are not drawn between this
+						pair. Alignment data is still encoded.</td
 					>
 				</tr>
 			</tbody>
@@ -464,9 +458,11 @@
   }'`}</pre>
 	<p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
 		The gloss tier sits directly above the source (lines 0–1) with a tight 12 px gap and hidden arcs
-		— its tokens are color-matched to the source words but no lines are drawn. The source→translation
-		pair keeps its arcs. Note <span class={codeClass}>"tokenSplitChars": "-|"</span>: this drops the
-		period from the split set so a Leipzig morpheme like <span class={codeClass}>go.PST.IPFV</span>
+		— its tokens are color-matched to the source words but no lines are drawn. The
+		source→translation pair keeps its arcs. Note <span class={codeClass}
+			>"tokenSplitChars": "-|"</span
+		>: this drops the period from the split set so a Leipzig morpheme like
+		<span class={codeClass}>go.PST.IPFV</span>
 		stays a single token instead of rendering as <span class={codeClass}>goPSTIPFV</span>.
 	</p>
 
@@ -475,7 +471,8 @@
 	<h2 id="word-indices" class={headingClass}>Word indices and tokenization</h2>
 	<p class="mt-3">
 		Words are counted from 0, left to right as written (logical order — even for RTL lines). The
-		default split rules: whitespace always splits, and the characters <span class={codeClass}>.</span
+		default split rules: whitespace always splits, and the characters <span class={codeClass}
+			>.</span
 		>
 		<span class={codeClass}>-</span>
 		<span class={codeClass}>|</span> also create word boundaries. Punctuation is not split into separate
@@ -484,9 +481,9 @@
 	<p class="mt-3">
 		The split character itself is <strong>not rendered</strong> — it is consumed as a boundary. So
 		<span class={codeClass}>go.PST.IPFV</span> with the default split set displays as three tokens
-		<span class={codeClass}>go</span> <span class={codeClass}>PST</span> <span class={codeClass}
-			>IPFV</span
-		> with the dots removed. If you need the period to stay (common in Leipzig glosses), override
+		<span class={codeClass}>go</span> <span class={codeClass}>PST</span>
+		<span class={codeClass}>IPFV</span>
+		with the dots removed. If you need the period to stay (common in Leipzig glosses), override
 		<span class={codeClass}>settings.tokenSplitChars</span> to <span class={codeClass}>"-|"</span>.
 	</p>
 	<p class="mt-3">Example — <em>"Bonjour le monde"</em>:</p>
@@ -499,7 +496,7 @@
 				</tr>
 			</thead>
 			<tbody class="divide-y divide-gray-100 dark:divide-gray-700/60">
-				{#each [['0', 'Bonjour'], ['1', 'le'], ['2', 'monde']] as [idx, word]}
+				{#each [['0', 'Bonjour'], ['1', 'le'], ['2', 'monde']] as [idx, word] (idx)}
 					<tr class={idx === '1' ? 'bg-gray-50/50 dark:bg-gray-800/20' : ''}>
 						<td class={tdClass}>{idx}</td>
 						<td class="px-4 py-2 text-gray-700 dark:text-gray-300">{word}</td>
@@ -517,7 +514,8 @@
 
 	<h2 id="errors" class={headingClass}>Errors</h2>
 	<p class="mt-3">Errors return HTTP 400 with a JSON body:</p>
-	<pre class="{preClass} mt-3">{`{ "error": "alignments[0]: lines 0 and 2 are not adjacent" }`}</pre>
+	<pre
+		class="{preClass} mt-3">{`{ "error": "alignments[0]: lines 0 and 2 are not adjacent" }`}</pre>
 	<p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
 		All endpoints support CORS (<span class={codeClass}>Access-Control-Allow-Origin: *</span>).
 	</p>

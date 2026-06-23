@@ -140,7 +140,8 @@ export const GET: RequestHandler = ({ url }) => {
 								text: { type: 'string', description: 'Line text.' },
 								font: {
 									type: 'string',
-									description: 'Google Fonts family name (e.g. "Noto Serif", "Noto Sans Arabic"). Defaults to Inter.'
+									description:
+										'Google Fonts family name (e.g. "Noto Serif", "Noto Sans Arabic"). Defaults to Inter.'
 								},
 								sizePx: {
 									type: 'integer',
@@ -260,7 +261,10 @@ export const GET: RequestHandler = ({ url }) => {
 								prefixItems: [
 									{ type: 'integer', description: 'Line index A (0-based)' },
 									{ type: 'integer', description: 'Word index in line A (0-based)' },
-									{ type: 'integer', description: 'Line index B (0-based, must be adjacent to A: |A−B|=1)' },
+									{
+										type: 'integer',
+										description: 'Line index B (0-based, must be adjacent to A: |A−B|=1)'
+									},
 									{ type: 'integer', description: 'Word index in line B (0-based)' }
 								],
 								minItems: 4,

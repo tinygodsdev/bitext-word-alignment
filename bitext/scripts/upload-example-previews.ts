@@ -128,9 +128,9 @@ async function main(): Promise<void> {
 		const cdnId =
 			process.env.DO_CDN_ENDPOINT_ID?.trim() ||
 			(await resolveDigitalOceanCdnEndpointId(doToken, bucket, endpoint));
-		const purgePaths =
-			process.env.OBJECT_STORAGE_CDN_PURGE_PATHS?.trim().split(/\s*,\s*/).filter(Boolean) ??
-			[`${prefix}/*`];
+		const purgePaths = process.env.OBJECT_STORAGE_CDN_PURGE_PATHS?.trim()
+			.split(/\s*,\s*/)
+			.filter(Boolean) ?? [`${prefix}/*`];
 		console.log('');
 		console.log(`Purging CDN cache (endpoint ${cdnId}) …`);
 		console.log(`  paths: ${purgePaths.join(', ')}`);

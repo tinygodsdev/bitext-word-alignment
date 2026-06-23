@@ -1,5 +1,11 @@
 import type { ExampleEntry } from '../types.js';
-import { glossSourceTranslationLines, inter, noto, interlinearSettings, morphemeInterlinearSettings } from './helpers.js';
+import {
+	glossSourceTranslationLines,
+	inter,
+	noto,
+	interlinearSettings,
+	morphemeInterlinearSettings
+} from './helpers.js';
 
 /**
  * Interlinear gloss examples from Wikipedia (“Interlinear gloss” article).
@@ -138,11 +144,7 @@ export const WIKIPEDIA_EXAMPLES: ExampleEntry[] = [
 	{
 		id: 'wiki-latin-null',
 		label: 'Latin (zero morpheme ø)',
-		lines: [
-			inter('boy-NOM', 'gl', 24),
-			inter('puer-ø', 'src', 36),
-			inter('boy', 'tr', 30)
-		],
+		lines: [inter('boy-NOM', 'gl', 24), inter('puer-ø', 'src', 36), inter('boy', 'tr', 30)],
 		settings: interlinearSettings,
 		pairControls: [{ upperLineId: 'gl', lowerLineId: 'src', showConnectors: false }],
 		linePairGaps: [{ upperLineId: 'gl', lowerLineId: 'src', gapPx: 16 }],
@@ -190,11 +192,7 @@ export const WIKIPEDIA_EXAMPLES: ExampleEntry[] = [
 		};
 	})(),
 	(() => {
-		const stack = glossSourceTranslationLines(
-			'I you love',
-			"Je t' aime",
-			'I love you'
-		);
+		const stack = glossSourceTranslationLines('I you love', "Je t' aime", 'I love you');
 		return {
 			id: 'wiki-french-clitics',
 			label: 'French (clitic pronouns)',

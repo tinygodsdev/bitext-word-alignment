@@ -92,7 +92,7 @@
 	$effect(() => {
 		if (!browser || !whyOpen || !layoutNarrow) return;
 
-		tipPortalEl;
+		void tipPortalEl; // access to track DOM binding changes in this $effect
 
 		let cancelled = false;
 		const run = () => {
@@ -158,7 +158,7 @@
 		</div>
 		<a
 			class="affiliate-link {linkClass} mt-1 max-sm:mt-2 sm:col-start-2 sm:row-start-1 sm:mt-0 sm:justify-self-end sm:text-right"
-			href={href}
+			{href}
 			data-partner={partner}
 			data-product={product}
 			target="_blank"

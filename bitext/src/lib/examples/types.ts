@@ -1,4 +1,9 @@
-import type { LinePairGapV2, LineV2, PairControlV2, VisualSettingsV2 } from '$lib/serialization/schema.js';
+import type {
+	LinePairGapV2,
+	LineV2,
+	PairControlV2,
+	VisualSettingsV2
+} from '$lib/serialization/schema.js';
 
 export type ExampleId = string;
 

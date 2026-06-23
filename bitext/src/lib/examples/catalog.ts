@@ -1,4 +1,3 @@
-import type { ExampleId } from '$lib/state/examples.js';
 import { galleryPreviewImageUrl } from '$lib/examples/cdn.js';
 import { CORE_GALLERY } from './catalog/core.js';
 import { WIKIPEDIA_GALLERY } from './catalog/wikipedia.js';

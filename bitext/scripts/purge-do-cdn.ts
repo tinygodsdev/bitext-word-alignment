@@ -81,8 +81,6 @@ export async function purgeDigitalOceanCdnCache(
 
 export function digitalOceanApiTokenFromEnv(): string | undefined {
 	return (
-		process.env.DIGITALOCEAN_API_TOKEN?.trim() ||
-		process.env.DO_API_TOKEN?.trim() ||
-		undefined
+		process.env.DIGITALOCEAN_API_TOKEN?.trim() || process.env.DO_API_TOKEN?.trim() || undefined
 	);
 }

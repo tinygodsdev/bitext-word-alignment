@@ -6,8 +6,7 @@
  *
  * @example https://aligner.fra1.cdn.digitaloceanspaces.com/examples
  */
-export const EXAMPLE_PREVIEWS_CDN_BASE =
-	'https://aligner.fra1.cdn.digitaloceanspaces.com/examples';
+export const EXAMPLE_PREVIEWS_CDN_BASE = 'https://aligner.fra1.cdn.digitaloceanspaces.com/examples';
 
 export function galleryPreviewImageUrl(slug: string): string {
 	return `${EXAMPLE_PREVIEWS_CDN_BASE}/${slug}.png`;

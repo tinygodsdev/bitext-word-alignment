@@ -1,6 +1,10 @@
 import { encodeState } from '$lib/serialization/encode.js';
 import { tokenize, tokenizeOptionsFromVisualSettings } from '$lib/domain/tokens.js';
-import { createConnectionId, pendingAlignmentColor, type Connection } from '$lib/domain/alignment.js';
+import {
+	createConnectionId,
+	pendingAlignmentColor,
+	type Connection
+} from '$lib/domain/alignment.js';
 import {
 	defaultVisualSettingsV2,
 	SCHEMA_VERSION,
@@ -10,10 +14,12 @@ import {
 	type PairControlV2,
 	type VisualSettingsV2
 } from '$lib/serialization/schema.js';
+import { PALETTES } from '$lib/domain/palettes.js';
 
 const DEFAULT_FONT_FAMILY = 'Inter';
 const DEFAULT_TEXT_SIZE_PX = 36;
 const DEFAULT_WORD_GAP_PX = 14;
+const MAX_LINE_TEXT_LENGTH = 10_000;
 
 export type AlignmentTuple = [number, number, number, number];
 
@@ -84,11 +90,21 @@ export type AlignResult = { url: string } | { err: string };
 // ── Validation helpers ────────────────────────────────────────────────────────
 
 function parseLineEntry(val: unknown, idx: number): LineInput | { err: string } {
-	if (typeof val === 'string') return { text: val };
+	if (typeof val === 'string') {
+		if (val.length > MAX_LINE_TEXT_LENGTH)
+			return {
+				err: `lines[${idx}] text exceeds maximum length of ${MAX_LINE_TEXT_LENGTH} characters`
+			};
+		return { text: val };
+	}
 	if (!val || typeof val !== 'object') return { err: `lines[${idx}] must be a string or object` };
 	const v = val as Record<string, unknown>;
 	if (typeof v.text !== 'string' || v.text === '')
 		return { err: `lines[${idx}].text must be a non-empty string` };
+	if (v.text.length > MAX_LINE_TEXT_LENGTH)
+		return {
+			err: `lines[${idx}].text exceeds maximum length of ${MAX_LINE_TEXT_LENGTH} characters`
+		};
 	if (v.font !== undefined && typeof v.font !== 'string')
 		return { err: `lines[${idx}].font must be a string` };
 	if (v.sizePx !== undefined && (typeof v.sizePx !== 'number' || !Number.isFinite(v.sizePx)))
@@ -110,22 +126,27 @@ function parseSettingsInput(val: unknown): { ok: SettingsInput } | { err: string
 	if (!val || typeof val !== 'object') return { err: '"settings" must be an object' };
 	const v = val as Record<string, unknown>;
 
-	const PALETTES = new Set(['pastel', 'vivid', 'academic']);
+	const PALETTE_NAMES = new Set(Object.keys(PALETTES));
 	const STYLES = new Set(['straight', 'curved']);
-	const THEMES = new Set(['light', 'dark']);
-	const BKGS = new Set(['light', 'dark']);
+	const THEMES_AND_BKGS = new Set(['light', 'dark']);
 
-	if (v.palette !== undefined && !PALETTES.has(v.palette as string))
-		return { err: `settings.palette must be one of: ${[...PALETTES].join(', ')}` };
+	if (v.palette !== undefined && !PALETTE_NAMES.has(v.palette as string))
+		return { err: `settings.palette must be one of: ${[...PALETTE_NAMES].join(', ')}` };
 	if (v.lineStyle !== undefined && !STYLES.has(v.lineStyle as string))
 		return { err: `settings.lineStyle must be one of: ${[...STYLES].join(', ')}` };
-	if (v.theme !== undefined && !THEMES.has(v.theme as string))
-		return { err: `settings.theme must be one of: ${[...THEMES].join(', ')}` };
-	if (v.background !== undefined && !BKGS.has(v.background as string))
-		return { err: `settings.background must be one of: ${[...BKGS].join(', ')}` };
-	if (v.lineThickness !== undefined && (typeof v.lineThickness !== 'number' || !Number.isFinite(v.lineThickness)))
+	if (v.theme !== undefined && !THEMES_AND_BKGS.has(v.theme as string))
+		return { err: `settings.theme must be one of: ${[...THEMES_AND_BKGS].join(', ')}` };
+	if (v.background !== undefined && !THEMES_AND_BKGS.has(v.background as string))
+		return { err: `settings.background must be one of: ${[...THEMES_AND_BKGS].join(', ')}` };
+	if (
+		v.lineThickness !== undefined &&
+		(typeof v.lineThickness !== 'number' || !Number.isFinite(v.lineThickness))
+	)
 		return { err: 'settings.lineThickness must be a number' };
-	if (v.lineOpacity !== undefined && (typeof v.lineOpacity !== 'number' || !Number.isFinite(v.lineOpacity)))
+	if (
+		v.lineOpacity !== undefined &&
+		(typeof v.lineOpacity !== 'number' || !Number.isFinite(v.lineOpacity))
+	)
 		return { err: 'settings.lineOpacity must be a number' };
 	if (v.showNumbers !== undefined && typeof v.showNumbers !== 'boolean')
 		return { err: 'settings.showNumbers must be a boolean' };
@@ -133,7 +154,10 @@ function parseSettingsInput(val: unknown): { ok: SettingsInput } | { err: string
 		return { err: 'settings.colorTokensByLink must be a boolean' };
 	if (v.tokenSplitChars !== undefined && typeof v.tokenSplitChars !== 'string')
 		return { err: 'settings.tokenSplitChars must be a string' };
-	if (v.tokenMergeChar !== undefined && (typeof v.tokenMergeChar !== 'string' || v.tokenMergeChar.length > 1))
+	if (
+		v.tokenMergeChar !== undefined &&
+		(typeof v.tokenMergeChar !== 'string' || v.tokenMergeChar.length > 1)
+	)
 		return { err: 'settings.tokenMergeChar must be a single character' };
 
 	return {
@@ -164,7 +188,10 @@ function parsePairsInput(val: unknown, lineCount: number): { ok: PairInput[] } |
 		const upper = pv.upper as number;
 		const lower = pv.lower as number;
 		if (upper < 0 || upper >= lineCount) return { err: `pairs[${i}].upper=${upper} out of range` };
-		if (lower !== upper + 1) return { err: `pairs[${i}]: lower must equal upper + 1 (got upper=${upper}, lower=${lower})` };
+		if (lower !== upper + 1)
+			return {
+				err: `pairs[${i}]: lower must equal upper + 1 (got upper=${upper}, lower=${lower})`
+			};
 		if (pv.gapPx !== undefined && (typeof pv.gapPx !== 'number' || !Number.isFinite(pv.gapPx)))
 			return { err: `pairs[${i}].gapPx must be a number` };
 		if (pv.showConnectors !== undefined && typeof pv.showConnectors !== 'boolean')
@@ -234,9 +261,7 @@ export function buildAlignUrl(origin: string, req: AlignRequest): AlignResult {
 	const visualSettings: VisualSettingsV2 = {
 		...defaults,
 		...(req.settings
-			? Object.fromEntries(
-					Object.entries(req.settings).filter(([, v]) => v !== undefined)
-				)
+			? Object.fromEntries(Object.entries(req.settings).filter(([, v]) => v !== undefined))
 			: {})
 	};
 	// Clamp numeric settings to valid ranges
@@ -294,7 +319,12 @@ export function buildAlignUrl(origin: string, req: AlignRequest): AlignResult {
 
 		const upperTokenId = upperTokens[upperWordIdx]!.id;
 		const lowerTokenId = lowerTokens[lowerWordIdx]!.id;
-		const color = pendingAlignmentColor(connections, [upperTokenId], [lowerTokenId], visualSettings.palette);
+		const color = pendingAlignmentColor(
+			connections,
+			[upperTokenId],
+			[lowerTokenId],
+			visualSettings.palette
+		);
 		connections.push({ id: createConnectionId(), upperTokenId, lowerTokenId, color });
 	}
 

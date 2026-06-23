@@ -38,16 +38,7 @@ function startPreview(): ChildProcess {
 	// detached → own process group so we can SIGTERM the whole tree on exit
 	return spawn(
 		'npm',
-		[
-			'run',
-			'preview',
-			'--',
-			'--port',
-			String(PREVIEW_PORT),
-			'--host',
-			'127.0.0.1',
-			'--strictPort'
-		],
+		['run', 'preview', '--', '--port', String(PREVIEW_PORT), '--host', '127.0.0.1', '--strictPort'],
 		{
 			cwd: BITEXT_ROOT,
 			stdio: ['ignore', 'pipe', 'pipe'],
@@ -85,7 +76,11 @@ async function stopPreview(proc: ChildProcess, port: number): Promise<void> {
 }
 
 /** Wait until Vite prints its Local URL — fetch alone is not enough (stale/zombie listeners). */
-function waitForPreviewProcess(proc: ChildProcess, url: string, timeoutMs = 120_000): Promise<void> {
+function waitForPreviewProcess(
+	proc: ChildProcess,
+	url: string,
+	timeoutMs = 120_000
+): Promise<void> {
 	return new Promise((resolve, reject) => {
 		const timer = setTimeout(
 			() => reject(new Error(`Preview process did not become ready within ${timeoutMs}ms`)),
@@ -209,7 +204,8 @@ async function main(): Promise<void> {
 						() => document.documentElement.dataset.exampleRenderReady ?? '(unset)'
 					);
 					throw new Error(
-						`Layout not ready for ${slug} (title=${JSON.stringify(title)}, ready=${ready}): ${err}`
+						`Layout not ready for ${slug} (title=${JSON.stringify(title)}, ready=${ready})`,
+						{ cause: err }
 					);
 				}
 				const target = page.locator('[data-example-render-target] .preview-frame');

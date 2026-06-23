@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-	getExamplePagePartnerId,
-	getHomePartnerOrder,
-	HOME_PARTNER_IDS
-} from './home-rotation.js';
+import { getExamplePagePartnerId, getHomePartnerOrder, HOME_PARTNER_IDS } from './home-rotation.js';
 
 describe('getExamplePagePartnerId', () => {
 	it('returns a pool member and is stable for the same slug', () => {

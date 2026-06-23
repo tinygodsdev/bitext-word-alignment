@@ -50,8 +50,7 @@
 		<a href={resolve('/')} class={linkClass}>{SITE_NAME}</a> ("the tool", "we") is a free, browser-based
 		visualizer for word-by-word translations. We don't run user accounts, you don't need to provide an
 		email address to use the tool, and the sentences you align never leave your browser unless you choose
-		to share or export them. This page
-		summarizes what data is involved when you use the tool.
+		to share or export them. This page summarizes what data is involved when you use the tool.
 	</p>
 
 	<h2 class={headingClass}>What we collect ourselves</h2>

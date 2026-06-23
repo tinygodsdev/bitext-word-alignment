@@ -15,10 +15,7 @@ function onDocumentClickCapture(e: MouseEvent): void {
 	const g = (window as Window & { gtag?: (...args: unknown[]) => void }).gtag;
 	if (typeof g !== 'function') return;
 
-	const linkText = (el.textContent ?? '')
-		.trim()
-		.replace(/\s+/g, ' ')
-		.slice(0, 120);
+	const linkText = (el.textContent ?? '').trim().replace(/\s+/g, ' ').slice(0, 120);
 
 	g('event', EVENT_NAME, {
 		partner: el.dataset.partner ?? '',

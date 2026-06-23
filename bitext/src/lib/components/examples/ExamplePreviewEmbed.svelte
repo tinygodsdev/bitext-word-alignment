@@ -28,7 +28,9 @@
 			await document.fonts.ready;
 			await tick();
 			await new Promise<void>((resolve) => {
-				requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+				requestAnimationFrame(() =>
+					requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+				);
 			});
 			onReady?.();
 		})();

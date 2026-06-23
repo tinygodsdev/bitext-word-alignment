@@ -97,9 +97,7 @@
 			class="flex flex-wrap items-start gap-x-2 gap-y-1 text-sm leading-snug text-gray-600 dark:text-gray-400"
 		>
 			<span class="min-w-0 flex-1 [&>span]:mr-1 [&>span]:last:mr-0">
-				<span
-					class="inline md:hidden [&>span]:mr-1 [&>span]:inline [&>span]:last:mr-0"
-				>
+				<span class="inline md:hidden [&>span]:mr-1 [&>span]:inline [&>span]:last:mr-0">
 					<span class="sr-only">Whitespace splits words.</span>
 					<span
 						>Split: <code class="{chipClass} max-w-[min(100%,24rem)] break-all"
@@ -113,9 +111,7 @@
 						>.</span
 					>
 				</span>
-				<span
-					class="hidden md:inline [&>span]:mr-1 [&>span]:inline [&>span]:last:mr-0"
-				>
+				<span class="hidden md:inline [&>span]:mr-1 [&>span]:inline [&>span]:last:mr-0">
 					<span>Whitespace splits words.</span>
 					<span>Extra split characters: <code class={chipClass}>{tok.extraSplitChars}</code>.</span>
 					<span>Join characters: <code class={chipClass}>{tok.joinChars}</code>.</span>
