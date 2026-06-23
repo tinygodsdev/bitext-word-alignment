@@ -72,11 +72,14 @@ Supports per-line options (font, size, RTL), global visual settings (palette, li
 
 ### Using Word Aligner as an AI agent tool
 
-The file [`.agents/tools/word-aligner-api.md`](.agents/tools/word-aligner-api.md) is a skill prompt that teaches AI assistants (Claude, ChatGPT, etc.) how to use the API. Add it as a custom instruction or system prompt to enable a flow like:
+The [`word-aligner-skill/`](word-aligner-skill/) directory is a ready-to-install skill that teaches AI assistants (Claude, ChatGPT, etc.) how to use the API. Once installed, it enables flows like:
 
 > "Translate 'я хочу спать' into English and show me the word alignment."
 
 The agent translates, calls the API, and returns a shareable link.
+
+- **For Claude:** point your Claude project at this repository or add the contents of `word-aligner-skill/SKILL.md` as a custom instruction.
+- **For ChatGPT:** zip `word-aligner-skill/` and upload it as a custom Skill.
 
 ## Learn more
 

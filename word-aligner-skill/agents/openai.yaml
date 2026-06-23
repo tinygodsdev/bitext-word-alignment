@@ -1,0 +1,4 @@
+interface:
+  display_name: "Word Aligner"
+  short_description: "Visualize word-by-word alignment between texts in any language"
+  icon_url: "https://aligner.tinygods.dev/favicon.png"
