@@ -108,10 +108,10 @@ All pages missing `<meta property="og:site_name" content="Word Aligner">`. 5-min
 
 **Done:** added `<meta property="og:site_name" content={SITE_NAME} />` to the layout `<svelte:head>`.
 
-### H4 — Add cross-navigation to example pages
-Each of 19 example pages is a dead-end. Add:
-- 4–6 "Related examples" card links at the bottom
-- Visible breadcrumb nav: Word Aligner → Examples → [Page Title]
+### H4 — Add cross-navigation to example pages ✅
+Each of 19 example pages was a dead-end.
+
+**Done:** added a "More examples" section to every example page — a 6-card grid of sibling examples (ring order: the 6 following the current slug, wrapping) + a "Browse all examples" link. The loader (`+page.ts`) returns the `related` list. This connects all 19 pages into a navigable cluster (every page links to 6 others + the index), distributing crawl/PageRank and giving search visitors a path onward. Visible breadcrumb nav (`← Aligner · Examples`) already existed; matching `BreadcrumbList` schema was added in H1.
 
 ### H5 — Move partner blocks below primary content on example pages ✅ ALREADY FINE
 Re-checked the actual `examples/[slug]/+page.svelte`: the partner banner is already the **last** element (after body copy, figure, and the "Open in Editor" CTA). The content agents' "card before content" claim conflated this with the **homepage mobile** layout, where the Preply card does sit above the editor — that's tracked under **M9**, not here. No change needed on example pages.
@@ -218,8 +218,10 @@ Domain ~2 months old, zero third-party backlinks (expected). First moves:
 4. **LINGUIST List** software directory submission
 5. **Public APIs GitHub repo** (under "Education" category) — `github.com/public-apis/public-apis`
 
-### M13 — Custom 404 page (found outside the audit)
-The current 404 is bare "404 Not Found" — no branding, no navigation, dead end for users and crawlers landing on a stale/bad URL. Add a SvelteKit `src/routes/+error.svelte`: branded layout, a short friendly message, and links back to home / examples / API. Helps recover mistyped or delisted URLs and keeps the experience consistent. Low effort, low risk.
+### M13 — Custom 404 page (found outside the audit) ✅
+The 404 was bare "404 Not Found" — no branding, no navigation.
+
+**Done:** added `src/routes/+error.svelte` — branded layout (status, friendly heading/message), CTA "Open Word Aligner" + links to examples and API docs, and `noindex`. Renders inside the existing layout (theme/fonts) for all error statuses (404 and others).
 
 ---
 
@@ -281,11 +283,11 @@ The current 404 is bare "404 Not Found" — no branding, no navigation, dead end
 - [ ] M3 — Self-host Space Grotesk or add font preload
 
 **Week 2–3**
+- [x] H4 — Cross-navigation "Related examples" on all example pages
+- [x] M13 — Custom 404 page (`+error.svelte`)
 - [ ] C2 — Expand remaining 14 example pages
-- [ ] H4 — Cross-navigation "Related examples" on all example pages
 - [ ] M9 — Fix mobile layout (affiliate card ordering, tooltip toggle)
 - [ ] H6 — Fix touch targets in alignment editor
-- [ ] M13 — Custom 404 page (`+error.svelte`)
 
 **Week 4+**
 - [ ] M2 — Expand homepage guide sections + convert headings to questions

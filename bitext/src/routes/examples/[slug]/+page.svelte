@@ -128,6 +128,52 @@
 		<a href="{resolve('/')}?example={exampleSlug}" class={ctaClass}> Open in Editor </a>
 	</div>
 
+	{#if data.related.length > 0}
+		<section
+			class="mt-12 border-t border-gray-200 pt-8 dark:border-gray-700"
+			aria-label="More examples"
+		>
+			<h2 class="font-heading m-0 text-xl font-semibold text-gray-900 dark:text-white">
+				More examples
+			</h2>
+			<ul class="m-0 mt-5 grid list-none grid-cols-1 gap-5 p-0 sm:grid-cols-2">
+				{#each data.related as rel (rel.slug)}
+					<li>
+						<article
+							class="flex h-full flex-col overflow-hidden rounded-md border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800/40"
+						>
+							<a
+								href={resolve(`/examples/${rel.slug}`)}
+								class="block overflow-hidden border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/40"
+							>
+								<img
+									src={rel.previewImageUrl}
+									alt={rel.imageAlt}
+									width={960}
+									height={540}
+									loading="lazy"
+									decoding="async"
+									class="w-full bg-white object-contain object-center dark:bg-gray-900/40"
+								/>
+							</a>
+							<h3 class="m-0 p-4 text-base leading-snug font-semibold">
+								<a
+									href={resolve(`/examples/${rel.slug}`)}
+									class="text-gray-900 no-underline hover:underline dark:text-white"
+								>
+									{rel.title}
+								</a>
+							</h3>
+						</article>
+					</li>
+				{/each}
+			</ul>
+			<p class="mt-5 mb-0">
+				<a href={resolve('/examples')} class="{linkClass} text-sm">Browse all examples →</a>
+			</p>
+		</section>
+	{/if}
+
 	<div class="mt-10">
 		<PartnerBannerById partnerId={data.partnerId} />
 	</div>
