@@ -4,6 +4,10 @@
 	import { ALIGNER_DISPLAY_NAME } from '$lib/brand.js';
 	import SiteFooter from '$lib/components/layout/SiteFooter.svelte';
 	import PartnerBannerById from '$lib/components/partners/PartnerBannerById.svelte';
+	import StructuredData from '$lib/components/seo/StructuredData.svelte';
+	import { SITE_NAME } from '$lib/seo/metadata.js';
+	import { breadcrumbList, techArticle } from '$lib/seo/structured-data.js';
+	import { EXAMPLE_PREVIEW_DIMENSIONS } from '$lib/examples/preview-dimensions.js';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -12,8 +16,28 @@
 	const previewImageUrl = $derived(data.previewImageUrl);
 	const exampleSlug = $derived(data.exampleSlug);
 	const bodyParagraphs = $derived(entry.body.split('\n\n'));
+	const dimensions = $derived(EXAMPLE_PREVIEW_DIMENSIONS[entry.slug]);
 
 	const canonical = $derived(page.url.origin + page.url.pathname);
+
+	const structuredData = $derived([
+		breadcrumbList([
+			{ name: SITE_NAME, path: '/' },
+			{ name: 'Examples', path: '/examples' },
+			{ name: entry.title, path: `/examples/${entry.slug}` }
+		]),
+		techArticle({
+			headline: entry.title,
+			description: entry.description,
+			path: `/examples/${entry.slug}`,
+			image: {
+				url: previewImageUrl,
+				width: dimensions.width,
+				height: dimensions.height,
+				alt: entry.imageAlt
+			}
+		})
+	]);
 
 	const linkClass =
 		'font-medium text-primary-700 underline decoration-primary-700/40 underline-offset-2 hover:text-primary-800 hover:decoration-primary-800 dark:text-primary-400 dark:decoration-primary-400/50 dark:hover:text-primary-300';
@@ -23,24 +47,28 @@
 </script>
 
 <svelte:head>
-	<title>{entry.title} · {ALIGNER_DISPLAY_NAME}</title>
+	<title>{entry.title} · {SITE_NAME}</title>
 	<meta name="description" content={entry.description} />
 	<link rel="canonical" href={canonical} />
 	<meta name="robots" content="index,follow" />
 	<meta property="og:type" content="article" />
-	<meta property="og:title" content={`${entry.title} · ${ALIGNER_DISPLAY_NAME}`} />
+	<meta property="og:title" content={`${entry.title} · ${SITE_NAME}`} />
 	<meta property="og:description" content={entry.description} />
 	<meta property="og:url" content={canonical} />
 	<meta property="og:image" content={previewImageUrl} />
 	<meta property="og:image:secure_url" content={previewImageUrl} />
 	<meta property="og:image:type" content="image/png" />
+	<meta property="og:image:width" content={String(dimensions.width)} />
+	<meta property="og:image:height" content={String(dimensions.height)} />
 	<meta property="og:image:alt" content={entry.imageAlt} />
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content={`${entry.title} · ${ALIGNER_DISPLAY_NAME}`} />
+	<meta name="twitter:title" content={`${entry.title} · ${SITE_NAME}`} />
 	<meta name="twitter:description" content={entry.description} />
 	<meta name="twitter:image" content={previewImageUrl} />
 	<meta name="twitter:image:alt" content={entry.imageAlt} />
 </svelte:head>
+
+<StructuredData data={structuredData} />
 
 <main
 	class="mx-auto w-full max-w-3xl min-w-0 px-4 pt-4 pb-16 leading-relaxed text-gray-700 sm:px-6 md:pt-6 md:pb-20 dark:text-gray-300"
@@ -83,10 +111,11 @@
 			<img
 				src={previewImageUrl}
 				alt={entry.imageAlt}
-				width={960}
+				width={dimensions.width}
+				height={dimensions.height}
 				loading="eager"
 				decoding="async"
-				class="w-full bg-white object-contain object-center dark:bg-gray-900/40"
+				class="h-auto w-full bg-white object-contain object-center dark:bg-gray-900/40"
 			/>
 		</div>
 		<figcaption class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">

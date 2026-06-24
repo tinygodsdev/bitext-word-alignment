@@ -87,21 +87,21 @@ Returns 404. Highest-leverage AI readiness action. Include: tool name, descripti
 
 ## High (fix within 1 week)
 
-### H1 — Add TechArticle + BreadcrumbList schema to all 19 example pages
+### H1 — Add TechArticle + BreadcrumbList schema to all 19 example pages ✅
 Template-driven — generate from same data object that drives OG tags.
 
-`TechArticle` fields: `headline`, `url`, `image` (ImageObject with CDN URL), `author`, `about` (Language array), `mainEntityOfPage`. Add `datePublished` + `dateModified` to unlock Article rich results.
+**Done:** new reusable `StructuredData.svelte` component + builders in `src/lib/seo/structured-data.ts`. Each example page now emits `BreadcrumbList` (Word Aligner → Examples → [title]) + `TechArticle` (headline, description, ImageObject with real width/height, author+publisher Person, `mainEntityOfPage`, `inLanguage`, `datePublished`/`dateModified` = `SITE_LASTMOD`). `BreadcrumbList` also added to `/about`, `/api`, and `/examples` index. Skipped `about` (Language array) — no per-example language data field; not worth adding now. Verified via live curl: example page renders BreadcrumbList + TechArticle + ImageObject + WebPage + Person.
 
-`BreadcrumbList` for example pages: Word Aligner → Examples → [Page Title].
-Also add `BreadcrumbList` to /about and /api.
+### H2 — Fix page titles (inner pages too short, inconsistent branding) ✅
+Decision (user): "Word Aligner" in SEO titles/og + keep short "Aligner" in in-product UI (nav/footer/tooltip); lengthen inner titles with keywords.
 
-### H2 — Fix page titles (inner pages too short, inconsistent branding)
-- `/examples` → `Word Alignment & Interlinear Gloss Examples · Word Aligner` (was 18 chars)
-- `/about` → `About Word Aligner — Free Alignment Visualizer for Linguists`
-- `/api` → `Word Aligner API — Generate Alignment URLs Programmatically`
-- Example pages → `English–French Word Alignment Example · Word Aligner` (use "Word Aligner", not "Aligner")
+**Done (verified lengths):**
+- `/examples` → `Word Alignment & Interlinear Gloss Examples · Word Aligner` (58)
+- `/about` → `About Word Aligner — Free Word Alignment & Gloss Tool` (53)
+- `/api` → `Word Aligner API — Generate Alignment URLs Programmatically` (59)
+- Example pages → `{title} · Word Aligner` (was `· Aligner`)
 
-Target: 50–65 chars, consistent "Word Aligner" branding everywhere.
+Visible H1s and nav breadcrumbs keep "Aligner" per the decision. Bonus: added the missing `og:image` + Twitter card to `/api` (was absent).
 
 ### H3 — Add `og:site_name` to global layout ✅
 All pages missing `<meta property="og:site_name" content="Word Aligner">`. 5-minute fix in `+layout.svelte`.
@@ -113,8 +113,8 @@ Each of 19 example pages is a dead-end. Add:
 - 4–6 "Related examples" card links at the bottom
 - Visible breadcrumb nav: Word Aligner → Examples → [Page Title]
 
-### H5 — Move partner blocks below primary content on example pages
-Affiliate card (e.g., "Wise") appears as second element after H1, before any linguistic content. Move to after 400+ words of educational copy. On mobile this is especially damaging (card is above the editor).
+### H5 — Move partner blocks below primary content on example pages ✅ ALREADY FINE
+Re-checked the actual `examples/[slug]/+page.svelte`: the partner banner is already the **last** element (after body copy, figure, and the "Open in Editor" CTA). The content agents' "card before content" claim conflated this with the **homepage mobile** layout, where the Preply card does sit above the editor — that's tracked under **M9**, not here. No change needed on example pages.
 
 ### H6 — Fix touch target sizes in alignment editor
 Below 48×48px minimum:
@@ -154,14 +154,20 @@ Minimum: add `<link rel="preload" as="font" type="font/woff2" crossorigin>` for 
 
 Better: self-host via `@fontsource/space-grotesk` (npm). Add `size-adjust`/`ascent-override`/`descent-override` fallback metrics to eliminate FOUT CLS.
 
-### M4 — Add `height` attribute to example page LCP images
-All example images have `width="960"` but no `height`. Browser can't reserve space → CLS. Retrieve natural dimensions from DO CDN and add to each `<img>`.
+### M4 — Add `height` attribute to example page LCP images ✅
+All example images had `width="960"` but no `height`. Browser can't reserve space → CLS.
+
+**Done:** added `scripts/write-example-dimensions.ts` (`npm run examples:dimensions`) that reads the rendered PNGs in `.cache/example-previews/` and emits `src/lib/examples/preview-dimensions.ts` (intrinsic 1920×N per slug). The example `<img>` now sets real `width`/`height` (+ `h-auto w-full` to stay responsive), and the same values feed `og:image:width`/`height` and the `TechArticle` ImageObject. Regenerate the map after re-rendering previews.
 
 ### M5 — Prerender all `/examples/*` pages ✅ ALREADY DONE
 Pages are fully static. **Already implemented:** `export const prerender = true` is present on `/examples/+page.ts` and `/examples/[slug]/+page.ts` (and `/privacy`). The performance agent measured ~213ms TTFB likely because the Node server still serves the prerendered HTML from disk (not a CDN edge). Putting a CDN in front of Railway would capture the remaining gain — tracked informally, no code change needed for prerender itself.
 
-### M6 — Add author bio + Person schema to /about
-/about is a feature walkthrough with no author narrative. Add ~100 words about Dani's background (language learning, conlangs, linguistics). Add `Person` JSON-LD:
+### M6 — Add author bio + Person schema to /about ✅
+/about is a feature walkthrough with no author narrative.
+
+**Done:** added an "About the creator" section (+ TOC entry) with a short bio (fantasy author, creator of the conlang Lemu Teloku, tool-maker; psychologist & linguist by training, self-taught dev) linking to the personal site, and a `Person` JSON-LD (`personCreator()` in `structured-data.ts`, with `knowsAbout` + `description`) emitted alongside the breadcrumb. No location/birthplace; no LinkedIn per request.
+
+Reference `Person` shape:
 ```json
 {
   "@context": "https://schema.org",
@@ -212,6 +218,9 @@ Domain ~2 months old, zero third-party backlinks (expected). First moves:
 4. **LINGUIST List** software directory submission
 5. **Public APIs GitHub repo** (under "Education" category) — `github.com/public-apis/public-apis`
 
+### M13 — Custom 404 page (found outside the audit)
+The current 404 is bare "404 Not Found" — no branding, no navigation, dead end for users and crawlers landing on a stale/bad URL. Add a SvelteKit `src/routes/+error.svelte`: branded layout, a short friendly message, and links back to home / examples / API. Helps recover mistyped or delisted URLs and keeps the experience consistent. Low effort, low risk.
+
 ---
 
 ## Low (backlog)
@@ -259,15 +268,16 @@ Domain ~2 months old, zero third-party backlinks (expected). First moves:
 - [x] C4 — Create `/llms.txt`
 - [x] M5 — Prerender `/examples/*` — already in place
 
-**Day 2** (~3 h)
-- [ ] H1 — BreadcrumbList on all interior pages
-- [ ] H1 — TechArticle JSON-LD on all 19 example pages (template)
-- [ ] H2 — Fix all inner page titles
+**Day 2** (~3 h) — ✅ DONE 2026-06-25
+- [x] H1 — BreadcrumbList on all interior pages (examples, about, api, example pages)
+- [x] H1 — TechArticle JSON-LD on all 19 example pages (template)
+- [x] H2 — Fix all inner page titles ("Word Aligner" brand + keyword-lengthened)
+- [x] M4 — Add `width`/`height` to example LCP images (+ og:image dims)
+- [x] M6 — Author bio + Person JSON-LD on /about
+- [x] H5 — already fine on example pages (partner banner is last); homepage mobile → M9
 
 **Week 1** (~8–10 h)
 - [ ] C2 — Expand first 5 example pages (Hebrew-Arabic, Japanese-Chinese-EN, Nahuatl, Lezgian, Lojban)
-- [ ] H5 — Move partner blocks below content on example pages
-- [ ] M4 — Add `height` to example LCP images
 - [ ] M3 — Self-host Space Grotesk or add font preload
 
 **Week 2–3**
@@ -275,7 +285,7 @@ Domain ~2 months old, zero third-party backlinks (expected). First moves:
 - [ ] H4 — Cross-navigation "Related examples" on all example pages
 - [ ] M9 — Fix mobile layout (affiliate card ordering, tooltip toggle)
 - [ ] H6 — Fix touch targets in alignment editor
-- [ ] M6 — Author bio + Person JSON-LD on /about
+- [ ] M13 — Custom 404 page (`+error.svelte`)
 
 **Week 4+**
 - [ ] M2 — Expand homepage guide sections + convert headings to questions

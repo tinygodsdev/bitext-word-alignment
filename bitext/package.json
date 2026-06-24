@@ -20,6 +20,7 @@
 		"audit": "npm audit",
 		"audit:ci": "npm audit --audit-level=high",
 		"examples:render": "tsx scripts/render-example-previews.ts",
+		"examples:dimensions": "tsx scripts/write-example-dimensions.ts",
 		"examples:upload": "tsx scripts/upload-example-previews.ts"
 	},
 	"devDependencies": {

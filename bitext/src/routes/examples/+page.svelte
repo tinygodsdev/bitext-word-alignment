@@ -3,12 +3,16 @@
 	import { resolve } from '$app/paths';
 	import { ALIGNER_DISPLAY_NAME } from '$lib/brand.js';
 	import SiteFooter from '$lib/components/layout/SiteFooter.svelte';
+	import StructuredData from '$lib/components/seo/StructuredData.svelte';
 	import { galleryPreviewImageUrl } from '$lib/examples/cdn.js';
+	import { SITE_NAME } from '$lib/seo/metadata.js';
+	import { breadcrumbList } from '$lib/seo/structured-data.js';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
 
 	const TITLE = 'Examples';
+	const SEO_TITLE = 'Word Alignment & Interlinear Gloss Examples';
 	const DESCRIPTION =
 		'Browse word alignment and interlinear gloss examples — bilingual pairs, Turkish IPA stacks, RTL scripts, Tagalog compounds, and Japanese–Chinese–English word order. Open any example in the Aligner editor.';
 
@@ -17,28 +21,35 @@
 		galleryPreviewImageUrl(data.examples[0]?.slug ?? 'english-french-word-alignment')
 	);
 
+	const structuredData = breadcrumbList([
+		{ name: SITE_NAME, path: '/' },
+		{ name: 'Examples', path: '/examples' }
+	]);
+
 	const linkClass =
 		'font-medium text-primary-700 underline decoration-primary-700/40 underline-offset-2 hover:text-primary-800 hover:decoration-primary-800 dark:text-primary-400 dark:decoration-primary-400/50 dark:hover:text-primary-300';
 </script>
 
 <svelte:head>
-	<title>{TITLE} · {ALIGNER_DISPLAY_NAME}</title>
+	<title>{SEO_TITLE} · {SITE_NAME}</title>
 	<meta name="description" content={DESCRIPTION} />
 	<link rel="canonical" href={canonical} />
 	<meta name="robots" content="index,follow" />
 	<meta property="og:type" content="website" />
-	<meta property="og:title" content={`${TITLE} · ${ALIGNER_DISPLAY_NAME}`} />
+	<meta property="og:title" content={`${SEO_TITLE} · ${SITE_NAME}`} />
 	<meta property="og:description" content={DESCRIPTION} />
 	<meta property="og:url" content={canonical} />
 	<meta property="og:image" content={ogImage} />
 	<meta property="og:image:secure_url" content={ogImage} />
 	<meta property="og:image:type" content="image/png" />
-	<meta property="og:image:alt" content={`${TITLE} — ${ALIGNER_DISPLAY_NAME}`} />
+	<meta property="og:image:alt" content={`${SEO_TITLE} — ${SITE_NAME}`} />
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content={`${TITLE} · ${ALIGNER_DISPLAY_NAME}`} />
+	<meta name="twitter:title" content={`${SEO_TITLE} · ${SITE_NAME}`} />
 	<meta name="twitter:description" content={DESCRIPTION} />
 	<meta name="twitter:image" content={ogImage} />
 </svelte:head>
+
+<StructuredData data={structuredData} />
 
 <main
 	class="mx-auto w-full max-w-3xl min-w-0 px-4 pt-4 pb-16 leading-relaxed text-gray-700 sm:px-6 md:pt-6 md:pb-20 dark:text-gray-300"

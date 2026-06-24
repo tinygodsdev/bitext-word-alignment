@@ -7,15 +7,27 @@
 	import PartnerBannerRailway from '$lib/components/partners/PartnerBannerRailway.svelte';
 	import PartnerBannerWise from '$lib/components/partners/PartnerBannerWise.svelte';
 	import SiteFooter from '$lib/components/layout/SiteFooter.svelte';
+	import StructuredData from '$lib/components/seo/StructuredData.svelte';
+	import { breadcrumbList, personCreator } from '$lib/seo/structured-data.js';
+	import { SITE_AUTHOR_URL } from '$lib/brand.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 
 	const TITLE = 'About';
 	const DISPLAY_NAME = 'Word Aligner';
+	const SEO_TITLE = 'About Word Aligner — Free Word Alignment & Gloss Tool';
 	const DESCRIPTION =
 		'Word Aligner: multi-line word alignment, interlinear glosses and IPA, RTL scripts, word-splitting rules, per-line typography, exports (PNG, SVG, PDF, HTML), and shareable URLs — for learners, teachers, and linguists.';
 
 	const canonical = $derived(page.url.origin + page.url.pathname);
 	const ogImage = $derived(`${page.url.origin}/api/og`);
+
+	const structuredData = [
+		breadcrumbList([
+			{ name: DISPLAY_NAME, path: '/' },
+			{ name: TITLE, path: '/about' }
+		]),
+		personCreator()
+	];
 
 	const siteTheme = $derived(settingsStore.settings.theme);
 	const themeIconBtn =
@@ -132,12 +144,12 @@
 </script>
 
 <svelte:head>
-	<title>{TITLE} · {DISPLAY_NAME}</title>
+	<title>{SEO_TITLE}</title>
 	<meta name="description" content={DESCRIPTION} />
 	<link rel="canonical" href={canonical} />
 	<meta name="robots" content="index,follow" />
 	<meta property="og:type" content="website" />
-	<meta property="og:title" content={`${TITLE} · ${DISPLAY_NAME}`} />
+	<meta property="og:title" content={SEO_TITLE} />
 	<meta property="og:description" content={DESCRIPTION} />
 	<meta property="og:url" content={canonical} />
 	<meta property="og:image" content={ogImage} />
@@ -147,11 +159,13 @@
 	<meta property="og:image:height" content="630" />
 	<meta property="og:image:alt" content={`${TITLE} — ${DISPLAY_NAME}`} />
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content={`${TITLE} · ${DISPLAY_NAME}`} />
+	<meta name="twitter:title" content={SEO_TITLE} />
 	<meta name="twitter:description" content={DESCRIPTION} />
 	<meta name="twitter:image" content={ogImage} />
 	<meta name="twitter:image:alt" content={`${TITLE} — ${DISPLAY_NAME}`} />
 </svelte:head>
+
+<StructuredData data={structuredData} />
 
 <main
 	class="mx-auto w-full max-w-3xl min-w-0 px-4 pt-4 pb-16 leading-relaxed text-gray-700 sm:px-6 md:pt-6 md:pb-20 dark:text-gray-300"
@@ -246,6 +260,7 @@
 			<li><a href="#doc-export-share" class={tocLinkClass}>Export and share</a></li>
 			<li><a href="#doc-examples" class={tocLinkClass}>Examples and motion demos</a></li>
 			<li><a href="#doc-partners" class={tocLinkClass}>Partner links</a></li>
+			<li><a href="#doc-creator" class={tocLinkClass}>About the creator</a></li>
 			<li><a href="#doc-contact" class={tocLinkClass}>Contact</a></li>
 			<li><a href="#doc-privacy" class={tocLinkClass}>Privacy</a></li>
 		</ul>
@@ -448,6 +463,26 @@
 		<PartnerBannerCursor />
 		<PartnerBannerWise />
 	</div>
+
+	<h2 id="doc-creator" class={headingClass}>About the creator</h2>
+	<p class="mt-3">
+		{DISPLAY_NAME} is built by Dani Polani — a fantasy author, the creator of the constructed language
+		Lemu Teloku, and a maker of tools for conlangers and linguists. A psychologist and linguist by training
+		and a self-taught developer, Dani builds small, focused tools and likes automating the tedious parts.
+	</p>
+	<p class="mt-3">
+		The same attention to interlinear glosses and Leipzig-style conventions that goes into
+		documenting a constructed language shaped this tool. Alongside the language work there is a
+		wider creative world — drawings, an encyclopedia of Lemu Teloku and its setting, and other
+		handmade art projects. Offline, Dani is fond of literature, nineteenth-century technology, cats,
+		and seals.
+	</p>
+	<p class="mt-3">
+		More of Dani's work and tools:
+		<a href={SITE_AUTHOR_URL} class={linkClass} target="_blank" rel="noopener noreferrer">
+			danipolani.github.io
+		</a>.
+	</p>
 
 	<h2 id="doc-contact" class={headingClass}>Contact</h2>
 	<p class="mt-3">
