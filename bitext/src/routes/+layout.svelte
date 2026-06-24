@@ -4,6 +4,7 @@
 	import '../app.css';
 	import { registerAffiliateLinkClickTracking } from '$lib/analytics/affiliate-link-tracking.js';
 	import { GA_MEASUREMENT_ID } from '$lib/brand.js';
+	import { SITE_NAME } from '$lib/seo/metadata.js';
 	import { flowbiteTheme } from '$lib/flowbite-theme.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { viewportStore } from '$lib/state/viewport.svelte.js';
@@ -43,6 +44,7 @@
 </script>
 
 <svelte:head>
+	<meta property="og:site_name" content={SITE_NAME} />
 	<meta name="impact-site-verification" value="a52264b4-df2c-48b2-90cb-a4c5e81c208b" />
 	<link rel="icon" href="/favicon.ico" sizes="any" />
 	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />

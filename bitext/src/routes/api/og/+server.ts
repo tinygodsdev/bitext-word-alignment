@@ -29,7 +29,9 @@ export const GET: RequestHandler = async ({ url }) => {
 		headers: {
 			'Content-Type': 'image/png',
 			'Content-Length': String(buffer.length),
-			'Cache-Control': 'public, max-age=3600'
+			'Cache-Control': 'public, max-age=3600',
+			// Generated social-card image, not a document — keep it out of the index.
+			'X-Robots-Tag': 'noindex'
 		}
 	});
 };

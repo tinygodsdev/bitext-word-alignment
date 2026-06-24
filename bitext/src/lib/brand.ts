@@ -7,6 +7,10 @@ export const ALIGNER_SITE_HOST = 'aligner.tinygods.dev';
 /** Public contact for privacy, about, and similar pages. */
 export const SITE_CONTACT_EMAIL = 'dani@tinygods.dev';
 
+/** Creator attribution (footer, structured data). */
+export const SITE_AUTHOR_NAME = 'Dani Polani';
+export const SITE_AUTHOR_URL = 'https://danipolani.github.io/en/';
+
 /** User-facing product name in copy (legal/site title may differ). */
 export const ALIGNER_DISPLAY_NAME = 'Aligner';
 

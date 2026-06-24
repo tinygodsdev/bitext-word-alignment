@@ -1,0 +1,23 @@
+# Word Aligner
+
+> Free, browser-based tool for visualizing word-by-word translation alignment and interlinear glosses. Stack multiple lines of text, draw connectors between matching words or morphemes, add IPA and gloss tiers, support right-to-left scripts, and export to PNG, SVG, PDF, or HTML. Everything runs client-side; sentences are never stored unless the user chooses to share them. A free, no-auth REST API is available.
+
+Built for language learners, language teachers, linguists, and conlangers. Created by Dani Polani (dani@tinygods.dev).
+
+## Core pages
+- [Word Aligner app](https://aligner.tinygods.dev/): The interactive editor — type or paste stacked lines, click a word and its match on the adjacent line to draw a connector, then export or share.
+- [About](https://aligner.tinygods.dev/about): What the tool does, the line editor, settings, export and share options, and privacy approach.
+- [API](https://aligner.tinygods.dev/api): Free REST API. POST text lines and optional alignment pairs to get a shareable URL; GET to pre-fill the editor. No authentication.
+- [Examples](https://aligner.tinygods.dev/examples): Gallery of word alignment and interlinear gloss examples across many languages.
+
+## Example walkthroughs
+- [English and French word alignment](https://aligner.tinygods.dev/examples/english-french-word-alignment): Simple bilingual one-to-one and one-to-many word matches.
+- [Turkish interlinear gloss with IPA](https://aligner.tinygods.dev/examples/turkish-interlinear-gloss-ipa): Four-line interlinear layout — morpheme glosses, IPA, source text, translation.
+- [Hebrew and Arabic with English (RTL)](https://aligner.tinygods.dev/examples/hebrew-arabic-english-rtl): Right-to-left scripts, bound vs free prepositions, crossing links.
+- [Japanese, Chinese, and English word order](https://aligner.tinygods.dev/examples/japanese-chinese-english-word-order): SOV vs SVO word order with crossing connectors across three lines.
+- [Classical Nahuatl interlinear gloss](https://aligner.tinygods.dev/examples/classical-nahuatl-interlinear-gloss): Polysynthetic verb morphology in an interlinear layout.
+- [Lezgian morpheme gloss](https://aligner.tinygods.dev/examples/lezgian-morpheme-gloss): Morpheme-by-morpheme glossing of a low-resource language.
+- [Lojban sumti interlinear gloss](https://aligner.tinygods.dev/examples/lojban-sumti-interlinear-gloss): Interlinear gloss of a constructed-language sentence.
+
+## Optional
+- [Privacy policy](https://aligner.tinygods.dev/privacy): Browser-only processing; no server-side storage of user text.
