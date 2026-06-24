@@ -57,3 +57,11 @@ When you need to search or find project tasks, issues, tickets, etc., address to
 - Small, safe refactorings are allowed when they directly support the current change, reduce duplication, or make the fix simpler.
 - Do not perform broad, unrelated refactoring without explicit user approval.
 - If you notice larger structural problems, mention them in the final response as optional follow-ups instead of interrupting the task.
+
+## Cursor Cloud specific instructions
+
+- The application is a single SvelteKit web app that lives in the `bitext/` subdirectory, not the repo root. Run all `npm` commands from `bitext/` (or with `npm --prefix bitext`). Commands are documented in `bitext/README.md` and `bitext/package.json` (`dev`, `build`, `preview`, `check`, `lint`, `test`).
+- The startup update script runs `npm --prefix bitext ci`; dependencies are already installed when a session begins.
+- No secrets are needed to lint, test, build, or run the dev server. `bitext/.env` (see `bitext/.env.example`) is only required for the example-gallery PNG upload to object storage (`make examples-*` targets), not for normal development.
+- Start the dev server with `npm run dev` from `bitext/` (Vite, default port 5173). Pass `-- --host 0.0.0.0` when it must be reachable from outside the VM.
+- The core flow to verify end-to-end: load `/`, then click a word in one preview line and its match in the adjacent line to draw a connector. A programmatic equivalent is `POST /api/align` which returns a shareable `?data=` URL.
