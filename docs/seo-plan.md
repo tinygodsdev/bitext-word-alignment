@@ -116,14 +116,8 @@ Each of 19 example pages was a dead-end.
 ### H5 — Move partner blocks below primary content on example pages ✅ ALREADY FINE
 Re-checked the actual `examples/[slug]/+page.svelte`: the partner banner is already the **last** element (after body copy, figure, and the "Open in Editor" CTA). The content agents' "card before content" claim conflated this with the **homepage mobile** layout, where the Preply card does sit above the editor — that's tracked under **M9**, not here. No change needed on example pages.
 
-### H6 — Fix touch target sizes in alignment editor
-Below 48×48px minimum:
-- Tooltip "?" buttons: 16×16px
-- Toolbar icon buttons: 36×36px
-- Delete row buttons: ~16px
-- Word token boxes: varies with word length
-
-Add `min-h-[44px] min-w-[44px]` to `.token-view--clickable`. Apply padding-based tap expansion to all icon-only buttons.
+### H6 — Fix touch target sizes in alignment editor ❌ WONTFIX (overstated)
+The proposed fix is inappropriate for this tool. Word tokens (`.token-view--clickable`) **are the rendered diagram text**, sized by the user's per-line font setting (12–64px) and baseline-aligned. Forcing `min-h-[44px] min-w-[44px]` would break the alignment layout — that's the whole visualization. The `?` partner button (16px) was verified to tap reliably on a real device. Toolbar icon buttons are 36px (acceptable). No change — this is inherent to a typography/alignment editor.
 
 ### H7 — Remove Inter font from partner card component ❌ DROPPED (misdiagnosis)
 The performance agent attributed the runtime Inter stylesheet to the partner card. **Wrong:** Inter is the *default visualization font* (`DEFAULT_FONT_FAMILY = 'Inter'` in `src/lib/api/align.ts`; source/target/gloss line defaults). It is loaded on demand via `googleFontStylesheetUrl()` when the live preview renders, and is core functionality — not a partner-card waste. No partner component contains a `<svelte:head>` font link. Removing it would break the default preview. Not actioned.
@@ -147,12 +141,8 @@ Convert headings to question form:
 - "Word alignment vs interlinear translation" → "What is the difference between word alignment and interlinear translation?"
 - "Great for language learners and teachers" → "How do language learners and teachers use word alignment?"
 
-### M3 — Self-host Space Grotesk (or preload font files)
-3 Google Fonts families require 2 external connections + 2-hop waterfall (HTML → Fonts CSS → font files).
-
-Minimum: add `<link rel="preload" as="font" type="font/woff2" crossorigin>` for Space Grotesk 400 in `app.html`.
-
-Better: self-host via `@fontsource/space-grotesk` (npm). Add `size-adjust`/`ascent-override`/`descent-override` fallback metrics to eliminate FOUT CLS.
+### M3 — Self-host Space Grotesk (or preload font files) ❌ DROPPED (field data)
+Fonts are render-blocking (lab shows ~750ms each), but they affect **FCP/LCP — which already PASS in the field** (CrUX: mobile LCP 2.1s green, desktop 1.5s; **CLS already 0**, so the FOUT-CLS rationale is moot). Self-hosting wouldn't flip any ranking verdict. Also: "Google Sans" is in fact a public Google Font now and loads fine (the visual agent's note was stale). Not worth the change. (Render-blocking Inter could be deferred cheaply if ever bundling other font work — cosmetic.)
 
 ### M4 — Add `height` attribute to example page LCP images ✅
 All example images had `width="960"` but no `height`. Browser can't reserve space → CLS.
@@ -179,7 +169,8 @@ Reference `Person` shape:
 }
 ```
 
-### M7 — Rename 5 weak example slugs (with 301 redirects)
+### M7 — Rename 5 weak example slugs (with 301 redirects) → MOVED to content task (do with C2)
+Deferred to the content task "SEO расширение контента страниц примеров": renaming a slug changes the URL and also requires a 301 redirect **and** renaming the CDN preview asset (`{slug}.png` on DO Spaces + the `preview-dimensions.ts` key + local cache). Cheapest to do per-page while expanding that page's content (C2), before the URLs are indexed. Low SEO value on its own.
 
 | Current | Problem | New |
 |---|---|---|
@@ -196,19 +187,22 @@ OG image generator endpoint returns 200 with no noindex signal. Not in sitemap (
 
 **Done:** added `'X-Robots-Tag': 'noindex'` to the `/api/og` response headers.
 
-### M9 — Fix mobile above-fold layout
-On 375px: affiliate card renders above editor inputs; live preview SVG requires 3 screen-heights of scrolling.
-- Apply `order-last` to affiliate card on small screens
-- Anchor preview SVG below line inputs in mobile stack order (or sticky mini-preview)
-- Fix hover-only tooltip (`sm:group-hover:block`) — add JS click/tap toggle
+### M9 — Fix mobile above-fold layout ❌ WONTFIX (mostly overstated)
+Verified against the code:
+- **"Hover-only tooltip"** — wrong. `PartnerBannerShell.svelte` already has `onclick={toggleWhy}` + `aria-expanded` + `touch-manipulation`; the tooltip opens on tap. Confirmed tapping fine on a real device.
+- **"Preview 3 screens down / card on 30% of viewport"** — overstated. The partner intro card is one compact banner in the header's intro zone; on mobile it sits between the intro text and the editor. Reordering it cleanly would need restructuring the header/sidebar (card and editor live in separate containers, so `order` can't swap them). Low value, non-trivial fix.
+
+Owner judged mobile adaptivity acceptable for an inherently multi-panel editor. No change.
 
 ### M10 — Trim homepage meta description to ≤155 chars ✅
 Current: 243 chars (truncated in SERPs, cuts off audience mention).
 
 **Done:** `DEFAULT_DESCRIPTION` in `metadata.ts` is now 155 chars: `Free word-by-word translation visualizer. Stack lines, add gloss/IPA, draw connectors, then export PNG, SVG, or PDF. For learners, teachers, and linguists.`
 
-### M11 — Lazy-load Tally.so feedback widget
-Tally has 1-hour `max-age` (controlled by Tally). Replace static `<script async>` in `<head>` with demand-load triggered on "Send feedback" click via `window.Tally.openPopup()`.
+### M11 — Lazy-load Tally.so feedback widget ✅ (+ GA deferred)
+**Done:** removed the eager `<script async>` for **both** Tally and GA gtag.js from `app.html`. The tiny gtag shim stays (calls queue in `dataLayer`); the gtag.js library + Tally widget now load on first user interaction or `requestIdleCallback`, whichever first (`src/lib/analytics/defer-third-party.ts`, wired in `+layout.svelte`). This pulls ~155 KiB (GA) + the Tally script off the critical path — the INP/TBT direction. Tally binds its `data-tally-open` buttons on load; gtag events flush from the queue. Verified the eager scripts are gone from initial HTML and the shim remains.
+
+Note: "Google Tag Manager 155 KiB" in Lighthouse is just gtag.js served from the `googletagmanager.com` host — it IS the GA4 tag (`G-…`), not the separate GTM container product. One thing, kept, just deferred.
 
 ### M12 — Start link acquisition campaign
 Domain ~2 months old, zero third-party backlinks (expected). First moves:
@@ -222,6 +216,26 @@ Domain ~2 months old, zero third-party backlinks (expected). First moves:
 The 404 was bare "404 Not Found" — no branding, no navigation.
 
 **Done:** added `src/routes/+error.svelte` — branded layout (status, friendly heading/message), CTA "Open Word Aligner" + links to examples and API docs, and `noindex`. Renders inside the existing layout (theme/fonts) for all error statuses (404 and others).
+
+### M14 — Accessibility: label the range sliders ✅ (found via Lighthouse)
+Lighthouse "agent accessibility" flagged the text-size slider as a form element without a label (also a normal a11y gap). **Done:** added `aria-label` to all five Flowbite `Range` sliders (line thickness, line opacity, line-pair gap, text size, word gap). Helps screen readers and the "AI agent accessibility" category — on-brand given the API/skill target AI agents.
+
+---
+
+## Core Web Vitals — field data (CrUX, 28-day) & the real INP lever
+
+Captured 2026-06-25 from PageSpeed/CrUX:
+
+| | LCP | INP | CLS | Verdict |
+|---|---|---|---|---|
+| **Desktop** | 1.5s ✅ | 81ms ✅ | 0.05 ✅ | **PASSED** |
+| **Mobile** | 2.1s ✅ | **269ms ⚠️** | 0 ✅ | **FAILED (INP only)** |
+
+The only failing metric is **mobile INP (269ms, needs-improvement; poor is >500ms)**. LCP and CLS already pass everywhere — which is why M3 (fonts) was dropped and render-blocking CSS is low priority (they target already-passing metrics).
+
+**Cheap INP-direction work done:** deferred GA + Tally off the critical path (M11), labelled sliders (M14). These reduce load-time main-thread contention and may help early-interaction INP — confirm in CrUX over ~28 days.
+
+**Remaining real INP lever (NOT done — needs profiling):** the editor's own interaction cost — tapping a token triggers Svelte reactivity → link-graph recompute → SVG redraw — plus the heavy `nodes/2` app chunk (~167 KiB, ~129 KiB unused per Lighthouse) and 2 long main-thread tasks. Options: code-split heavy sub-components (export/font/color dialogs) via dynamic `import()`, and optimize the per-tap update (batch DOM writes, memoize). This is a measured mini-project; only pursue if mobile INP doesn't drop below 200ms after the cheap changes settle in CrUX. CWV is a minor ranking factor and desktop already passes, so this is UX-driven, not urgent.
 
 ---
 
@@ -278,20 +292,18 @@ The 404 was bare "404 Not Found" — no branding, no navigation.
 - [x] M6 — Author bio + Person JSON-LD on /about
 - [x] H5 — already fine on example pages (partner banner is last); homepage mobile → M9
 
-**Week 1** (~8–10 h)
-- [ ] C2 — Expand first 5 example pages (Hebrew-Arabic, Japanese-Chinese-EN, Nahuatl, Lezgian, Lojban)
-- [ ] M3 — Self-host Space Grotesk or add font preload
+**Day 3** (perf/a11y) — ✅ DONE 2026-06-25
+- [x] M11 — Lazy-load Tally (+ defer GA gtag.js) off the critical path
+- [x] M14 — aria-label all Range sliders (a11y + AI-agent accessibility)
+- [~] M3 — Fonts — DROPPED (target LCP/CLS already pass in field; Google Sans is public)
 
 **Week 2–3**
 - [x] H4 — Cross-navigation "Related examples" on all example pages
 - [x] M13 — Custom 404 page (`+error.svelte`)
-- [ ] C2 — Expand remaining 14 example pages
-- [ ] M9 — Fix mobile layout (affiliate card ordering, tooltip toggle)
-- [ ] H6 — Fix touch targets in alignment editor
+- [~] M9 — Mobile layout — WONTFIX (tooltip already tappable; card placement minor/inherent)
+- [~] H6 — Touch targets — WONTFIX (tokens are user-sized diagram text; can't force 44px)
 
-**Week 4+**
-- [ ] M2 — Expand homepage guide sections + convert headings to questions
-- [ ] M7 — Rename 5 slugs + 301 redirects
-- [ ] M12 — Show HN, ProductHunt, Reddit launch
-- [ ] M11 — Lazy-load Tally
-- [ ] Backlog items
+**Remaining (technical):**
+- [ ] (optional, measured) Editor INP — code-split heavy sub-components + optimize per-tap update. Only if mobile INP stays >200ms in CrUX after the deferrals settle. Needs profiling.
+
+**Content task (separate):** C2 — expand 19 example pages; M2 — homepage guide sections; M7 — rename 5 slugs (+301 +CDN); M12 — link acquisition.

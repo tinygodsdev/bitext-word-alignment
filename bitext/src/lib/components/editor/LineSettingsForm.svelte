@@ -178,6 +178,7 @@
 			<Label class="mb-1">Size ({line.textSizePx}px)</Label>
 			<Range
 				appearance="auto"
+				aria-label="Text size in pixels"
 				color="indigo"
 				size="md"
 				class="max-w-full"
@@ -195,6 +196,7 @@
 			<Label class="mb-1">Word gap ({line.gapWordPx}px)</Label>
 			<Range
 				appearance="auto"
+				aria-label="Word gap in pixels"
 				color="indigo"
 				size="md"
 				class="max-w-full"

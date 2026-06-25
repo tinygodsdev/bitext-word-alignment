@@ -13,6 +13,7 @@
 		<Label class="mb-2">Line thickness ({s.lineThickness}px)</Label>
 		<Range
 			appearance="auto"
+			aria-label="Line thickness in pixels"
 			color="indigo"
 			size="lg"
 			min={1}
@@ -29,6 +30,7 @@
 		<Label class="mb-2">Line opacity ({Math.round(s.lineOpacity * 100)}%)</Label>
 		<Range
 			appearance="auto"
+			aria-label="Line opacity"
 			color="indigo"
 			size="lg"
 			min={0.2}

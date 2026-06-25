@@ -3,6 +3,7 @@
 	import { afterNavigate } from '$app/navigation';
 	import '../app.css';
 	import { registerAffiliateLinkClickTracking } from '$lib/analytics/affiliate-link-tracking.js';
+	import { deferThirdPartyScripts } from '$lib/analytics/defer-third-party.js';
 	import { GA_MEASUREMENT_ID } from '$lib/brand.js';
 	import { SITE_NAME } from '$lib/seo/metadata.js';
 	import { flowbiteTheme } from '$lib/flowbite-theme.js';
@@ -30,6 +31,11 @@
 	$effect(() => {
 		if (!browser) return;
 		return registerAffiliateLinkClickTracking();
+	});
+
+	$effect(() => {
+		if (!browser) return;
+		return deferThirdPartyScripts();
 	});
 
 	/** SPA navigations: initial `enter` is already counted by the snippet in app.html */

@@ -45,6 +45,7 @@
 					>
 					<Range
 						appearance="auto"
+						aria-label="Gap between these two lines in pixels"
 						color="indigo"
 						size="sm"
 						min={MIN_LINE_GAP_PX}
