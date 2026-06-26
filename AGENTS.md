@@ -57,3 +57,9 @@ When you need to search or find project tasks, issues, tickets, etc., address to
 - Small, safe refactorings are allowed when they directly support the current change, reduce duplication, or make the fix simpler.
 - Do not perform broad, unrelated refactoring without explicit user approval.
 - If you notice larger structural problems, mention them in the final response as optional follow-ups instead of interrupting the task.
+
+## Copywriting 
+
+When writing any **client-facing texts** (content pages, landing and other marketing pages, instructions, etc.) refer to @COPYRIGHT.md and strictly follow the rules from there. 
+
+This doesn't apply to the code, comments or internal docs. 
