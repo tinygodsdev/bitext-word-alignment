@@ -86,7 +86,7 @@
 				name: 'Can I align phrases, not just single words?',
 				acceptedAnswer: {
 					'@type': 'Answer',
-					text: 'Yes. Each link joins two word-sized boxes on neighboring lines. You can add several links from the same word to different partners (one-to-many or many-to-one) by clicking that word again and choosing another match on the adjacent row. To treat two written words as a single box—for example a fixed expression—use the join character under Settings → Tokens.'
+					text: 'Yes. Each link joins two word-sized boxes on neighboring lines. You can add several links from the same word to different partners (one-to-many or many-to-one) by clicking that word again and choosing another match on the adjacent row. To treat two written words as a single box, for example a fixed expression, use the join character under Settings → Tokens.'
 				}
 			},
 			{
@@ -94,7 +94,7 @@
 				name: 'Is this a full machine translator?',
 				acceptedAnswer: {
 					'@type': 'Answer',
-					text: 'No. You type or paste the text yourself—the app does not translate it for you. The value is in the visualization and the manual control over which words count as matches.'
+					text: 'No. You type or paste the text yourself; the app does not translate it for you. The value is in the visualization and the manual control over which words count as matches.'
 				}
 			},
 			{

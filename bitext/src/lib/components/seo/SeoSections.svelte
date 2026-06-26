@@ -3,6 +3,8 @@
 
 	const linkClass =
 		'font-medium text-primary-700 underline decoration-primary-700/40 underline-offset-2 hover:text-primary-800 hover:decoration-primary-800 dark:text-primary-400 dark:decoration-primary-400/50 dark:hover:text-primary-300';
+	const codeClass =
+		'rounded bg-gray-100 px-1 py-0.5 font-mono text-sm text-gray-800 dark:bg-gray-800 dark:text-gray-200';
 </script>
 
 <section
@@ -12,7 +14,7 @@
 	<h2 id="seo-sections" class="sr-only font-heading">Guides</h2>
 
 	<h3 class="font-heading mt-6 text-xl font-semibold text-gray-900 dark:text-white">
-		Why a visual beats plain text
+		Why is a visual word alignment clearer than plain text?
 	</h3>
 	<p>
 		A plain word-by-word translation under each line breaks down the moment the translation changes
@@ -23,17 +25,17 @@
 	</p>
 
 	<h3 class="font-heading mt-6 text-xl font-semibold text-gray-900 dark:text-white">
-		Great for language learners and teachers
+		How do learners and teachers use word alignment?
 	</h3>
 	<p>
-		Learners see at a glance why a translation says what it does — which source word became which
+		Learners see at a glance why a translation says what it does: which source word became which
 		target word, which words are dropped, and where the target language moves things around.
 		Teachers can build handouts, slides, or flashcards by exporting PNG or SVG and embed the
 		finished diagram into a lesson without retyping anything.
 	</p>
 
 	<h3 class="font-heading mt-6 text-xl font-semibold text-gray-900 dark:text-white">
-		Great for conlangs, glosses, and linguistics posts
+		How do conlangers use it for glosses?
 	</h3>
 	<p>
 		For conlangers, the visualizer is a lightweight way to show how a constructed language maps onto
@@ -47,23 +49,48 @@
 	</p>
 
 	<h3 class="font-heading mt-6 text-xl font-semibold text-gray-900 dark:text-white">
-		Word alignment vs interlinear translation
+		What is the difference between word alignment and interlinear translation?
 	</h3>
 	<p>
 		Interlinear translators place a translation directly under each source word. That display is
-		compact and great for reading, but it hides reordering — if the translation swaps word order,
-		the row underneath lies about which word corresponds to which. Word alignment keeps both
+		compact and good for reading, but it hides reordering: if the translation swaps word order, the
+		row underneath misrepresents which word corresponds to which. Word alignment keeps both
 		sentences on their own line and draws connectors between them, so reorderings, splits, and
 		merges are obvious.
 	</p>
 
 	<h3 class="font-heading mt-6 text-xl font-semibold text-gray-900 dark:text-white">
-		Word alignment vs parallel text
+		What is the difference between word alignment and parallel text?
 	</h3>
 	<p>
-		Parallel text usually means side-by-side bilingual reading — two columns, or a source paragraph
-		next to a translated paragraph, meant for studying in long form. This tool is a different job:
-		one sentence pair at a time, with explicit connectors showing which tokens correspond.
+		Parallel text usually means side-by-side bilingual reading: two columns, or a source paragraph
+		next to a translated paragraph, meant for studying in long form. Word Aligner does a different
+		job, one sentence pair at a time, with explicit connectors showing which token corresponds to
+		which. Parallel text shows that two passages translate each other; word alignment shows exactly
+		which word answers to which, including splits, merges, and reordering.
+	</p>
+
+	<h3 class="font-heading mt-6 text-xl font-semibold text-gray-900 dark:text-white">
+		Glossing notation at a glance
+	</h3>
+	<p>
+		The labels you meet most often are <code class={codeClass}>NOM</code> (subject),
+		<code class={codeClass}>ACC</code> (object), <code class={codeClass}>GEN</code> (possessor),
+		<code class={codeClass}>PST</code> (past), <code class={codeClass}>PFV</code> (completed
+		action),
+		<code class={codeClass}>1SG</code> (first-person singular), <code class={codeClass}>PL</code>
+		(plural), and <code class={codeClass}>NEG</code> (negation).
+	</p>
+	<p>
+		A few marks line the gloss up with the source: a hyphen (<code class={codeClass}>-</code>)
+		separates morphemes, a period (<code class={codeClass}>.</code>) joins one form that carries
+		several meanings (<code class={codeClass}>come.out</code>), a tilde (<code class={codeClass}
+			>~</code
+		>) marks reduplication, an overt <code class={codeClass}>ø</code> marks a morpheme with meaning
+		but no sound, and a backslash (<code class={codeClass}>\</code>) marks a change inside the word.
+		The full set is on the
+		<a href="/guide/glossing-abbreviations" class={linkClass}>glossing abbreviations cheat sheet</a
+		>.
 	</p>
 
 	<h3 class="font-heading mt-6 text-xl font-semibold text-gray-900 dark:text-white">
@@ -120,8 +147,8 @@
 	<p>
 		Yes. Each link joins two word-sized boxes on neighboring lines. You can add several links from
 		the same word to different partners (one-to-many or many-to-one) by clicking that word again and
-		choosing another match on the adjacent row. To treat two written words as a single box—for
-		example a fixed expression—use the join character under <strong
+		choosing another match on the adjacent row. To treat two written words as a single box, for
+		example a fixed expression, use the join character under <strong
 			class="font-medium text-gray-900 dark:text-white">Settings → Tokens</strong
 		>.
 	</p>
@@ -130,7 +157,7 @@
 		Is this a full machine translator?
 	</h4>
 	<p>
-		No. You type or paste the text yourself—the app does not translate it for you. The value is in
+		No. You type or paste the text yourself; the app does not translate it for you. The value is in
 		the visualization and the manual control over which words count as matches.
 	</p>
 

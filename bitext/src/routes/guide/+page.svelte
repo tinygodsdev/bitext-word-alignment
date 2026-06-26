@@ -44,5 +44,19 @@
 				</article>
 			</li>
 		{/each}
+		<li>
+			<article
+				class="flex h-full flex-col rounded-md border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800/40"
+			>
+				<h2 class="font-heading m-0 text-lg leading-snug font-semibold">
+					<a href="/skill" class="text-gray-900 no-underline hover:underline dark:text-white">
+						Agent skill for Claude and ChatGPT
+					</a>
+				</h2>
+				<p class="mt-2 mb-0 flex-1 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+					Let your AI assistant build these diagrams from a plain request, on the same open API.
+				</p>
+			</article>
+		</li>
 	</ul>
 </GuideLayout>
