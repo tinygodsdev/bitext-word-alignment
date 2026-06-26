@@ -31,7 +31,7 @@ const RENDER_FONTS = [
 	{
 		slug: 'conlang-custom-font-interlinear-gloss',
 		family: 'Abika Common 01.2026.1',
-		file: 'abika-common.otf'
+		file: 'abika-common.ttf'
 	}
 ];
 

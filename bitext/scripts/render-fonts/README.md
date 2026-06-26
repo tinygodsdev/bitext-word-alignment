@@ -14,4 +14,4 @@ uploaded preview is kept instead of being overwritten with a fallback render.
 
 Expected files (see `RENDER_FONTS`):
 
-- `abika-common.otf` — Lemu Teloku "Abika Common" script (example `conlang-custom-font-interlinear-gloss`)
+- `abika-common.ttf` — Lemu Teloku "Abika Common" script, SIL OFL (example `conlang-custom-font-interlinear-gloss`)
