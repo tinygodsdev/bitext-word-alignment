@@ -191,6 +191,11 @@
 					>Examples</a
 				>
 				<a
+					href={resolve('/guide')}
+					class="text-sm font-medium text-gray-600 underline decoration-gray-400/50 underline-offset-2 hover:text-gray-900 hover:decoration-gray-500/60 dark:text-gray-400 dark:decoration-gray-500/50 dark:hover:text-gray-100 dark:hover:decoration-gray-400/60"
+					>Guides</a
+				>
+				<a
 					href={resolve('/about')}
 					class="text-sm font-medium text-gray-600 underline decoration-gray-400/50 underline-offset-2 hover:text-gray-900 hover:decoration-gray-500/60 dark:text-gray-400 dark:decoration-gray-500/50 dark:hover:text-gray-100 dark:hover:decoration-gray-400/60"
 					>About</a

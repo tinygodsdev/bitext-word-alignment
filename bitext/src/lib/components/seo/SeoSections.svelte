@@ -1,3 +1,10 @@
+<script lang="ts">
+	import { GUIDES } from '$lib/guide/catalog.js';
+
+	const linkClass =
+		'font-medium text-primary-700 underline decoration-primary-700/40 underline-offset-2 hover:text-primary-800 hover:decoration-primary-800 dark:text-primary-400 dark:decoration-primary-400/50 dark:hover:text-primary-300';
+</script>
+
 <section
 	class="mt-10 w-full max-w-none space-y-3 leading-relaxed text-gray-700 dark:text-gray-300"
 	aria-labelledby="seo-sections"
@@ -34,7 +41,9 @@
 		<strong class="font-medium text-gray-900 dark:text-white">glosses or IPA</strong> (and stack
 		them next to the sentences they annotate), tune how text splits into word-sized boxes under
 		<strong class="font-medium text-gray-900 dark:text-white">Settings → Tokens</strong>, and export
-		the result for a blog post, a forum thread, or a conlang community share.
+		the result for a blog post, a forum thread, or a conlang community share. The
+		<a href="/guide/how-to-gloss-a-conlang" class={linkClass}>conlang glossing guide</a> walks through
+		custom scripts, an IPA tier, and exports.
 	</p>
 
 	<h3 class="font-heading mt-6 text-xl font-semibold text-gray-900 dark:text-white">
@@ -56,6 +65,22 @@
 		next to a translated paragraph, meant for studying in long form. This tool is a different job:
 		one sentence pair at a time, with explicit connectors showing which tokens correspond.
 	</p>
+
+	<h3 class="font-heading mt-6 text-xl font-semibold text-gray-900 dark:text-white">
+		Glossing guides
+	</h3>
+	<p>
+		New to interlinear glossing or want a refresher on the notation? These guides cover the standard
+		and the labels, and link back into the editor.
+	</p>
+	<ul class="mt-2 list-disc space-y-1 pl-6">
+		{#each GUIDES as guide (guide.path)}
+			<li>
+				<a href={guide.path} class={linkClass}>{guide.title}</a>.
+				<span class="text-gray-600 dark:text-gray-400">{guide.blurb}</span>
+			</li>
+		{/each}
+	</ul>
 
 	<h3 id="faq" class="font-heading mt-6 text-xl font-semibold text-gray-900 dark:text-white">
 		Questions people ask

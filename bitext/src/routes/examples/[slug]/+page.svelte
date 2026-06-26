@@ -3,6 +3,7 @@
 	import { resolve } from '$app/paths';
 	import { ALIGNER_DISPLAY_NAME } from '$lib/brand.js';
 	import SiteFooter from '$lib/components/layout/SiteFooter.svelte';
+	import ExampleSections from '$lib/components/examples/ExampleSections.svelte';
 	import PartnerBannerById from '$lib/components/partners/PartnerBannerById.svelte';
 	import StructuredData from '$lib/components/seo/StructuredData.svelte';
 	import { SITE_NAME } from '$lib/seo/metadata.js';
@@ -87,24 +88,7 @@
 		</p>
 	</header>
 
-	{#each bodyParagraphs as paragraph (paragraph)}
-		<p class="max-w-prose text-base leading-relaxed">{paragraph}</p>
-	{/each}
-
-	{#if entry.sourceAttribution}
-		<p class="mt-6 max-w-prose text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-			Example layout based on an example in the Wikipedia article
-			<a
-				href={entry.sourceAttribution.url}
-				class={linkClass}
-				target="_blank"
-				rel="noopener noreferrer">{entry.sourceAttribution.title}</a
-			>
-			(illustrative; Leipzig-style conventions).
-		</p>
-	{/if}
-
-	<figure class="my-8 m-0">
+	<figure class="m-0 mb-8">
 		<div
 			class="overflow-hidden rounded-md border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/40"
 		>
@@ -119,16 +103,37 @@
 			/>
 		</div>
 		<figcaption class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-			Word alignment diagram — same export as in the editor.
+			Word alignment diagram, the same export you get from the editor.
 		</figcaption>
 	</figure>
+
+	{#if entry.sourceAttribution}
+		<p class="mt-6 max-w-prose text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+			Example layout based on an example in the Wikipedia article
+			<a
+				href={entry.sourceAttribution.url}
+				class={linkClass}
+				target="_blank"
+				rel="noopener noreferrer">{entry.sourceAttribution.title}</a
+			>
+			(illustrative; Leipzig-style conventions).
+		</p>
+	{/if}
+
+	{#if entry.sections}
+		<ExampleSections sections={entry.sections} {linkClass} />
+	{:else}
+		{#each bodyParagraphs as paragraph (paragraph)}
+			<p class="max-w-prose text-base leading-relaxed">{paragraph}</p>
+		{/each}
+	{/if}
 
 	<div class="mt-8 flex flex-wrap items-center gap-x-4 gap-y-3">
 		<a href={resolve('/examples')} class="{linkClass} text-sm">← All examples</a>
 		<a href="{resolve('/')}?example={exampleSlug}" class={ctaClass}> Open in Editor </a>
 	</div>
 
-	{#if data.related.length > 0}
+	{#if data.related.length > 0 && !entry.sections}
 		<section
 			class="mt-12 border-t border-gray-200 pt-8 dark:border-gray-700"
 			aria-label="More examples"

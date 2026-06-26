@@ -55,14 +55,24 @@
 	class="mx-auto w-full max-w-3xl min-w-0 px-4 pt-4 pb-16 leading-relaxed text-gray-700 sm:px-6 md:pt-6 md:pb-20 dark:text-gray-300"
 >
 	<header class="mb-8 border-b border-gray-200 pb-6 dark:border-gray-700">
-		<nav class="text-sm">
+		<nav class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
 			<a href={resolve('/')} class={linkClass}>← {ALIGNER_DISPLAY_NAME}</a>
+			<span class="text-gray-400 dark:text-gray-500" aria-hidden="true">·</span>
+			<a href={resolve('/guide/glossing-abbreviations')} class={linkClass}>
+				Glossing abbreviations
+			</a>
 		</nav>
 		<h1 class="font-heading mt-4 text-2xl font-semibold text-gray-900 sm:text-3xl dark:text-white">
 			{TITLE}
 		</h1>
 		<p class="mt-3 max-w-prose text-base text-gray-600 dark:text-gray-400">
 			{DESCRIPTION}
+		</p>
+		<p class="mt-3 max-w-prose text-base text-gray-600 dark:text-gray-400">
+			New to the notation? Start with the
+			<a href={resolve('/guide/glossing-abbreviations')} class={linkClass}
+				>glossing abbreviations cheat sheet</a
+			>, then open any example below in the editor.
 		</p>
 	</header>
 

@@ -21,6 +21,10 @@
 	<p class="m-0">
 		<a href={resolve('/')} class={linkClass}>Open {ALIGNER_DISPLAY_NAME}</a>
 		<span class="mx-2 text-gray-400 dark:text-gray-600" aria-hidden="true">·</span>
+		<a href={resolve('/examples')} class={linkClass}>Examples</a>
+		<span class="mx-2 text-gray-400 dark:text-gray-600" aria-hidden="true">·</span>
+		<a href={resolve('/guide')} class={linkClass}>Guides</a>
+		<span class="mx-2 text-gray-400 dark:text-gray-600" aria-hidden="true">·</span>
 		<a href={resolve('/api')} class={linkClass}>API</a>
 		<span class="mx-2 text-gray-400 dark:text-gray-600" aria-hidden="true">·</span>
 		<a href={resolve('/privacy')} class={linkClass}>Privacy policy</a>

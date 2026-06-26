@@ -57,6 +57,61 @@ export function breadcrumbList(crumbs: Crumb[]): object {
 	};
 }
 
+/** Article for a guide/explainer page. Uses the default OG endpoint as the image. */
+export function guideArticle(input: {
+	headline: string;
+	description: string;
+	path: string;
+}): object {
+	return {
+		'@context': 'https://schema.org',
+		'@type': 'Article',
+		headline: input.headline,
+		description: input.description,
+		url: absoluteUrl(input.path),
+		mainEntityOfPage: { '@type': 'WebPage', '@id': absoluteUrl(input.path) },
+		image: {
+			'@type': 'ImageObject',
+			url: absoluteUrl('/api/og'),
+			width: 1200,
+			height: 630
+		},
+		author,
+		publisher: author,
+		datePublished: SITE_LASTMOD,
+		dateModified: SITE_LASTMOD,
+		inLanguage: 'en'
+	};
+}
+
+export interface DefinedTerm {
+	name: string;
+	description: string;
+}
+
+/** DefinedTermSet for a reference/cheat-sheet page (citable by AI search, valid Schema.org). */
+export function definedTermSet(input: {
+	name: string;
+	description: string;
+	path: string;
+	terms: DefinedTerm[];
+}): object {
+	const setUrl = absoluteUrl(input.path);
+	return {
+		'@context': 'https://schema.org',
+		'@type': 'DefinedTermSet',
+		name: input.name,
+		description: input.description,
+		url: setUrl,
+		hasDefinedTerm: input.terms.map((term) => ({
+			'@type': 'DefinedTerm',
+			name: term.name,
+			description: term.description,
+			inDefinedTermSet: setUrl
+		}))
+	};
+}
+
 export interface TechArticleInput {
 	headline: string;
 	description: string;

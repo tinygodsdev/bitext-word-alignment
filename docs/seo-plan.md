@@ -36,15 +36,25 @@ Referrer-Policy: strict-origin-when-cross-origin
 Permissions-Policy: camera=(), microphone=(), geolocation=()
 ```
 
-### C2 — Expand all 19 example pages to 600–900 words of unique content
-Currently 79–93 words unique per page. SERP expects editorial articles; pages are tool embeds.
-Each page needs:
-- What linguistic phenomenon the example demonstrates
-- Why the word-order / morphology is interesting for this language pair
-- 2–3 linguistic observations a learner or teacher would find valuable
-- "Try your own sentence" transition into the tool
+### C2 — Expand all 19 example pages to 600–900 words of unique content ✅
+Done. All 19 pages now carry ~600+ words of phenomenon-specific content via a structured `sections`
+model (`types-gallery.ts`: paragraph / gloss-table / links blocks; rendered by
+`ExampleSections.svelte`). Template per page: overview → token-by-token gloss table → the phenomenon
+→ glossing conventions (links **up** to the cheat sheet) → recreate in editor → curated "See also"
+(links **across** to phenomenon-related siblings). Generic glossing explanation lives on the guide
+hub (linked), not repeated per page, to avoid near-duplicate content. Diagram moved above the prose.
+Descriptions cleaned of em dashes (COPYRIGHT).
 
-Start with: Hebrew-Arabic RTL, Japanese-Chinese-English, Classical Nahuatl, Lezgian, Lojban.
+**New: `/guide` informational hub** (closes the "no informational tier" gap from keyword-research):
+- `/guide/glossing-abbreviations` — cheat sheet (40 labels + notation marks) + DefinedTermSet schema
+- `/guide/leipzig-glossing-rules` — flagship explainer (top informational term)
+- `/guide/how-to-read-an-interlinear-gloss` — beginner funnel
+- `/guide/how-to-gloss-a-conlang` — near-zero-competition, conlang differentiator
+- `/guide/interlinear-gloss-generator` — pillar for the exact tool query
+- `/guide` — hub index
+Shared shell `GuideLayout.svelte` + `guideArticle()` schema. Cluster wired both ways (hub ↔ examples
+↔ editor). Reachable from: homepage menu (Guides), homepage SEO content block, footer, examples nav,
+sitemap.
 
 ### C3 — Add WebApplication + WebSite JSON-LD to homepage ✅
 No `SoftwareApplication`/`WebApplication` schema exists. `FAQPage` is present — keep it (AI/LLM citation value; Google retired FAQ rich results May 7, 2026).
@@ -133,7 +143,12 @@ Google ignores `changefreq` and `priority` (publicly confirmed). `lastmod` is ab
 
 **Done:** `sitemap.xml/+server.ts` now emits only `<loc>` + `<lastmod>`. `lastmod` comes from a single maintained `SITE_LASTMOD` constant in `metadata.ts` (bump on content changes — honest single date beats a fabricated per-deploy stamp). Per-page git-derived dates are a future refinement if needed.
 
-### M2 — Expand guide sections on homepage for AI citability
+### M2 — Expand guide sections on homepage for AI citability ~ PARTIAL
+Done: homepage now links into the `/guide` hub (menu "Guides" + a "Glossing guides" block in
+`SeoSections.svelte` + a contextual link in the conlang paragraph).
+Still open: each existing H3 section is 30–58 words (target 134–167 for AI passage citation) and the
+headings are not yet in question form.
+
 Every H3 section is 30–58 words — too short for AI passage citation. Target 134–167 words per section.
 
 Convert headings to question form:
