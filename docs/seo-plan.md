@@ -143,15 +143,20 @@ Google ignores `changefreq` and `priority` (publicly confirmed). `lastmod` is ab
 
 **Done:** `sitemap.xml/+server.ts` now emits only `<loc>` + `<lastmod>`. `lastmod` comes from a single maintained `SITE_LASTMOD` constant in `metadata.ts` (bump on content changes — honest single date beats a fabricated per-deploy stamp). Per-page git-derived dates are a future refinement if needed.
 
-### M2 — Expand guide sections on homepage for AI citability ~ PARTIAL
-Done: homepage now links into the `/guide` hub (menu "Guides" + a "Glossing guides" block in
-`SeoSections.svelte` + a contextual link in the conlang paragraph).
-Still open: each existing H3 section is 30–58 words (target 134–167 for AI passage citation) and the
-headings are not yet in question form.
+### M2 — Expand guide sections on homepage for AI citability ✅
+Done, reframed away from blanket word-padding (which would be filler). What shipped:
+- Homepage explainer/comparison H3s converted to question form (matches AI Overviews / featured
+  snippets, no added bulk).
+- New compact "Glossing notation at a glance" snippet (common labels + marks) linking to the cheat
+  sheet — a useful reference pulled from the guides, not water.
+- Light enrichment of the thin "vs parallel text" section with a concrete distinction.
+- Homepage links into the `/guide` hub (menu, "Glossing guides" block, conlang contextual link,
+  "Use it from your AI assistant" block).
+- Legacy em dashes removed from `SeoIntro`/`SeoSections`; FAQPage JSON-LD synced to visible copy.
+Deliberately **not** done: padding every section to 134–167 words (judged as filler).
 
-Every H3 section is 30–58 words — too short for AI passage citation. Target 134–167 words per section.
-
-Convert headings to question form:
+Original audit note (kept for reference) — every H3 section was 30–58 words. Convert headings to
+question form:
 - "Why a visual beats plain text" → "Why is a visual word alignment better than plain text?"
 - "Word alignment vs interlinear translation" → "What is the difference between word alignment and interlinear translation?"
 - "Great for language learners and teachers" → "How do language learners and teachers use word alignment?"
