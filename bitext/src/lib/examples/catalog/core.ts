@@ -92,7 +92,7 @@ export const CORE_GALLERY: GalleryExampleEntry[] = [
 								text: ' shows reordering between French and English inside one short clause.'
 							},
 							{
-								href: '/examples/hebrew-arabic-english-rtl',
+								href: '/examples/hebrew-arabic-english-rtl-interlinear',
 								label: 'Hebrew and Arabic with English',
 								text: ' adds right-to-left lines to the same idea.'
 							}
@@ -186,7 +186,7 @@ export const CORE_GALLERY: GalleryExampleEntry[] = [
 								text: ' shows the gloss line written in journal style.'
 							},
 							{
-								href: '/examples/tagalog-verbal-aspect-paradigm',
+								href: '/examples/tagalog-verbal-aspect-interlinear-gloss',
 								label: 'Tagalog verbal aspect paradigm',
 								text: ' stacks several verb forms in one diagram.'
 							},
@@ -202,7 +202,7 @@ export const CORE_GALLERY: GalleryExampleEntry[] = [
 		]
 	},
 	{
-		slug: 'hebrew-arabic-english-rtl',
+		slug: 'hebrew-arabic-english-rtl-interlinear',
 		exampleId: 'rtl',
 		title: 'Hebrew and Arabic with English (RTL scripts)',
 		description:
@@ -383,7 +383,7 @@ export const CORE_GALLERY: GalleryExampleEntry[] = [
 								text: ' shows a copied syllable marked with a tilde.'
 							},
 							{
-								href: '/examples/tagalog-verbal-aspect-paradigm',
+								href: '/examples/tagalog-verbal-aspect-interlinear-gloss',
 								label: 'Tagalog verbal aspect paradigm',
 								text: ' lays out several verb forms together.'
 							}
@@ -479,7 +479,7 @@ export const CORE_GALLERY: GalleryExampleEntry[] = [
 								text: ' is the plain one-to-one starting point.'
 							},
 							{
-								href: '/examples/hebrew-arabic-english-rtl',
+								href: '/examples/hebrew-arabic-english-rtl-interlinear',
 								label: 'Hebrew and Arabic with English',
 								text: ' shows crossing links with right-to-left scripts.'
 							}

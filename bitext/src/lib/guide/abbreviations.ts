@@ -120,7 +120,7 @@ export const GLOSSING_CONVENTIONS: GlossingConvention[] = [
 		mark: '.',
 		name: 'Period',
 		rule: 'Joins several meanings that share one form. When one source morpheme needs two English words, the gloss links them with a period (come.out).',
-		exampleSlug: 'turkish-infinitive-gloss-come-out',
+		exampleSlug: 'turkish-one-to-many-morpheme-gloss',
 		exampleLabel: 'Turkish infinitive (one-to-many)'
 	},
 	{

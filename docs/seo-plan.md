@@ -189,8 +189,23 @@ Reference `Person` shape:
 }
 ```
 
-### M7 — Rename 5 weak example slugs (with 301 redirects) → MOVED to content task (do with C2)
-Deferred to the content task "SEO расширение контента страниц примеров": renaming a slug changes the URL and also requires a 301 redirect **and** renaming the CDN preview asset (`{slug}.png` on DO Spaces + the `preview-dimensions.ts` key + local cache). Cheapest to do per-page while expanding that page's content (C2), before the URLs are indexed. Low SEO value on its own.
+### M7 — Rename 5 weak example slugs (with 301 redirects) ✅
+Done (in repo). Renamed:
+- `avar-camel-theft-interlinear` → `avar-ergative-agreement-interlinear`
+- `russian-evening-run-interlinear` → `russian-case-agreement-interlinear-gloss`
+- `turkish-infinitive-gloss-come-out` → `turkish-one-to-many-morpheme-gloss`
+- `hebrew-arabic-english-rtl` → `hebrew-arabic-english-rtl-interlinear`
+- `tagalog-verbal-aspect-paradigm` → `tagalog-verbal-aspect-interlinear-gloss`
+
+Updated everywhere: catalog slugs + all internal `See also` / guide / cheat-sheet references,
+`preview-dimensions.ts` keys (dimensions unchanged, content is identical), `llms.txt`, and the local
+preview cache filenames. 301 redirects old→new added to `server.js` (in front of the handler, since
+prerendered pages bypass the SvelteKit hook).
+
+**One manual step left (needs DO credentials):** push the renamed preview PNGs to Spaces with
+`make examples-upload` (the local `.cache` files are already renamed, so no re-render is needed). Run
+it before/with the next deploy, otherwise the renamed pages would show a missing preview image. Old
+`{old-slug}.png` objects can stay (orphaned) or be purged.
 
 | Current | Problem | New |
 |---|---|---|
@@ -224,13 +239,10 @@ Current: 243 chars (truncated in SERPs, cuts off audience mention).
 
 Note: "Google Tag Manager 155 KiB" in Lighthouse is just gtag.js served from the `googletagmanager.com` host — it IS the GA4 tag (`G-…`), not the separate GTM container product. One thing, kept, just deferred.
 
-### M12 — Start link acquisition campaign
-Domain ~2 months old, zero third-party backlinks (expected). First moves:
-1. **Show HN** — "Free word alignment visualizer with interlinear gloss export (SVG/PDF)"
-2. **ProductHunt launch** — OG image API already produces a clean preview
-3. **Reddit** — r/linguistics, r/conlangs, r/languagelearning, r/learnJapanese (genuine examples, not promotional)
-4. **LINGUIST List** software directory submission
-5. **Public APIs GitHub repo** (under "Education" category) — `github.com/public-apis/public-apis`
+### M12 — Link acquisition → REMOVED from this plan (off-repo outreach)
+Link building (Show HN, ProductHunt, Reddit, LINGUIST List, Public APIs repo) is outreach work, not
+a repo change, so it cannot be done or closed here. Tracked separately by Dani. The cheat sheet and
+Leipzig Rules pages are the best linkable assets to lead with.
 
 ### M13 — Custom 404 page (found outside the audit) ✅
 The 404 was bare "404 Not Found" — no branding, no navigation.
@@ -326,4 +338,4 @@ The only failing metric is **mobile INP (269ms, needs-improvement; poor is >500m
 **Remaining (technical):**
 - [ ] (optional, measured) Editor INP — code-split heavy sub-components + optimize per-tap update. Only if mobile INP stays >200ms in CrUX after the deferrals settle. Needs profiling.
 
-**Content task (separate):** C2 — expand 19 example pages; M2 — homepage guide sections; M7 — rename 5 slugs (+301 +CDN); M12 — link acquisition.
+**Content task (separate):** C2 — expand 19 example pages ✅; M2 — homepage guide sections ✅; M7 — rename 5 slugs (+301; CDN upload pending) ✅; new `/guide` hub + `/skill` page ✅. M12 (link acquisition) removed — off-repo outreach.

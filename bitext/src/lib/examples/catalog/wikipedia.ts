@@ -114,7 +114,7 @@ const WIKIPEDIA_GALLERY_ENTRIES = [
 								text: ' shows the same clause written in journal style.'
 							},
 							{
-								href: '/examples/avar-camel-theft-interlinear',
+								href: '/examples/avar-ergative-agreement-interlinear',
 								label: 'Avar interlinear gloss',
 								text: ' shows another verb that maps to several English words.'
 							}
@@ -408,7 +408,7 @@ const WIKIPEDIA_GALLERY_ENTRIES = [
 								text: ' shows case and person suffixes on one clause.'
 							},
 							{
-								href: '/examples/avar-camel-theft-interlinear',
+								href: '/examples/avar-ergative-agreement-interlinear',
 								label: 'Avar interlinear gloss',
 								text: ' shows agreement and negation in another Caucasian language.'
 							}
@@ -419,7 +419,7 @@ const WIKIPEDIA_GALLERY_ENTRIES = [
 		]
 	},
 	{
-		slug: 'turkish-infinitive-gloss-come-out',
+		slug: 'turkish-one-to-many-morpheme-gloss',
 		exampleId: 'wiki-turkish-infinitive',
 		title: 'Turkish infinitive gloss (one-to-many correspondence)',
 		description:
@@ -503,7 +503,7 @@ const WIKIPEDIA_GALLERY_ENTRIES = [
 								text: ' shows a fuller clause with case and person.'
 							},
 							{
-								href: '/examples/avar-camel-theft-interlinear',
+								href: '/examples/avar-ergative-agreement-interlinear',
 								label: 'Avar interlinear gloss',
 								text: ' shows one verb mapping to several English words.'
 							}
@@ -683,7 +683,7 @@ const WIKIPEDIA_GALLERY_ENTRIES = [
 						lead: 'Related Tagalog examples:',
 						items: [
 							{
-								href: '/examples/tagalog-verbal-aspect-paradigm',
+								href: '/examples/tagalog-verbal-aspect-interlinear-gloss',
 								label: 'Tagalog verbal aspect paradigm',
 								text: ' shows reduplication alongside other verb forms.'
 							},
@@ -803,7 +803,7 @@ const WIKIPEDIA_GALLERY_ENTRIES = [
 						lead: 'Related phenomena in other examples:',
 						items: [
 							{
-								href: '/examples/turkish-infinitive-gloss-come-out',
+								href: '/examples/turkish-one-to-many-morpheme-gloss',
 								label: 'Turkish infinitive gloss',
 								text: ' shows one token glossed as two English words with a period.'
 							},
@@ -813,7 +813,7 @@ const WIKIPEDIA_GALLERY_ENTRIES = [
 								text: ' shows case stacking and the rule that hyphen counts must match.'
 							},
 							{
-								href: '/examples/russian-evening-run-interlinear',
+								href: '/examples/russian-case-agreement-interlinear-gloss',
 								label: 'Russian case and gender agreement',
 								text: ' shows instrumental and accusative with a gendered past tense.'
 							}
@@ -934,7 +934,7 @@ const WIKIPEDIA_GALLERY_ENTRIES = [
 		]
 	},
 	{
-		slug: 'tagalog-verbal-aspect-paradigm',
+		slug: 'tagalog-verbal-aspect-interlinear-gloss',
 		exampleId: 'wiki-tagalog-aspects',
 		title: 'Tagalog verbal aspect paradigm (interlinear)',
 		description:
@@ -1144,7 +1144,7 @@ const WIKIPEDIA_GALLERY_ENTRIES = [
 		]
 	},
 	{
-		slug: 'avar-camel-theft-interlinear',
+		slug: 'avar-ergative-agreement-interlinear',
 		exampleId: 'wiki-avar-camel',
 		title: 'Avar interlinear gloss (Caucasian agreement)',
 		description:
@@ -1338,7 +1338,7 @@ const WIKIPEDIA_GALLERY_ENTRIES = [
 								text: ' shows a verb that packs in its arguments.'
 							},
 							{
-								href: '/examples/turkish-infinitive-gloss-come-out',
+								href: '/examples/turkish-one-to-many-morpheme-gloss',
 								label: 'Turkish infinitive gloss',
 								text: ' is a minimal two-line template.'
 							}
@@ -1349,7 +1349,7 @@ const WIKIPEDIA_GALLERY_ENTRIES = [
 		]
 	},
 	{
-		slug: 'russian-evening-run-interlinear',
+		slug: 'russian-case-agreement-interlinear-gloss',
 		exampleId: 'wiki-russian-evening',
 		title: 'Russian case and gender agreement (evening run)',
 		description:

@@ -8,21 +8,21 @@ export interface PreviewDimensions {
 export const EXAMPLE_PREVIEW_DIMENSIONS: Record<string, PreviewDimensions> = {
 	'english-french-word-alignment': { width: 1920, height: 622 },
 	'turkish-interlinear-gloss-ipa': { width: 1920, height: 812 },
-	'hebrew-arabic-english-rtl': { width: 1920, height: 952 },
+	'hebrew-arabic-english-rtl-interlinear': { width: 1920, height: 952 },
 	'tagalog-compound-word-alignment': { width: 1920, height: 598 },
 	'japanese-chinese-english-word-order': { width: 1920, height: 940 },
 	'classical-nahuatl-interlinear-gloss': { width: 1920, height: 696 },
 	'nahuatl-leipzig-glossing-abbreviations': { width: 1920, height: 696 },
 	'taiwanese-minnan-interlinear-gloss': { width: 1920, height: 696 },
 	'lezgian-morpheme-gloss': { width: 1920, height: 696 },
-	'turkish-infinitive-gloss-come-out': { width: 1920, height: 708 },
+	'turkish-one-to-many-morpheme-gloss': { width: 1920, height: 708 },
 	'latin-zero-morpheme-gloss': { width: 1920, height: 708 },
 	'tagalog-reduplication-interlinear': { width: 1920, height: 708 },
 	'turkish-ablative-interlinear-gloss': { width: 1920, height: 696 },
 	'french-clitic-pronoun-gloss': { width: 1920, height: 696 },
-	'tagalog-verbal-aspect-paradigm': { width: 1920, height: 672 },
+	'tagalog-verbal-aspect-interlinear-gloss': { width: 1920, height: 672 },
 	'german-umlaut-plural-gloss': { width: 1920, height: 696 },
-	'avar-camel-theft-interlinear': { width: 1920, height: 696 },
+	'avar-ergative-agreement-interlinear': { width: 1920, height: 696 },
 	'lojban-sumti-interlinear-gloss': { width: 1920, height: 696 },
-	'russian-evening-run-interlinear': { width: 1920, height: 696 }
+	'russian-case-agreement-interlinear-gloss': { width: 1920, height: 696 }
 };

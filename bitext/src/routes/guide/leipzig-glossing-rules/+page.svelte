@@ -88,7 +88,8 @@
 	<p class={GUIDE_P}>
 		Sometimes one morpheme answers to several English words or several grammatical meanings. Join
 		them with a period so the gloss still counts as one piece. The Turkish verb
-		<a href="/examples/turkish-infinitive-gloss-come-out" class={GUIDE_LINK}>çık glossed come.out</a
+		<a href="/examples/turkish-one-to-many-morpheme-gloss" class={GUIDE_LINK}
+			>çık glossed come.out</a
 		>
 		uses a period because English needs two words for one stem. The same period appears inside a label
 		like PST.FEM when one ending carries both meanings at once.

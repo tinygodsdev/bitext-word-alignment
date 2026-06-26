@@ -20,10 +20,30 @@ const SECURITY_HEADERS = {
 	'Permissions-Policy': 'camera=(), microphone=(), geolocation=()'
 };
 
+// Permanent redirects for renamed example slugs (M7). Old URLs may already be linked or indexed,
+// so 301 them to the new path. Prerendered pages bypass the SvelteKit `handle` hook, so this lives
+// in front of the handler here.
+const REDIRECTS = {
+	'/examples/avar-camel-theft-interlinear': '/examples/avar-ergative-agreement-interlinear',
+	'/examples/russian-evening-run-interlinear': '/examples/russian-case-agreement-interlinear-gloss',
+	'/examples/turkish-infinitive-gloss-come-out': '/examples/turkish-one-to-many-morpheme-gloss',
+	'/examples/hebrew-arabic-english-rtl': '/examples/hebrew-arabic-english-rtl-interlinear',
+	'/examples/tagalog-verbal-aspect-paradigm': '/examples/tagalog-verbal-aspect-interlinear-gloss'
+};
+
 const server = http.createServer((req, res) => {
 	// Set before the handler writes; merged into the final response headers.
 	for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
 		res.setHeader(name, value);
+	}
+	const queryAt = req.url.indexOf('?');
+	const pathname = (queryAt === -1 ? req.url : req.url.slice(0, queryAt)).replace(/\/$/, '');
+	const redirectTarget = REDIRECTS[pathname];
+	if (redirectTarget) {
+		res.statusCode = 301;
+		res.setHeader('Location', redirectTarget + (queryAt === -1 ? '' : req.url.slice(queryAt)));
+		res.end();
+		return;
 	}
 	handler(req, res, () => {
 		res.statusCode = 404;

@@ -13,7 +13,7 @@ Built for language learners, language teachers, linguists, and conlangers. Creat
 ## Example walkthroughs
 - [English and French word alignment](https://aligner.tinygods.dev/examples/english-french-word-alignment): Simple bilingual one-to-one and one-to-many word matches.
 - [Turkish interlinear gloss with IPA](https://aligner.tinygods.dev/examples/turkish-interlinear-gloss-ipa): Four-line interlinear layout — morpheme glosses, IPA, source text, translation.
-- [Hebrew and Arabic with English (RTL)](https://aligner.tinygods.dev/examples/hebrew-arabic-english-rtl): Right-to-left scripts, bound vs free prepositions, crossing links.
+- [Hebrew and Arabic with English (RTL)](https://aligner.tinygods.dev/examples/hebrew-arabic-english-rtl-interlinear): Right-to-left scripts, bound vs free prepositions, crossing links.
 - [Japanese, Chinese, and English word order](https://aligner.tinygods.dev/examples/japanese-chinese-english-word-order): SOV vs SVO word order with crossing connectors across three lines.
 - [Classical Nahuatl interlinear gloss](https://aligner.tinygods.dev/examples/classical-nahuatl-interlinear-gloss): Polysynthetic verb morphology in an interlinear layout.
 - [Lezgian morpheme gloss](https://aligner.tinygods.dev/examples/lezgian-morpheme-gloss): Morpheme-by-morpheme glossing of a low-resource language.
