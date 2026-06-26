@@ -83,6 +83,16 @@ The agent translates, calls the API, and returns a shareable link.
 
 Install instructions and a downloadable archive are also on the site: [aligner.tinygods.dev/skill](https://aligner.tinygods.dev/skill).
 
+### MCP server
+
+There is also an MCP server at `https://aligner.tinygods.dev/mcp` that exposes a single `create_word_alignment` tool. It returns a shareable link plus a preview image, and runs inside the same app over Streamable HTTP with no auth. Connect it in Claude:
+
+```bash
+claude mcp add --transport http word-aligner https://aligner.tinygods.dev/mcp
+```
+
+See [docs/mcp-server.md](docs/mcp-server.md) for ChatGPT Developer Mode setup and the tool schema.
+
 ## Learn more
 
 - **App:** [aligner.tinygods.dev](https://aligner.tinygods.dev)

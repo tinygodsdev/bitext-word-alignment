@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import { ALIGNER_DISPLAY_NAME } from '$lib/brand.js';
+	import { ALIGNER_DISPLAY_NAME, ALIGNER_SITE_HOST } from '$lib/brand.js';
 	import SiteFooter from '$lib/components/layout/SiteFooter.svelte';
 	import StructuredData from '$lib/components/seo/StructuredData.svelte';
 	import { SITE_NAME } from '$lib/seo/metadata.js';
@@ -95,7 +95,7 @@
 	>
 		<p class="m-0 font-medium text-gray-900 dark:text-white">On this page</p>
 		<ul class="mt-2 flex list-none flex-wrap gap-x-4 gap-y-1 p-0">
-			{#each [['#what', 'What it is'], ['#ask', 'What you can ask'], ['#install', 'Install'], ['#how', 'How it works'], ['#get', 'Get the skill']] as [href, label] (href)}
+			{#each [['#what', 'What it is'], ['#ask', 'What you can ask'], ['#install', 'Install'], ['#mcp', 'MCP server'], ['#how', 'How it works'], ['#get', 'Get the skill']] as [href, label] (href)}
 				<li>
 					<a
 						{href}
@@ -161,6 +161,31 @@
 		<span class={codeClass}>agents/openai.yaml</span> manifest for OpenAI-style agents.
 	</p>
 
+	<h2 id="mcp" class={headingClass}>MCP server</h2>
+	<p class={pClass}>
+		There is also a hosted MCP server, a second way to connect that needs no package to install. It
+		runs inside {SITE_NAME} at
+		<span class={codeClass}>https://{ALIGNER_SITE_HOST}/mcp</span>
+		and exposes one tool, <span class={codeClass}>create_word_alignment</span>, which takes your
+		text lines and word pairs and returns a shareable diagram link plus a preview image. No API key,
+		no sign-up.
+	</p>
+	<p class={pClass}>
+		It speaks the Model Context Protocol over Streamable HTTP, so any MCP client can use it. Pick
+		the skill package or the MCP server depending on what your assistant supports.
+	</p>
+
+	<h3 id="mcp-claude" class={subheadingClass}>Claude</h3>
+	<p class={pClass}>Add it as a remote MCP server. In Claude Code:</p>
+	<pre
+		class={preClass}>{`claude mcp add --transport http word-aligner https://${ALIGNER_SITE_HOST}/mcp`}</pre>
+
+	<h3 id="mcp-chatgpt" class={subheadingClass}>ChatGPT</h3>
+	<p class={pClass}>
+		Turn on Developer Mode, then add a connector pointing at
+		<span class={codeClass}>https://{ALIGNER_SITE_HOST}/mcp</span>. No authentication.
+	</p>
+
 	<h2 id="how" class={headingClass}>How it works</h2>
 	<p class={pClass}>
 		Under the hood the skill calls one endpoint, <span class={codeClass}>POST /api/align</span>,
@@ -191,6 +216,10 @@
 		</li>
 		<li>
 			<a href={resolve('/api')} class={linkClass}>Read the API reference</a>
+		</li>
+		<li>
+			Connect the MCP server at <span class={codeClass}>https://{ALIGNER_SITE_HOST}/mcp</span> (see
+			<a href="#mcp" class={linkClass}>MCP server</a> above)
 		</li>
 	</ul>
 

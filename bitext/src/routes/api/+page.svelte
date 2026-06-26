@@ -93,6 +93,11 @@
 		<a href={resolve('/skill')} class={linkClass}>Word Aligner agent skill</a> for Claude, ChatGPT, or
 		any tool-using agent.
 	</p>
+	<p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+		Prefer a native tool? Connect the MCP server at
+		<span class={codeClass}>https://{ALIGNER_SITE_HOST}/mcp</span>. See
+		<a href={resolve('/skill')} class={linkClass}>the skill page</a> for setup in Claude and ChatGPT.
+	</p>
 
 	<nav
 		class="mt-8 rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm dark:border-gray-700 dark:bg-gray-800/60"
