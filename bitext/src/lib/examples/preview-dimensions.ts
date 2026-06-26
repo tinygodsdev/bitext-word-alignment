@@ -11,6 +11,7 @@ export const EXAMPLE_PREVIEW_DIMENSIONS: Record<string, PreviewDimensions> = {
 	'hebrew-arabic-english-rtl-interlinear': { width: 1920, height: 952 },
 	'tagalog-compound-word-alignment': { width: 1920, height: 598 },
 	'japanese-chinese-english-word-order': { width: 1920, height: 940 },
+	'conlang-custom-font-interlinear-gloss': { width: 1920, height: 958 },
 	'classical-nahuatl-interlinear-gloss': { width: 1920, height: 696 },
 	'nahuatl-leipzig-glossing-abbreviations': { width: 1920, height: 696 },
 	'taiwanese-minnan-interlinear-gloss': { width: 1920, height: 696 },
@@ -24,6 +25,5 @@ export const EXAMPLE_PREVIEW_DIMENSIONS: Record<string, PreviewDimensions> = {
 	'german-umlaut-plural-gloss': { width: 1920, height: 696 },
 	'avar-ergative-agreement-interlinear': { width: 1920, height: 696 },
 	'lojban-sumti-interlinear-gloss': { width: 1920, height: 696 },
-	'russian-case-agreement-interlinear-gloss': { width: 1920, height: 696 },
-	'conlang-custom-font-interlinear-gloss': { width: 1179, height: 650 }
+	'russian-case-agreement-interlinear-gloss': { width: 1920, height: 696 }
 };
