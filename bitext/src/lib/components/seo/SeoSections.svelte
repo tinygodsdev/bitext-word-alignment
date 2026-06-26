@@ -82,6 +82,16 @@
 		{/each}
 	</ul>
 
+	<h3 class="font-heading mt-6 text-xl font-semibold text-gray-900 dark:text-white">
+		Use it from your AI assistant
+	</h3>
+	<p>
+		There is an <a href="/skill" class={linkClass}>agent skill</a> that teaches Claude, ChatGPT, or
+		a custom agent to build these diagrams from a plain request: ask it to align a translation or
+		gloss a sentence, and it returns a shareable link. It runs on the same open
+		<a href="/api" class={linkClass}>API</a>, with no key required.
+	</p>
+
 	<h3 id="faq" class="font-heading mt-6 text-xl font-semibold text-gray-900 dark:text-white">
 		Questions people ask
 	</h3>

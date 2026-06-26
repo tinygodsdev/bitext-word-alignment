@@ -19,6 +19,7 @@ ${entry(`${base}/guide`)}
 ${guideUrls}
 ${entry(`${base}/about`)}
 ${entry(`${base}/api`)}
+${entry(`${base}/skill`)}
 ${entry(`${base}/privacy`)}
 </urlset>`;
 	return new Response(body, {

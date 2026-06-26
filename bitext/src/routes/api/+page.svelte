@@ -88,6 +88,11 @@
 			>/api/align/openapi.json</a
 		>
 	</p>
+	<p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+		Want your AI assistant to call this for you? Install the
+		<a href={resolve('/skill')} class={linkClass}>Word Aligner agent skill</a> for Claude, ChatGPT, or
+		any tool-using agent.
+	</p>
 
 	<nav
 		class="mt-8 rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm dark:border-gray-700 dark:bg-gray-800/60"

@@ -81,6 +81,8 @@ The agent translates, calls the API, and returns a shareable link.
 - **For Claude:** point your Claude project at this repository or add the contents of `word-aligner-skill/SKILL.md` as a custom instruction.
 - **For ChatGPT:** zip `word-aligner-skill/` and upload it as a custom Skill.
 
+Install instructions and a downloadable archive are also on the site: [aligner.tinygods.dev/skill](https://aligner.tinygods.dev/skill).
+
 ## Learn more
 
 - **App:** [aligner.tinygods.dev](https://aligner.tinygods.dev)
