@@ -41,6 +41,14 @@
 		language, and a visual tool removes the markup that usually makes glossing tedious.
 	{/snippet}
 
+	<p class={GUIDE_P}>
+		For a full worked example, see the
+		<a href="/examples/conlang-custom-font-interlinear-gloss" class={GUIDE_LINK}
+			>conlang custom-font gloss</a
+		>: an invented language in its own script, glossed with morpheme labels, an IPA tier, and an
+		English translation. The steps below explain how to build the same thing.
+	</p>
+
 	<h2 id="why" class={GUIDE_H2}>Why gloss your conlang</h2>
 	<p class={GUIDE_P}>
 		A gloss documents how your morphology works, so a reader on a forum or in your own grammar can
