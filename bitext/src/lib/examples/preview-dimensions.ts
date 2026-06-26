@@ -24,5 +24,6 @@ export const EXAMPLE_PREVIEW_DIMENSIONS: Record<string, PreviewDimensions> = {
 	'german-umlaut-plural-gloss': { width: 1920, height: 696 },
 	'avar-ergative-agreement-interlinear': { width: 1920, height: 696 },
 	'lojban-sumti-interlinear-gloss': { width: 1920, height: 696 },
-	'russian-case-agreement-interlinear-gloss': { width: 1920, height: 696 }
+	'russian-case-agreement-interlinear-gloss': { width: 1920, height: 696 },
+	'conlang-custom-font-interlinear-gloss': { width: 1179, height: 650 }
 };

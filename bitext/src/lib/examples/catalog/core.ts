@@ -488,5 +488,126 @@ export const CORE_GALLERY: GalleryExampleEntry[] = [
 				]
 			}
 		]
+	},
+	{
+		slug: 'conlang-custom-font-interlinear-gloss',
+		exampleId: 'conlang-custom-font',
+		title: 'Conlang interlinear gloss with a custom font',
+		description:
+			'A constructed language in its own script: an ergative-absolutive clause glossed and aligned to English, with the source line in an uploaded custom font.',
+		body: `Languages: a constructed language (Lemu Teloku) → English. The source line is written in the language's own script using an uploaded custom font, with a gloss line, an IPA line, and an English translation.\n\nWhat it demonstrates: per-line custom fonts for invented scripts, ergative-absolutive case marking, and crossing links where the verb and object reorder against English.`,
+		imageAlt:
+			'Constructed language in a custom script aligned to English, with gloss and IPA lines and crossing connectors',
+		sections: [
+			{
+				id: 'overview',
+				heading: 'What this example shows',
+				blocks: [
+					{
+						kind: 'paragraph',
+						text: 'This is a sentence in Lemu Teloku, a constructed language, written in its own alphabet through an uploaded custom font. The clause means “The girl eats the soup”. Four rows stack a gloss, an IPA line, the source in its script, and the English translation, so you can read the invented language even without knowing the script.'
+					}
+				]
+			},
+			{
+				id: 'by-token',
+				heading: 'The sentence, token by token',
+				blocks: [
+					{
+						kind: 'gloss',
+						lead: 'Three source words, with their gloss and pronunciation:',
+						rows: [
+							{
+								token: 'Nevikw',
+								gloss: 'girl-ERG',
+								note: '“girl”, marked ergative as the subject of a transitive verb. Pronounced /nevikö/.'
+							},
+							{
+								token: 'Laka',
+								gloss: 'soup-ABS',
+								note: '“soup”, marked absolutive as the object. Pronounced /laka/.'
+							},
+							{
+								token: 'Tomua',
+								gloss: 'eat-PRS',
+								note: 'the verb “eat” in the present. Pronounced /tomua/.'
+							}
+						]
+					}
+				]
+			},
+			{
+				id: 'ergative',
+				heading: 'Ergative alignment and why links cross',
+				blocks: [
+					{
+						kind: 'paragraph',
+						text: 'Lemu Teloku marks the transitive subject with an ergative case and the object with an absolutive, where English uses word order instead. The source orders the words girl, soup, eat, while English orders them girl, eats, soup. So the link from the object and the link from the verb swap places and cross, the same visual cue you see when any language puts the verb where English puts the object.'
+					},
+					{
+						kind: 'links',
+						lead: 'For the ERG and ABS labels:',
+						items: [
+							{
+								href: '/guide/glossing-abbreviations',
+								label: 'glossing abbreviations cheat sheet'
+							}
+						]
+					}
+				]
+			},
+			{
+				id: 'custom-font',
+				heading: 'The custom font',
+				blocks: [
+					{
+						kind: 'paragraph',
+						text: 'The source line uses a font uploaded for this language, not a web font. On this page you see the exported image, so the script renders as intended. If you open the example in the editor, that line falls back to a default font, because the font is specific to Lemu Teloku and is not shipped with the site. To see your own script, upload your font under Settings → Fonts and set it on the line.'
+					},
+					{
+						kind: 'links',
+						lead: 'More on glossing an invented language:',
+						items: [
+							{
+								href: '/guide/how-to-gloss-a-conlang',
+								label: 'how to gloss your conlang'
+							}
+						]
+					}
+				]
+			},
+			{
+				id: 'recreate',
+				heading: 'Recreate it in the editor',
+				blocks: [
+					{
+						kind: 'paragraph',
+						text: 'Open the example, then upload your own font file under Settings → Fonts and set it per line for the source row. Add or edit the gloss and IPA lines, hide the connectors between the top rows so the block reads as one unit, and export the result as PNG, SVG, or PDF for a grammar or a post.'
+					}
+				]
+			},
+			{
+				id: 'see-also',
+				heading: 'See also',
+				blocks: [
+					{
+						kind: 'links',
+						lead: 'Related examples:',
+						items: [
+							{
+								href: '/examples/lojban-sumti-interlinear-gloss',
+								label: 'Lojban interlinear gloss',
+								text: ' is another constructed language.'
+							},
+							{
+								href: '/examples/lezgian-morpheme-gloss',
+								label: 'Lezgian morpheme gloss',
+								text: ' shows ergative-style case marking in a natural language.'
+							}
+						]
+					}
+				]
+			}
+		]
 	}
 ];

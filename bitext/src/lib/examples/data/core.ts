@@ -104,5 +104,47 @@ export const CORE_EXAMPLES: ExampleEntry[] = [
 			['zh-2', 'en-2'],
 			['zh-3', 'en-4']
 		]
+	},
+	{
+		id: 'conlang-custom-font',
+		label: 'Conlang with a custom font',
+		lines: [
+			inter('girl-ERG soup-ABS eat-PRS', 'gl'),
+			inter('/nevikö/ /laka/ /tomua/', 'ipa'),
+			{
+				id: 's',
+				rawText: 'Nevikw  Laka Tomua',
+				font: {
+					family: 'Abika Common 01.2026.1',
+					source: 'custom',
+					customName: 'Abika Common 01.2026.1'
+				},
+				textSizePx: 60,
+				gapWordPx: 27
+			},
+			inter('The girl eats the soup', 't')
+		],
+		settings: { tokenSplitChars: '.|' },
+		pairControls: [
+			{ upperLineId: 'gl', lowerLineId: 'ipa', showConnectors: false },
+			{ upperLineId: 'ipa', lowerLineId: 's', showConnectors: false }
+		],
+		linePairGaps: [
+			{ upperLineId: 'gl', lowerLineId: 'ipa', gapPx: 12 },
+			{ upperLineId: 'ipa', lowerLineId: 's', gapPx: 12 }
+		],
+		connections: [
+			['s-0', 't-1'],
+			['s-0', 't-0'],
+			['s-2', 't-2'],
+			['s-1', 't-3'],
+			['s-1', 't-4'],
+			['ipa-0', 's-0'],
+			['ipa-1', 's-1'],
+			['ipa-2', 's-2'],
+			['gl-0', 'ipa-0'],
+			['gl-1', 'ipa-1'],
+			['gl-2', 'ipa-2']
+		]
 	}
 ];

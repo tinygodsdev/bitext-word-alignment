@@ -7,6 +7,7 @@
  * Output: `.cache/example-previews/{slug}.png`
  */
 import { execSync, spawn, type ChildProcess } from 'node:child_process';
+import { existsSync, readFileSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -18,6 +19,49 @@ export const EXAMPLE_RENDER_WIDTH = 960;
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const BITEXT_ROOT = join(__dirname, '..');
 const OUT_DIR = join(BITEXT_ROOT, '.cache', 'example-previews');
+
+/**
+ * Render-only custom fonts: kept in the repo (scripts/render-fonts/) for reproducible previews, but
+ * never bundled or served by the site — they belong to a specific conlang, not general use. The
+ * render page sets `font-family: "<family>"` on the line, so injecting a matching @font-face here is
+ * enough. If a font file is missing, its slug is skipped so its committed/uploaded preview stays.
+ */
+const FONT_DIR = join(BITEXT_ROOT, 'scripts', 'render-fonts');
+const RENDER_FONTS = [
+	{
+		slug: 'conlang-custom-font-interlinear-gloss',
+		family: 'Abika Common 01.2026.1',
+		file: 'abika-common.otf'
+	}
+];
+
+function fontMime(file: string): string {
+	if (file.endsWith('.woff2')) return 'font/woff2';
+	if (file.endsWith('.woff')) return 'font/woff';
+	if (file.endsWith('.ttf')) return 'font/ttf';
+	return 'font/otf';
+}
+
+/** Build injectable @font-face CSS for available render fonts; collect slugs to skip when missing. */
+function resolveRenderFonts(): { css: string; skip: Set<string> } {
+	const faces: string[] = [];
+	const skip = new Set<string>();
+	for (const rf of RENDER_FONTS) {
+		const path = join(FONT_DIR, rf.file);
+		if (existsSync(path)) {
+			const base64 = readFileSync(path).toString('base64');
+			faces.push(
+				`@font-face{font-family:"${rf.family}";src:url(data:${fontMime(rf.file)};base64,${base64});font-display:block}`
+			);
+		} else {
+			skip.add(rf.slug);
+			console.warn(
+				`  [skip] ${rf.slug}: render font scripts/render-fonts/${rf.file} not found — keeping its committed preview`
+			);
+		}
+	}
+	return { css: faces.join('\n'), skip };
+}
 
 const PREVIEW_PORT = Number(process.env.PREVIEW_PORT ?? 4173);
 const PREVIEW_URL = (process.env.PREVIEW_URL ?? `http://127.0.0.1:${PREVIEW_PORT}`).replace(
@@ -181,6 +225,9 @@ async function main(): Promise<void> {
 	try {
 		await mkdir(OUT_DIR, { recursive: true });
 
+		const { css: renderFontCss, skip: skipSlugs } = resolveRenderFonts();
+		const renderedSlugs: string[] = [];
+
 		const browser = await chromium.launch();
 		try {
 			const page = await browser.newPage({
@@ -193,9 +240,14 @@ async function main(): Promise<void> {
 			});
 
 			for (const slug of GALLERY_SLUGS) {
+				if (skipSlugs.has(slug)) continue;
 				const url = `${PREVIEW_URL}/examples/render/${slug}`;
 				console.log(`Rendering ${slug} …`);
 				await page.goto(url, { waitUntil: 'load', timeout: 120_000 });
+				if (renderFontCss) {
+					await page.addStyleTag({ content: renderFontCss });
+					await page.evaluate(() => document.fonts.ready);
+				}
 				try {
 					await waitForExampleLayout(page);
 				} catch (err) {
@@ -211,6 +263,7 @@ async function main(): Promise<void> {
 				const target = page.locator('[data-example-render-target] .preview-frame');
 				const outPath = join(OUT_DIR, `${slug}.png`);
 				await target.screenshot({ path: outPath, type: 'png' });
+				renderedSlugs.push(slug);
 				console.log(`  → ${outPath}`);
 			}
 
@@ -218,10 +271,10 @@ async function main(): Promise<void> {
 				generatedAt: new Date().toISOString(),
 				width: EXAMPLE_RENDER_WIDTH,
 				deviceScaleFactor: 2,
-				slugs: [...GALLERY_SLUGS]
+				slugs: renderedSlugs
 			};
 			await writeFile(join(OUT_DIR, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
-			console.log(`Done. ${GALLERY_SLUGS.length} PNGs in ${OUT_DIR}`);
+			console.log(`Done. ${renderedSlugs.length} PNGs in ${OUT_DIR}`);
 		} finally {
 			await browser.close();
 		}

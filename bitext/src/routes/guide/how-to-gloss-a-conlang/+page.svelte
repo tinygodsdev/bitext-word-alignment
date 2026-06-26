@@ -74,7 +74,10 @@
 		If your conlang uses an invented script or characters a default font lacks, upload a font file
 		under Settings → Fonts and set it per line. The source line can carry your script while the
 		gloss and translation stay in a readable Latin font. This is the part that markup tools handle
-		poorly, and a visual editor makes it routine.
+		poorly, and a visual editor makes it routine. The
+		<a href="/examples/conlang-custom-font-interlinear-gloss" class={GUIDE_LINK}
+			>custom-font example</a
+		> shows a constructed language in its own alphabet.
 	</p>
 
 	<h2 id="ipa" class={GUIDE_H2}>Add an IPA tier</h2>
