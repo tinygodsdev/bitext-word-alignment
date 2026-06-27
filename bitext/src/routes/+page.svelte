@@ -267,7 +267,7 @@
 				>
 					See exactly which word matches which across stacked lines. Add rows for glosses or IPA if
 					you need them, click a word then its match on the line above or below, and export or share
-					the diagram—great for lessons, posts, or conlang notes.
+					the diagram, great for lessons, posts, or conlang notes.
 				</p>
 				<p class="mt-4 max-w-prose text-sm leading-relaxed text-gray-600 dark:text-gray-400">
 					Created by
