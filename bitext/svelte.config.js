@@ -49,7 +49,8 @@ const config = {
 		// `reportOnly` to `directives` once QA is clean (see the CSP task).
 		csp: {
 			mode: 'auto',
-			reportOnly: cspDirectives
+			// reportOnly: cspDirectives
+			directives: cspDirectives,
 		}
 	}
 };
