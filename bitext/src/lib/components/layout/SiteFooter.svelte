@@ -30,6 +30,8 @@
 		<a href={resolve('/skill')} class={linkClass}>Agent skill</a>
 		<span class="mx-2 text-gray-400 dark:text-gray-600" aria-hidden="true">·</span>
 		<a href={resolve('/privacy')} class={linkClass}>Privacy policy</a>
+		<span class="mx-2 text-gray-400 dark:text-gray-600" aria-hidden="true">·</span>
+		<a href={resolve('/terms')} class={linkClass}>Terms of use</a>
 	</p>
 	<p class="mx-auto mt-5 max-w-md text-base leading-relaxed text-gray-700 dark:text-gray-300">
 		Created by

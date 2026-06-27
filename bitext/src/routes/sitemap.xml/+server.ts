@@ -21,6 +21,7 @@ ${entry(`${base}/about`)}
 ${entry(`${base}/api`)}
 ${entry(`${base}/skill`)}
 ${entry(`${base}/privacy`)}
+${entry(`${base}/terms`)}
 </urlset>`;
 	return new Response(body, {
 		headers: {

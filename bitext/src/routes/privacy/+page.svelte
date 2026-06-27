@@ -35,6 +35,8 @@
 		<a href={resolve('/')} class={linkClass}>← Back to {SITE_NAME}</a>
 		<span class="text-gray-300 dark:text-gray-600" aria-hidden="true">·</span>
 		<a href={resolve('/about')} class={linkClass}>About</a>
+		<span class="text-gray-300 dark:text-gray-600" aria-hidden="true">·</span>
+		<a href={resolve('/terms')} class={linkClass}>Terms of use</a>
 	</nav>
 
 	<h1
