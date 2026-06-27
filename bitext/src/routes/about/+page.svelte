@@ -453,9 +453,8 @@
 	<h2 id="doc-partners" class={headingClass}>Partner links</h2>
 	<p class="mt-3">
 		{DISPLAY_NAME} stays free and without aggressive ads. Hosting and ongoing upkeep still have a cost,
-		so I add a few optional partner links. Use them if you were already considering the service, it
-		helps keep the site running. The referral bonuses come from the provider. These are services I use
-		myself.
+		so I add a few optional partner links. Use them if you were already considering the service, it helps
+		keep the site running. The referral bonuses come from the provider. These are services I use myself.
 	</p>
 	<div class="mt-5 flex min-w-0 flex-col gap-4">
 		<PartnerBannerPreply />
