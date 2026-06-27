@@ -244,7 +244,7 @@
 	<p class="mt-4 text-lg text-gray-600 dark:text-gray-400">
 		<strong class="font-semibold text-gray-800 dark:text-gray-200">{DISPLAY_NAME}</strong> is a free,
 		browser-based tool for drawing word-to-word and morpheme-to-morpheme links between stacked lines of
-		text: bilingual glosses, interlinear annotations, classroom handouts, and social posts. Everything
+		text such as bilingual glosses, interlinear annotations, classroom handouts, and social posts. Everything
 		runs in your browser; your sentences are not stored on our servers unless you choose to share them.
 	</p>
 
@@ -453,7 +453,7 @@
 	<h2 id="doc-partners" class={headingClass}>Partner links</h2>
 	<p class="mt-3">
 		{DISPLAY_NAME} stays free and without aggressive ads. Hosting and ongoing upkeep still have a cost,
-		so I add a few optional partner links. Use them if you were already considering the service; it
+		so I add a few optional partner links. Use them if you were already considering the service, it
 		helps keep the site running. The referral bonuses come from the provider. These are services I use
 		myself.
 	</p>
