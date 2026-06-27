@@ -6,11 +6,18 @@
 		<meta name="theme-color" content="#1e293b" />
 		<meta name="format-detection" content="telephone=no" />
 		<!--
-			No inline scripts here on purpose: the GA gtag shim is bootstrapped from bundled JS
-			(deferThirdPartyScripts in src/lib/analytics/defer-third-party.ts) so the CSP can keep
-			script-src free of 'unsafe-inline'. gtag.js and the Tally widget are lazy-loaded once
-			the page is interactive to keep third-party JS off the critical path.
+			Google Analytics (gtag.js): only the tiny shim runs at load — gtag() calls queue in
+			dataLayer. The gtag.js library AND the Tally widget are lazy-loaded once the page is
+			interactive (see +layout.svelte) to keep third-party JS off the critical path.
 		-->
+		<script>
+			window.dataLayer = window.dataLayer || [];
+			function gtag() {
+				dataLayer.push(arguments);
+			}
+			gtag('js', new Date());
+			gtag('config', 'G-6Z5775NY39');
+		</script>
 		%sveltekit.head%
 	</head>
 	<body class="light" data-sveltekit-preload-data="hover">
