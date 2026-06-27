@@ -10,8 +10,9 @@ const port = Number(process.env.PORT || 3000);
 const shutdownTimeout = Number(process.env.SHUTDOWN_TIMEOUT || 30) * 1000;
 
 // HSTS is safe because the site is HTTPS-only (Railway terminates TLS, redirects HTTP).
-// No CSP yet: the app loads Google Fonts, GA, Tally, and a DigitalOcean CDN, so a correct
-// policy needs its own change.
+// Content-Security-Policy is set per-page by SvelteKit (kit.csp in svelte.config.js), which can
+// add the required nonce/hash to its own scripts. These headers cover everything else (including
+// prerendered pages and static assets, which the SvelteKit `handle` hook does not reach).
 const SECURITY_HEADERS = {
 	'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
 	'X-Content-Type-Options': 'nosniff',
