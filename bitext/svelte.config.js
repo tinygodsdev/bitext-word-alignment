@@ -50,7 +50,7 @@ const config = {
 		csp: {
 			mode: 'auto',
 			// reportOnly: cspDirectives
-			directives: cspDirectives,
+			directives: cspDirectives
 		}
 	}
 };
