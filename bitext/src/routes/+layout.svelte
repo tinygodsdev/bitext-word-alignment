@@ -38,7 +38,7 @@
 		return deferThirdPartyScripts();
 	});
 
-	/** SPA navigations: initial `enter` is already counted by the snippet in app.html */
+	/** SPA navigations: initial `enter` is already counted by bootstrapGtag (gtag('config')) */
 	afterNavigate(({ to, type }) => {
 		if (!browser || type === 'enter' || !to) return;
 		const g = (window as Window & { gtag?: (...args: unknown[]) => void }).gtag;
