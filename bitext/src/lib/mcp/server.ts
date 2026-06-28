@@ -23,7 +23,8 @@ const SERVER_INSTRUCTIONS =
 	'Word Aligner turns a phrase and its translation into a shareable visual diagram that ' +
 	'connects matching words with colored arcs. Translate and tokenize the text yourself, ' +
 	'work out which words correspond, then call create_word_alignment. Return the resulting ' +
-	'URL to the user; it opens the interactive diagram on aligner.tinygods.dev.';
+	'URL to the user exactly as received, character for character without any modification; ' +
+	'it opens the interactive diagram on aligner.tinygods.dev.';
 
 // Width of the inline preview PNG. Smaller than the OG card to keep the base64 payload light.
 const PREVIEW_WIDTH = 800;
@@ -182,11 +183,24 @@ const TOOL_INPUT_SCHEMA = {
 	}
 };
 
+const TOOL_OUTPUT_SCHEMA = {
+	type: 'object',
+	properties: {
+		url: {
+			type: 'string',
+			description:
+				'The shareable diagram URL. Return this to the user exactly as received, character for character.'
+		}
+	},
+	required: ['url']
+};
+
 const TOOL_DEFINITION = {
 	name: 'create_word_alignment',
 	title: 'Create word alignment diagram',
 	description: TOOL_DESCRIPTION,
 	inputSchema: TOOL_INPUT_SCHEMA,
+	outputSchema: TOOL_OUTPUT_SCHEMA,
 	// The tool only encodes its input into a URL (and renders a preview from that same input).
 	// It does not read or mutate any external state, and the result is deterministic, so the
 	// world of interaction is closed.
