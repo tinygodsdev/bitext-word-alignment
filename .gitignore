@@ -6,6 +6,9 @@ node_modules/
 .env.*
 !.env.example
 
+# mcp-publisher auth tokens (written to CWD on login)
+.mcpregistry_*
+
 # OS
 .DS_Store
 Thumbs.db
