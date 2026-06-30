@@ -163,7 +163,7 @@
 				{@const p1 = displayTokenLayout[conn.upperTokenId]}
 				{@const p2 = displayTokenLayout[conn.lowerTokenId]}
 				{#if p1 && p2}
-					{@const pts = linkEndpoints(p1, p2)}
+					{@const pts = linkEndpoints(p1, p2, style.tokenChips ? 0 : undefined)}
 					{@const ribbon = style.connector.mode === 'ribbon'}
 					{@const d = ribbon
 						? ribbonPathD(
@@ -172,7 +172,7 @@
 								pts.x2,
 								pts.y2,
 								settingsStore.settings.lineStyle,
-								style.connector.ribbonWidth ?? 24,
+								settingsStore.settings.lineThickness * (style.connector.ribbonScale ?? 8),
 								style.connector.taper ?? false
 							)
 						: linkPathD(pts.x1, pts.y1, pts.x2, pts.y2, settingsStore.settings.lineStyle)}

@@ -230,6 +230,11 @@ html {
 	overflow: visible;
 }
 
+/* Bauhaus: connectors tuck under the word cards (cards have a solid fill on the stack above). */
+.preview-frame[data-aligner-style='bauhaus'] .preview-svg-layer {
+	z-index: 0;
+}
+
 /* Range between lines: tint follows preview background, not site dark mode */
 .preview-frame--light .line-gap-range input[type='range'] {
 	accent-color: rgb(79 70 229);
@@ -294,6 +299,15 @@ path.link-path:hover {
 }
 .token-view--chip .token-view__text {
 	font-weight: 700;
+}
+/* Chips set their own background/shadow, so hover & selection show as an outline instead. */
+.token-view--chip.token-view--accent-hover {
+	outline: 3px solid var(--token-accent);
+	outline-offset: 1px;
+}
+.token-view--chip.token-view--accent-sel {
+	outline: 4px solid var(--token-accent);
+	outline-offset: 1px;
 }
 
 .gloss-row {

@@ -6,7 +6,6 @@ export type PaletteName =
 	| 'sunset'
 	| 'primary'
 	| 'jewel'
-	| 'earth'
 	| 'ink'
 	| 'cyan';
 
@@ -28,7 +27,6 @@ export const PALETTES: Record<PaletteName, readonly string[]> = {
 	sunset: ['#ff3caa', '#22d3ee', '#f97316', '#a855f7', '#ff6ec7', '#38bdf8', '#fb7185', '#facc15'],
 	primary: ['#d40924', '#1466d4', '#f4b400', '#0a8f4f', '#e8602c', '#6a3fb5', '#1f9e9e', '#171008'],
 	jewel: ['#9c3b2e', '#2f5d8a', '#3f7a4f', '#9a7b2e', '#6b4d8a', '#2f8a8a', '#a85d3c', '#54616e'],
-	earth: ['#8a3b2e', '#2f4f7a', '#3f6a4f', '#7a6a2e', '#5a4a8a', '#2f6a6a', '#9a5d3c', '#444c55'],
 	ink: ['#2a2622', '#55504a', '#3a4a52', '#6a4a3a', '#454a3a', '#7a6a5a', '#3a3a4a', '#5a4a4a'],
 	cyan: ['#cfe0ff', '#7ec8ff', '#a5f3ff', '#ffd27e', '#b9a5ff', '#7affd0', '#ff9ecf', '#dfe8f5']
 };
@@ -42,7 +40,6 @@ export const PALETTE_NAMES: PaletteName[] = [
 	'sunset',
 	'primary',
 	'jewel',
-	'earth',
 	'ink',
 	'cyan'
 ];

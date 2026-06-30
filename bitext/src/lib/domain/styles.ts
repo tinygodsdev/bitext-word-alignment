@@ -41,8 +41,8 @@ export interface StyleConnector {
 	lineColor?: string;
 	/** Filled circles at both endpoints. */
 	endpointDots?: { r: number; color?: string; ring?: string };
-	/** Ribbon mode: full stroke width in px. */
-	ribbonWidth?: number;
+	/** Ribbon mode: width = user line thickness × this scale (so thickness stays editable). */
+	ribbonScale?: number;
 	/** Ribbon mode: taper to a point at both ends (brush feel). */
 	taper?: boolean;
 }
@@ -120,7 +120,7 @@ const STYLES: Record<StyleId, VisualStyle> = {
 		},
 		connector: { cap: 'butt', endpointDots: { r: 3.2 } },
 		defaultFont: 'Spectral',
-		palette: 'earth'
+		palette: 'jewel'
 	},
 	synthwave: {
 		id: 'synthwave',
@@ -178,7 +178,7 @@ const STYLES: Record<StyleId, VisualStyle> = {
 			textColor: '#2a2622',
 			tintBaseHex: '#f5efe7'
 		},
-		connector: { cap: 'round', mode: 'ribbon', ribbonWidth: 26, taper: true, lineColor: '#1f1915' },
+		connector: { cap: 'round', mode: 'ribbon', ribbonScale: 8, taper: true, lineColor: '#1f1915' },
 		defaultFont: 'Spectral',
 		palette: 'ink'
 	},

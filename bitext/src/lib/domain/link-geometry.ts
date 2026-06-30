@@ -9,22 +9,23 @@ const PAD = 8;
  */
 export function linkEndpoints(
 	pUpper: TokenLayout,
-	pLower: TokenLayout
+	pLower: TokenLayout,
+	pad: number = PAD
 ): { x1: number; y1: number; x2: number; y2: number } {
 	const upperIsAbove = pUpper.cy <= pLower.cy;
 	if (upperIsAbove) {
 		return {
 			x1: pUpper.cx,
-			y1: pUpper.y + pUpper.h + PAD,
+			y1: pUpper.y + pUpper.h + pad,
 			x2: pLower.cx,
-			y2: pLower.y - PAD
+			y2: pLower.y - pad
 		};
 	}
 	return {
 		x1: pUpper.cx,
-		y1: pUpper.y - PAD,
+		y1: pUpper.y - pad,
 		x2: pLower.cx,
-		y2: pLower.y + pLower.h + PAD
+		y2: pLower.y + pLower.h + pad
 	};
 }
 

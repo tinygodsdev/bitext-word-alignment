@@ -146,9 +146,17 @@ export function buildStandaloneSvgString(args: {
 		const p1 = tokenLayout[c.upperTokenId];
 		const p2 = tokenLayout[c.lowerTokenId];
 		if (!p1 || !p2) continue;
-		const { x1, y1, x2, y2 } = linkEndpoints(p1, p2);
+		const { x1, y1, x2, y2 } = linkEndpoints(p1, p2, visualStyle.tokenChips ? 0 : undefined);
 		if (isRibbon) {
-			const d = ribbonPathD(x1, y1, x2, y2, lineStyle, conn.ribbonWidth ?? 24, conn.taper ?? false);
+			const d = ribbonPathD(
+				x1,
+				y1,
+				x2,
+				y2,
+				lineStyle,
+				lineThickness * (conn.ribbonScale ?? 8),
+				conn.taper ?? false
+			);
 			paths.push(
 				`<path stroke="none" fill="${escapeXml(color)}" fill-opacity="${lineOpacity}" d="${d}"/>`
 			);
@@ -263,5 +271,10 @@ export function buildStandaloneSvgString(args: {
 </g>`
 		: '';
 
-	return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${exportHeight}" viewBox="0 0 ${width} ${exportHeight}">${fontDefs}${bgRect}${frameSvg}${tokenRects.join('')}${paths.join('')}${texts.join('')}${cornerQr}${attribution}</svg>`;
+	// Chip styles (Bauhaus) draw connectors under the cards; otherwise links sit above the text.
+	const body = visualStyle.tokenChips
+		? `${paths.join('')}${tokenRects.join('')}${texts.join('')}`
+		: `${tokenRects.join('')}${paths.join('')}${texts.join('')}`;
+
+	return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${exportHeight}" viewBox="0 0 ${width} ${exportHeight}">${fontDefs}${bgRect}${frameSvg}${body}${cornerQr}${attribution}</svg>`;
 }
