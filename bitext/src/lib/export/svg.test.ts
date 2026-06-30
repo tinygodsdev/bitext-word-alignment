@@ -67,6 +67,6 @@ describe('buildStandaloneSvgString — visual style', () => {
 
 	it('bauhaus draws its frame border', () => {
 		const svg = build('bauhaus');
-		expect(svg).toContain('stroke="#241f10"');
+		expect(svg).toContain('stroke="#171008"');
 	});
 });

@@ -10,6 +10,7 @@
 		cap = 'round',
 		dash,
 		glow = false,
+		fill = false,
 		onenter,
 		onleave,
 		onclick
@@ -22,6 +23,8 @@
 		cap?: LineCap;
 		dash?: string;
 		glow?: boolean;
+		/** Ribbon mode: `d` is a closed filled shape, not a stroked line. */
+		fill?: boolean;
 		onenter: (id: string) => void;
 		onleave: () => void;
 		onclick: (id: string) => void;
@@ -29,13 +32,14 @@
 </script>
 
 <path
-	fill="none"
-	stroke={color}
-	stroke-width={thickness}
-	stroke-opacity={opacity}
-	stroke-linecap={cap}
+	fill={fill ? color : 'none'}
+	stroke={fill ? 'none' : color}
+	stroke-width={fill ? undefined : thickness}
+	stroke-opacity={fill ? undefined : opacity}
+	fill-opacity={fill ? opacity : undefined}
+	stroke-linecap={fill ? undefined : cap}
 	stroke-linejoin="round"
-	stroke-dasharray={dash}
+	stroke-dasharray={fill ? undefined : dash}
 	style:filter={glow ? `drop-shadow(0 0 ${thickness * 2}px ${color})` : undefined}
 	{d}
 	class="link-path"

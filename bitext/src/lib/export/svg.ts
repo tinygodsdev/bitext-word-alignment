@@ -5,9 +5,11 @@ import type { Connection } from '$lib/domain/alignment.js';
 import { primaryConnectionForToken } from '$lib/domain/alignment.js';
 import { canonicalPair, showConnectorsForPair, tokenLineId } from '$lib/domain/lines-helpers.js';
 import type { PairControlV2, TokenLinkColorMode } from '$lib/serialization/schema.js';
-import { linkEndpoints, linkPathD } from '$lib/domain/link-geometry.js';
+import { linkEndpoints, linkPathD, ribbonPathD } from '$lib/domain/link-geometry.js';
 import {
+	connectorColor,
 	getStyle,
+	readableTextOn,
 	styleExportBackground,
 	styleExportFrame,
 	type StyleId
@@ -136,14 +138,22 @@ export function buildStandaloneSvgString(args: {
 	const fontDefs = defsInner ? `<defs>${defsInner}</defs>` : '';
 
 	const dashAttr = conn.dash ? ` stroke-dasharray="${escapeXml(conn.dash)}"` : '';
+	const isRibbon = conn.mode === 'ribbon';
 	const paths: string[] = [];
 	for (const c of connections) {
 		if (!shouldRenderConnectionPath(c, lineOrder, pairControls)) continue;
-		const color = c.color ?? '#94a3b8';
+		const color = connectorColor(visualStyle, c.color ?? '#94a3b8');
 		const p1 = tokenLayout[c.upperTokenId];
 		const p2 = tokenLayout[c.lowerTokenId];
 		if (!p1 || !p2) continue;
 		const { x1, y1, x2, y2 } = linkEndpoints(p1, p2);
+		if (isRibbon) {
+			const d = ribbonPathD(x1, y1, x2, y2, lineStyle, conn.ribbonWidth ?? 24, conn.taper ?? false);
+			paths.push(
+				`<path stroke="none" fill="${escapeXml(color)}" fill-opacity="${lineOpacity}" d="${d}"/>`
+			);
+			continue;
+		}
 		const d = linkPathD(x1, y1, x2, y2, lineStyle);
 		// Glow: a wider, low-opacity underlay of the same color (portable across renderers).
 		if (conn.glow) {
@@ -188,6 +198,23 @@ export function buildStandaloneSvgString(args: {
 	function pushTokenText(t: Token, fontFamily: string, sizePx: number) {
 		const box = tokenLayout[t.id];
 		if (!box) return;
+		const link = primaryConnectionForToken(connections, t.id);
+		const chipColor = visualStyle.tokenChips && link?.color ? link.color : null;
+
+		if (chipColor) {
+			// Word card: hard offset shadow + solid chip + readable text.
+			const off = Math.round(sizePx * 0.11 * 100) / 100;
+			const shadow = visualStyle.tokenChips!.shadow;
+			tokenRects.push(
+				`<rect x="${box.x + off}" y="${box.y + off}" width="${box.w}" height="${box.h}" fill="${escapeXml(shadow)}"/>`,
+				`<rect x="${box.x}" y="${box.y}" width="${box.w}" height="${box.h}" fill="${escapeXml(chipColor)}"/>`
+			);
+			texts.push(
+				`<text fill="${escapeXml(readableTextOn(chipColor))}" font-family="${escapeXml(fontFamily)}" font-size="${sizePx}" font-weight="700" text-anchor="middle" dominant-baseline="central" transform="translate(${box.cx},${box.cy})">${escapeXml(t.text)}</text>`
+			);
+			return;
+		}
+
 		const fill = tokenFill(t.id);
 		const bg = tokenBgHex(t.id);
 		if (bg) {
@@ -195,8 +222,16 @@ export function buildStandaloneSvgString(args: {
 				`<rect x="${box.x}" y="${box.y}" width="${box.w}" height="${box.h}" fill="${escapeXml(bg)}"/>`
 			);
 		}
+		const common = `font-family="${escapeXml(fontFamily)}" font-size="${sizePx}" text-anchor="middle" dominant-baseline="central" transform="translate(${box.cx},${box.cy})"`;
+		if (visualStyle.glowText) {
+			// Portable halo: a soft wide outline of the same color behind the crisp glyph.
+			const halo = Math.round(sizePx * 0.18 * 100) / 100;
+			texts.push(
+				`<text fill="none" stroke="${escapeXml(fill)}" stroke-width="${halo}" stroke-opacity="0.5" stroke-linejoin="round" font-weight="500" ${common}>${escapeXml(t.text)}</text>`
+			);
+		}
 		texts.push(
-			`<text fill="${escapeXml(fill)}" font-family="${escapeXml(fontFamily)}" font-size="${sizePx}" font-weight="500" text-anchor="middle" dominant-baseline="central" transform="translate(${box.cx},${box.cy})">${escapeXml(t.text)}</text>`
+			`<text fill="${escapeXml(fill)}" font-weight="500" ${common}>${escapeXml(t.text)}</text>`
 		);
 	}
 

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { settingsStore } from '$lib/state/settings.svelte.js';
+	import { projectStore } from '$lib/state/project.svelte.js';
 	import { layoutExportStore } from '$lib/state/layoutExport.svelte.js';
 	import { STYLES_LIST, getStyle, type StyleId } from '$lib/domain/styles.js';
 
@@ -9,8 +10,14 @@
 	const current = $derived(getStyle(settingsStore.settings.style));
 
 	function choose(id: StyleId) {
+		const style = getStyle(id);
 		settingsStore.patch({ style: id });
-		// Font / dots can change token metrics — recompute the export layout after the DOM settles.
+		// Picking a style bundles its palette; the user can change it afterwards.
+		if (style.palette) {
+			settingsStore.patch({ palette: style.palette });
+			projectStore.recolorAllConnections(style.palette);
+		}
+		// Font / chips can change token metrics — recompute the export layout after the DOM settles.
 		layoutExportStore.requestRemeasureAfterLayout();
 		open = false;
 		detailsEl?.removeAttribute('open');

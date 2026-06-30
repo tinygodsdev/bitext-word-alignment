@@ -8,8 +8,8 @@
 		showConnectorsForPair,
 		tokenLineId
 	} from '$lib/domain/lines-helpers.js';
-	import { linkEndpoints, linkPathD } from '$lib/domain/link-geometry.js';
-	import { getStyle } from '$lib/domain/styles.js';
+	import { linkEndpoints, linkPathD, ribbonPathD } from '$lib/domain/link-geometry.js';
+	import { connectorColor, getStyle } from '$lib/domain/styles.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { linkHover } from '$lib/state/linkHover.svelte.js';
@@ -164,8 +164,19 @@
 				{@const p2 = displayTokenLayout[conn.lowerTokenId]}
 				{#if p1 && p2}
 					{@const pts = linkEndpoints(p1, p2)}
-					{@const d = linkPathD(pts.x1, pts.y1, pts.x2, pts.y2, settingsStore.settings.lineStyle)}
-					{@const col = conn.color ?? '#94a3b8'}
+					{@const ribbon = style.connector.mode === 'ribbon'}
+					{@const d = ribbon
+						? ribbonPathD(
+								pts.x1,
+								pts.y1,
+								pts.x2,
+								pts.y2,
+								settingsStore.settings.lineStyle,
+								style.connector.ribbonWidth ?? 24,
+								style.connector.taper ?? false
+							)
+						: linkPathD(pts.x1, pts.y1, pts.x2, pts.y2, settingsStore.settings.lineStyle)}
+					{@const col = connectorColor(style, conn.color ?? '#94a3b8')}
 					{@const hi = linkHover.id === conn.id}
 					{@const pend = selectionStore.pending}
 					{@const activeForPending =
@@ -183,6 +194,7 @@
 						cap={style.connector.cap}
 						dash={style.connector.dash}
 						glow={style.connector.glow ?? false}
+						fill={ribbon}
 						onenter={(id) => {
 							linkHover.id = id;
 						}}

@@ -4,7 +4,7 @@ import {
 	type Connection
 } from '$lib/domain/alignment.js';
 import { tokenize, tokenizeOptionsFromVisualSettings } from '$lib/domain/tokens.js';
-import { PALETTES, type PaletteName } from '$lib/domain/palettes.js';
+import { PALETTES, isPaletteName, type PaletteName } from '$lib/domain/palettes.js';
 import { isStyleId, type StyleId } from '$lib/domain/styles.js';
 
 export const SCHEMA_VERSION = 2 as const;
@@ -760,10 +760,7 @@ export function normalizeVisualSettingsV2(
 				: d.lineOpacity,
 		lineStyle:
 			raw.lineStyle === 'straight' || raw.lineStyle === 'curved' ? raw.lineStyle : d.lineStyle,
-		palette:
-			raw.palette === 'pastel' || raw.palette === 'vivid' || raw.palette === 'academic'
-				? raw.palette
-				: d.palette,
+		palette: isPaletteName(raw.palette) ? raw.palette : d.palette,
 		showNumbers: typeof raw.showNumbers === 'boolean' ? raw.showNumbers : d.showNumbers,
 		colorTokensByLink:
 			typeof raw.colorTokensByLink === 'boolean' ? raw.colorTokensByLink : d.colorTokensByLink,

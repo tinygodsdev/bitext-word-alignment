@@ -1,13 +1,16 @@
 import type { LineV2 } from '$lib/serialization/schema.js';
+import type { PaletteName } from '$lib/domain/palettes.js';
 
 /**
  * A visual style is a presentation theme layered on top of the user's own choices.
  * It controls the canvas (background, default text color, optional frame ornament),
- * the connector treatment (glow, endpoint dots, dash, line cap) and a default font.
+ * the connector treatment (mode, glow, endpoint dots, dash, line cap, ink color),
+ * token treatment (text glow, chips) and a default font + matching palette.
  *
- * It never overrides the user's palette (connector colors), connector geometry
- * (straight / curved), thickness or opacity. The default font applies only to lines
- * that are still on the app-default font, so an explicit per-line font always wins.
+ * It never overrides the user's connector geometry (straight / curved), thickness or
+ * opacity. The default font applies only to lines still on the app-default font, so an
+ * explicit per-line font always wins. Picking a style bundles its palette, but the
+ * palette can be changed afterwards and is also selectable on its own.
  *
  * The same descriptor drives the live preview and the standalone SVG export, so a
  * shared diagram looks identical to what the editor shows.
@@ -24,15 +27,24 @@ export type StyleId =
 	| 'blueprint';
 
 export type LineCap = 'round' | 'butt' | 'square';
+export type ConnectorMode = 'stroke' | 'ribbon';
 
 export interface StyleConnector {
+	/** 'stroke' (default) draws a line; 'ribbon' draws a filled brush stroke. */
+	mode?: ConnectorMode;
 	cap: LineCap;
-	/** SVG stroke-dasharray value (e.g. "7 5"); omitted = solid. */
+	/** SVG stroke-dasharray value (e.g. "7 6"); omitted = solid. */
 	dash?: string;
-	/** Soft halo around the stroke (neon look). */
+	/** Soft halo around the connector (neon look). */
 	glow?: boolean;
+	/** Override the palette/link color for connectors (e.g. dark ink). */
+	lineColor?: string;
 	/** Filled circles at both endpoints. */
 	endpointDots?: { r: number; color?: string; ring?: string };
+	/** Ribbon mode: full stroke width in px. */
+	ribbonWidth?: number;
+	/** Ribbon mode: taper to a point at both ends (brush feel). */
+	taper?: boolean;
 }
 
 export interface StyleCanvas {
@@ -52,8 +64,14 @@ export interface VisualStyle {
 	blurb: string;
 	canvas: StyleCanvas;
 	connector: StyleConnector;
+	/** Add a matching halo to the token text (neon styles). */
+	glowText?: boolean;
+	/** Render linked tokens as solid colored chips with a hard offset shadow (Bauhaus). */
+	tokenChips?: { shadow: string };
 	/** Google font family applied to lines still on the app default; null keeps the user's font. */
 	defaultFont: string | null;
+	/** Palette bundled with the style (set when the style is picked); undefined keeps the current one. */
+	palette?: PaletteName;
 	/** CSS class added to the preview frame for an optional decorative border. */
 	frameClass?: string;
 }
@@ -78,7 +96,7 @@ const STYLES: Record<StyleId, VisualStyle> = {
 	aurora: {
 		id: 'aurora',
 		label: 'Aurora',
-		blurb: 'Dark sky with glowing neon arcs.',
+		blurb: 'Dark sky with glowing neon arcs and text.',
 		canvas: {
 			isDark: true,
 			previewBackground: 'radial-gradient(130% 130% at 50% -10%, #2a2150, #14111f 70%)',
@@ -86,7 +104,9 @@ const STYLES: Record<StyleId, VisualStyle> = {
 			tintBaseHex: '#14111f'
 		},
 		connector: { cap: 'round', glow: true },
-		defaultFont: null
+		glowText: true,
+		defaultFont: 'Sora',
+		palette: 'neon'
 	},
 	atlas: {
 		id: 'atlas',
@@ -99,7 +119,8 @@ const STYLES: Record<StyleId, VisualStyle> = {
 			tintBaseHex: '#f6efe2'
 		},
 		connector: { cap: 'butt', endpointDots: { r: 3.2 } },
-		defaultFont: 'Source Serif 4'
+		defaultFont: 'Spectral',
+		palette: 'earth'
 	},
 	synthwave: {
 		id: 'synthwave',
@@ -112,7 +133,9 @@ const STYLES: Record<StyleId, VisualStyle> = {
 			tintBaseHex: '#2a1640'
 		},
 		connector: { cap: 'round', glow: true },
-		defaultFont: null
+		glowText: true,
+		defaultFont: 'Sora',
+		palette: 'sunset'
 	},
 	parchment: {
 		id: 'parchment',
@@ -126,39 +149,43 @@ const STYLES: Record<StyleId, VisualStyle> = {
 		},
 		connector: { cap: 'round', endpointDots: { r: 4, color: '#b8902f', ring: '#6b4d23' } },
 		defaultFont: 'Playfair Display',
+		palette: 'jewel',
 		frameClass: 'aligner-frame-parchment'
 	},
 	bauhaus: {
 		id: 'bauhaus',
 		label: 'Bauhaus',
-		blurb: 'Bold yellow field, thick border, big dots.',
+		blurb: 'Bold yellow field, word cards, thick ink links.',
 		canvas: {
 			isDark: false,
-			previewBackground: '#f4cf2a',
-			textColor: '#241f10',
-			tintBaseHex: '#f4cf2a'
+			previewBackground: '#fddb72',
+			textColor: '#171008',
+			tintBaseHex: '#fddb72'
 		},
-		connector: { cap: 'square', endpointDots: { r: 6.5, color: '#241f10' } },
-		defaultFont: 'Space Grotesk',
+		connector: { cap: 'butt', lineColor: '#171008', endpointDots: { r: 6.5, color: '#171008' } },
+		tokenChips: { shadow: '#171008' },
+		defaultFont: 'Sora',
+		palette: 'primary',
 		frameClass: 'aligner-frame-bauhaus'
 	},
 	sumi: {
 		id: 'sumi',
 		label: 'Sumi',
-		blurb: 'Calm ink on off-white paper.',
+		blurb: 'Brush-ink ribbons on off-white paper.',
 		canvas: {
 			isDark: false,
-			previewBackground: '#f5f3ee',
+			previewBackground: '#f5efe7',
 			textColor: '#2a2622',
-			tintBaseHex: '#f5f3ee'
+			tintBaseHex: '#f5efe7'
 		},
-		connector: { cap: 'round' },
-		defaultFont: 'Lora'
+		connector: { cap: 'round', mode: 'ribbon', ribbonWidth: 26, taper: true, lineColor: '#1f1915' },
+		defaultFont: 'Spectral',
+		palette: 'ink'
 	},
 	blueprint: {
 		id: 'blueprint',
 		label: 'Blueprint',
-		blurb: 'Drafting grid on deep blue.',
+		blurb: 'Drafting grid on deep blue, dashed links.',
 		canvas: {
 			isDark: true,
 			previewBackground:
@@ -166,8 +193,9 @@ const STYLES: Record<StyleId, VisualStyle> = {
 			textColor: '#dce8fb',
 			tintBaseHex: '#0e2a52'
 		},
-		connector: { cap: 'butt', endpointDots: { r: 3, color: '#cfe0ff' } },
+		connector: { cap: 'butt', dash: '7 6', endpointDots: { r: 3, color: '#cfe0ff' } },
 		defaultFont: 'Space Grotesk',
+		palette: 'cyan',
 		frameClass: 'aligner-frame-blueprint'
 	}
 };
@@ -193,6 +221,23 @@ export function getStyle(id: StyleId): VisualStyle {
 }
 
 export const STYLES_LIST: VisualStyle[] = STYLE_ORDER.map((id) => STYLES[id]);
+
+/** Connector color under a style: the style ink overrides the per-link palette color. */
+export function connectorColor(style: VisualStyle, linkColor: string): string {
+	return style.connector.lineColor ?? linkColor;
+}
+
+/** Readable text color on a solid fill (for chips): dark on light fills, white on dark. */
+export function readableTextOn(hex: string, dark = '#171008', light = '#ffffff'): string {
+	const h = hex.replace(/^#/u, '');
+	if (h.length < 6) return dark;
+	const r = parseInt(h.slice(0, 2), 16) / 255;
+	const g = parseInt(h.slice(2, 4), 16) / 255;
+	const b = parseInt(h.slice(4, 6), 16) / 255;
+	const lin = (c: number) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+	const lum = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+	return lum > 0.45 ? dark : light;
+}
 
 /**
  * Effective font family for a line under a style: the style default replaces the family only
@@ -257,7 +302,7 @@ export function styleExportFrame(style: VisualStyle, width: number, height: numb
 				`<rect x="20" y="20" width="${width - 40}" height="${height - 40}" fill="none" stroke="#6b4d23" stroke-opacity="0.45" stroke-width="1"/>`
 			);
 		case 'bauhaus':
-			return `<rect x="2" y="2" width="${width - 4}" height="${height - 4}" fill="none" stroke="#241f10" stroke-width="4"/>`;
+			return `<rect x="2" y="2" width="${width - 4}" height="${height - 4}" fill="none" stroke="#171008" stroke-width="4"/>`;
 		case 'blueprint':
 			return `<rect x="10" y="10" width="${width - 20}" height="${height - 20}" fill="none" stroke="#cfe0ff" stroke-opacity="0.35" stroke-width="1"/>`;
 		default:

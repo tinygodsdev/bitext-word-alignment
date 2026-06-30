@@ -197,6 +197,23 @@ html {
 	color: #cbd5e1;
 }
 
+/* Non-classic styles: the credit line adopts the style's text color and accent */
+.preview-frame[data-aligner-style]:not([data-aligner-style='classic']) .preview-frame__attribution,
+.preview-frame[data-aligner-style]:not([data-aligner-style='classic'])
+	.preview-frame__attribution-link {
+	color: inherit;
+}
+.preview-frame[data-aligner-style='bauhaus'] .preview-frame__attribution {
+	text-transform: uppercase;
+	letter-spacing: 0.12em;
+	font-weight: 600;
+}
+.preview-frame[data-aligner-style='atlas'] .preview-frame__attribution,
+.preview-frame[data-aligner-style='sumi'] .preview-frame__attribution,
+.preview-frame[data-aligner-style='parchment'] .preview-frame__attribution {
+	font-style: italic;
+}
+
 .preview-gloss-wrap {
 	width: 100%;
 	display: flex;
@@ -268,6 +285,15 @@ path.link-path:hover {
 
 .token-view__text {
 	font-weight: 500;
+}
+
+/* Bauhaus-style word cards */
+.token-view--chip {
+	padding: 0.08em 0.4em;
+	font-weight: 700;
+}
+.token-view--chip .token-view__text {
+	font-weight: 700;
 }
 
 .gloss-row {

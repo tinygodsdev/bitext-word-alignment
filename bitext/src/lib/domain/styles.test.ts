@@ -1,12 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import {
 	applyStyleFont,
+	connectorColor,
 	effectiveLineFamily,
 	getStyle,
 	isStyleId,
+	readableTextOn,
 	styleExportBackground,
 	STYLE_ORDER
 } from './styles.js';
+import { isPaletteName, PALETTE_NAMES, PALETTES } from './palettes.js';
+import { ribbonPathD } from './link-geometry.js';
 import type { LineV2 } from '$lib/serialization/schema.js';
 
 function line(font: LineV2['font']): LineV2 {
@@ -27,11 +31,11 @@ describe('style catalog', () => {
 });
 
 describe('style default font', () => {
-	const atlas = getStyle('atlas'); // defaultFont: 'Source Serif 4'
+	const atlas = getStyle('atlas'); // defaultFont: 'Spectral'
 
 	it('replaces the family only for the untouched app default', () => {
 		const def = line({ family: 'Inter', source: 'google' });
-		expect(effectiveLineFamily(def, atlas)).toBe('Source Serif 4');
+		expect(effectiveLineFamily(def, atlas)).toBe('Spectral');
 	});
 
 	it('keeps an explicit user font', () => {
@@ -52,7 +56,7 @@ describe('style default font', () => {
 			line({ family: 'Lora', source: 'google' })
 		];
 		const out = applyStyleFont(lines, atlas);
-		expect(out[0].font.family).toBe('Source Serif 4');
+		expect(out[0].font.family).toBe('Spectral');
 		expect(out[1].font.family).toBe('Lora');
 		expect(lines[0].font.family).toBe('Inter'); // original untouched
 	});
@@ -73,5 +77,38 @@ describe('style export background', () => {
 		const bg = styleExportBackground(getStyle('atlas'), 100, 100);
 		expect(bg?.defs).toBe('');
 		expect(bg?.rect).toContain(getStyle('atlas').canvas.tintBaseHex);
+	});
+});
+
+describe('connector + chip helpers', () => {
+	it('ink styles override the link color, others keep it', () => {
+		expect(connectorColor(getStyle('bauhaus'), '#ef4444')).toBe('#171008'); // ink override
+		expect(connectorColor(getStyle('aurora'), '#ef4444')).toBe('#ef4444'); // palette kept
+	});
+
+	it('chip text is readable on the fill', () => {
+		expect(readableTextOn('#171008')).toBe('#ffffff'); // dark fill → light text
+		expect(readableTextOn('#fddb72')).toBe('#171008'); // light fill → dark text
+	});
+
+	it('ribbon path is a closed filled shape', () => {
+		const d = ribbonPathD(0, 0, 100, 100, 'curved', 24, true);
+		expect(d.startsWith('M ')).toBe(true);
+		expect(d.endsWith(' Z')).toBe(true);
+	});
+});
+
+describe('palettes', () => {
+	it('every picker name resolves and guards work', () => {
+		for (const n of PALETTE_NAMES) expect(PALETTES[n].length).toBeGreaterThan(0);
+		expect(isPaletteName('neon')).toBe(true);
+		expect(isPaletteName('bogus')).toBe(false);
+	});
+
+	it('each non-classic style bundles an existing palette', () => {
+		for (const id of STYLE_ORDER) {
+			const p = getStyle(id).palette;
+			if (p) expect(isPaletteName(p)).toBe(true);
+		}
 	});
 });

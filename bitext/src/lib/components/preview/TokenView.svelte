@@ -4,7 +4,7 @@
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { selectionStore } from '$lib/state/selection.svelte.js';
-	import { getStyle } from '$lib/domain/styles.js';
+	import { getStyle, readableTextOn } from '$lib/domain/styles.js';
 
 	let {
 		token,
@@ -90,6 +90,29 @@
 
 	const displayColor = $derived(linkBgMode ? undefined : (accentColor ?? textColor ?? undefined));
 
+	const style = $derived(getStyle(settingsStore.settings.style));
+
+	// Bauhaus-style word cards: linked tokens become solid colored chips with a hard offset shadow.
+	const chip = $derived.by(() => {
+		if (!style.tokenChips || !conn?.color) return null;
+		return {
+			bg: conn.color,
+			fg: readableTextOn(conn.color),
+			shadow: `0.11em 0.11em 0 ${style.tokenChips.shadow}`
+		};
+	});
+
+	// Neon styles glow the text in its own color.
+	const textGlow = $derived.by(() => {
+		if (!style.glowText || chip) return undefined;
+		const c = displayColor ?? textColor ?? style.canvas.textColor;
+		return `0 0 0.5em ${c}`;
+	});
+
+	const bgFinal = $derived(chip ? chip.bg : (linkFillBackground ?? undefined));
+	const interactiveColor = $derived(linkBgMode ? undefined : displayColor);
+	const readonlyColor = $derived(linkBgMode ? undefined : (textColor ?? undefined));
+
 	function onClick() {
 		if (!interactive) return;
 		selectionStore.previewTokenClick(lineId, token.id);
@@ -105,12 +128,15 @@
 		class:token-view--colored={!linkBgMode && textColor && !accentColor}
 		class:token-view--accent-sel={!linkBgMode && accentColor !== null && isPinned}
 		class:token-view--accent-hover={!linkBgMode && accentColor !== null && !isPinned}
+		class:token-view--chip={chip}
 		data-token-id={token.id}
 		data-line={lineId}
 		style:font-size="{textSizePx}px"
 		style:--token-accent={accentColor ?? 'transparent'}
-		style:background={linkFillBackground ?? undefined}
-		style:color={displayColor}
+		style:background={bgFinal}
+		style:color={chip ? chip.fg : interactiveColor}
+		style:box-shadow={chip ? chip.shadow : undefined}
+		style:text-shadow={textGlow}
 		onclick={onClick}
 		onmouseenter={() => {
 			hovering = true;
@@ -130,11 +156,14 @@
 		class:token-view--join-before={joinTightStart}
 		class:token-view--join-after={joinTightEnd}
 		class:token-view--colored={!linkBgMode && !!textColor}
+		class:token-view--chip={chip}
 		data-token-id={token.id}
 		data-line={lineId}
 		style:font-size="{textSizePx}px"
-		style:background={linkFillBackground ?? undefined}
-		style:color={linkBgMode ? undefined : (textColor ?? undefined)}
+		style:background={bgFinal}
+		style:color={chip ? chip.fg : readonlyColor}
+		style:box-shadow={chip ? chip.shadow : undefined}
+		style:text-shadow={textGlow}
 	>
 		{#if showNumber}
 			<span class="token-view__num">{index + 1}</span>

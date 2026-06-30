@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Label } from 'flowbite-svelte';
 	import type { PaletteName } from '$lib/domain/palettes.js';
-	import { PALETTES } from '$lib/domain/palettes.js';
+	import { PALETTES, PALETTE_NAMES } from '$lib/domain/palettes.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 
@@ -12,7 +12,7 @@
 
 	const s = $derived(settingsStore.settings);
 
-	const names: PaletteName[] = ['pastel', 'vivid', 'academic'];
+	const names: PaletteName[] = PALETTE_NAMES;
 
 	const chk =
 		'peer h-4 w-4 rounded border-gray-300 bg-gray-100 text-primary-600 focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-primary-600';
