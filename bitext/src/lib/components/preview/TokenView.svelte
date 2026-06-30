@@ -4,6 +4,7 @@
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { selectionStore } from '$lib/state/selection.svelte.js';
+	import { getStyle } from '$lib/domain/styles.js';
 
 	let {
 		token,
@@ -38,9 +39,11 @@
 			settingsStore.settings.tokenLinkColorMode === 'background'
 	);
 
-	const previewSurfaceHex = $derived(
-		settingsStore.settings.background === 'dark' ? '#1e1e1e' : '#ffffff'
-	);
+	const previewSurfaceHex = $derived.by(() => {
+		const style = getStyle(settingsStore.settings.style);
+		if (style.id !== 'classic') return style.canvas.tintBaseHex;
+		return settingsStore.settings.background === 'dark' ? '#1e1e1e' : '#ffffff';
+	});
 
 	const textColor = $derived.by(() => {
 		if (!settingsStore.settings.colorTokensByLink || !conn?.color || linkBgMode) return null;

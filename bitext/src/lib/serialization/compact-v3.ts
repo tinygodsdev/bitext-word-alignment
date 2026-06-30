@@ -64,6 +64,7 @@ function settingsToCompact(rounded: VisualSettingsV2): CompactSettings3 | undefi
 		o.pp = rounded.tokenSplitPunctuation ? 1 : 0;
 	}
 	if (rounded.tokenPunctuationChars) o.px = rounded.tokenPunctuationChars;
+	if (rounded.style !== def.style) o.st = rounded.style;
 	if (rounded.background !== def.background) {
 		o.bg = rounded.background === 'dark' ? 1 : 0;
 	}
@@ -93,6 +94,7 @@ function compactToVisualSettings(s: CompactSettings3 | undefined): VisualSetting
 		/* Legacy 2 = image → light */
 		raw.background = n === 1 ? 'dark' : 'light';
 	}
+	if (s.st !== undefined) raw.style = String(s.st);
 	return normalizeVisualSettingsV2(raw);
 }
 

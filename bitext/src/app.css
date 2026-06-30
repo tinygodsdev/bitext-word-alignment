@@ -101,6 +101,40 @@ html {
 	border-color: rgb(55 65 81);
 }
 
+/* Decorative style frames (drawn above the background, below the tokens/links) */
+.preview-frame.aligner-frame-parchment::before,
+.preview-frame.aligner-frame-parchment::after {
+	content: '';
+	position: absolute;
+	pointer-events: none;
+	z-index: 4;
+}
+.preview-frame.aligner-frame-parchment::before {
+	inset: 14px;
+	border: 2px solid rgb(184 144 47 / 0.55);
+}
+.preview-frame.aligner-frame-parchment::after {
+	inset: 20px;
+	border: 1px solid rgb(107 77 35 / 0.45);
+}
+
+.preview-frame.aligner-frame-bauhaus {
+	border-color: #241f10;
+	border-width: 4px;
+}
+
+.preview-frame.aligner-frame-blueprint {
+	border-color: #1c4a86;
+}
+.preview-frame.aligner-frame-blueprint::after {
+	content: '';
+	position: absolute;
+	inset: 10px;
+	pointer-events: none;
+	z-index: 4;
+	border: 1px solid rgb(207 224 255 / 0.35);
+}
+
 /* Floating link hint — no panel chrome; halo keeps text readable on busy previews */
 .preview-frame__link-hint {
 	margin: 0;

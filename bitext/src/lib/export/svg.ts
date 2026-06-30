@@ -6,6 +6,12 @@ import { primaryConnectionForToken } from '$lib/domain/alignment.js';
 import { canonicalPair, showConnectorsForPair, tokenLineId } from '$lib/domain/lines-helpers.js';
 import type { PairControlV2, TokenLinkColorMode } from '$lib/serialization/schema.js';
 import { linkEndpoints, linkPathD } from '$lib/domain/link-geometry.js';
+import {
+	getStyle,
+	styleExportBackground,
+	styleExportFrame,
+	type StyleId
+} from '$lib/domain/styles.js';
 import { escapeXml } from './xml.js';
 
 const ATTRIBUTION_FOOTER_PX = 28;
@@ -57,9 +63,11 @@ function shouldRenderConnectionPath(
 export function buildStandaloneSvgString(args: {
 	width: number;
 	height: number;
-	/** Matches on-screen preview / raster exports (PNG, PDF). */
+	/** Matches on-screen preview / raster exports (PNG, PDF). Used for the `classic` style. */
 	backgroundColor: string;
 	defaultTextColor: string;
+	/** Visual style preset; drives canvas, frame and connector treatment. */
+	style?: StyleId;
 	colorTokensByLink: boolean;
 	tokenLinkColorMode?: TokenLinkColorMode;
 	lineStyle: 'straight' | 'curved';
@@ -85,6 +93,7 @@ export function buildStandaloneSvgString(args: {
 		height,
 		backgroundColor,
 		defaultTextColor,
+		style = 'classic',
 		colorTokensByLink,
 		tokenLinkColorMode = 'text',
 		lineStyle,
@@ -103,6 +112,14 @@ export function buildStandaloneSvgString(args: {
 
 	const exportHeight = includeAttributionFooter ? height + ATTRIBUTION_FOOTER_PX : height;
 
+	const visualStyle = getStyle(style);
+	const conn = visualStyle.connector;
+	const isClassic = visualStyle.id === 'classic';
+	const resolvedTextColor = isClassic ? defaultTextColor : visualStyle.canvas.textColor;
+	const tintBase = isClassic ? backgroundColor : visualStyle.canvas.tintBaseHex;
+	const exportBg = styleExportBackground(visualStyle, width, exportHeight);
+	const frameSvg = styleExportFrame(visualStyle, width, height);
+
 	const styleChunks: string[] = [];
 	if (embedFontCss && embedFontCss.length > 0) styleChunks.push(embedFontCss);
 	if (embedFontCdataImports?.length) {
@@ -112,32 +129,52 @@ export function buildStandaloneSvgString(args: {
 				.join('\n')
 		);
 	}
-	const fontDefs = styleChunks.length
-		? `<defs><style type="text/css"><![CDATA[\n${styleChunks.join('\n')}\n]]></style></defs>`
+	const fontStyleDef = styleChunks.length
+		? `<style type="text/css"><![CDATA[\n${styleChunks.join('\n')}\n]]></style>`
 		: '';
+	const defsInner = `${fontStyleDef}${exportBg?.defs ?? ''}`;
+	const fontDefs = defsInner ? `<defs>${defsInner}</defs>` : '';
 
+	const dashAttr = conn.dash ? ` stroke-dasharray="${escapeXml(conn.dash)}"` : '';
 	const paths: string[] = [];
-	for (const conn of connections) {
-		if (!shouldRenderConnectionPath(conn, lineOrder, pairControls)) continue;
-		const color = conn.color ?? '#94a3b8';
-		const p1 = tokenLayout[conn.upperTokenId];
-		const p2 = tokenLayout[conn.lowerTokenId];
+	for (const c of connections) {
+		if (!shouldRenderConnectionPath(c, lineOrder, pairControls)) continue;
+		const color = c.color ?? '#94a3b8';
+		const p1 = tokenLayout[c.upperTokenId];
+		const p2 = tokenLayout[c.lowerTokenId];
 		if (!p1 || !p2) continue;
 		const { x1, y1, x2, y2 } = linkEndpoints(p1, p2);
 		const d = linkPathD(x1, y1, x2, y2, lineStyle);
+		// Glow: a wider, low-opacity underlay of the same color (portable across renderers).
+		if (conn.glow) {
+			const glowWidth = Math.round(lineThickness * 2.4 * 100) / 100;
+			const glowOpacity = Math.round(lineOpacity * 0.35 * 1000) / 1000;
+			paths.push(
+				`<path fill="none" stroke="${escapeXml(color)}" stroke-width="${glowWidth}" stroke-opacity="${glowOpacity}" stroke-linecap="round" d="${d}"/>`
+			);
+		}
 		paths.push(
-			`<path fill="none" stroke="${escapeXml(color)}" stroke-width="${lineThickness}" stroke-opacity="${lineOpacity}" stroke-linecap="round" d="${d}"/>`
+			`<path fill="none" stroke="${escapeXml(color)}" stroke-width="${lineThickness}" stroke-opacity="${lineOpacity}" stroke-linecap="${conn.cap}"${dashAttr} d="${d}"/>`
 		);
+		if (conn.endpointDots) {
+			const dot = conn.endpointDots;
+			const fill = escapeXml(dot.color ?? color);
+			const ring = dot.ring ? ` stroke="${escapeXml(dot.ring)}" stroke-width="1.5"` : '';
+			paths.push(
+				`<circle cx="${x1}" cy="${y1}" r="${dot.r}" fill="${fill}"${ring} fill-opacity="${lineOpacity}"/>`,
+				`<circle cx="${x2}" cy="${y2}" r="${dot.r}" fill="${fill}"${ring} fill-opacity="${lineOpacity}"/>`
+			);
+		}
 	}
 
 	const tokenRects: string[] = [];
 	const texts: string[] = [];
 
 	function tokenFill(tokenId: string): string {
-		if (!colorTokensByLink) return defaultTextColor;
+		if (!colorTokensByLink) return resolvedTextColor;
 		const link = primaryConnectionForToken(connections, tokenId);
-		if (!link?.color) return defaultTextColor;
-		if (tokenLinkColorMode === 'background') return defaultTextColor;
+		if (!link?.color) return resolvedTextColor;
+		if (tokenLinkColorMode === 'background') return resolvedTextColor;
 		return link.color;
 	}
 
@@ -145,7 +182,7 @@ export function buildStandaloneSvgString(args: {
 		if (!colorTokensByLink || tokenLinkColorMode !== 'background') return null;
 		const link = primaryConnectionForToken(connections, tokenId);
 		if (!link?.color) return null;
-		return mixLinkBackground(link.color, backgroundColor, 0.28);
+		return mixLinkBackground(link.color, tintBase, 0.28);
 	}
 
 	function pushTokenText(t: Token, fontFamily: string, sizePx: number) {
@@ -169,10 +206,12 @@ export function buildStandaloneSvgString(args: {
 		}
 	}
 
-	const bgRect = `<rect x="0" y="0" width="${width}" height="${exportHeight}" fill="${escapeXml(backgroundColor)}"/>`;
+	const bgRect = exportBg
+		? exportBg.rect
+		: `<rect x="0" y="0" width="${width}" height="${exportHeight}" fill="${escapeXml(backgroundColor)}"/>`;
 
 	const attribution = includeAttributionFooter
-		? `<text fill="${escapeXml(defaultTextColor)}" opacity="0.55" font-family="${escapeXml(ATTRIBUTION_FONT)}" font-size="11" text-anchor="middle" dominant-baseline="central" transform="translate(${width / 2},${height + ATTRIBUTION_FOOTER_PX / 2})">${escapeXml(EXPORT_ATTRIBUTION_PLAIN)}</text>`
+		? `<text fill="${escapeXml(resolvedTextColor)}" opacity="0.55" font-family="${escapeXml(ATTRIBUTION_FONT)}" font-size="11" text-anchor="middle" dominant-baseline="central" transform="translate(${width / 2},${height + ATTRIBUTION_FOOTER_PX / 2})">${escapeXml(EXPORT_ATTRIBUTION_PLAIN)}</text>`
 		: '';
 
 	/** Inset from the full export rectangle (including footer band) — same on right and bottom. */
@@ -189,5 +228,5 @@ export function buildStandaloneSvgString(args: {
 </g>`
 		: '';
 
-	return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${exportHeight}" viewBox="0 0 ${width} ${exportHeight}">${fontDefs}${bgRect}${tokenRects.join('')}${paths.join('')}${texts.join('')}${cornerQr}${attribution}</svg>`;
+	return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${exportHeight}" viewBox="0 0 ${width} ${exportHeight}">${fontDefs}${bgRect}${frameSvg}${tokenRects.join('')}${paths.join('')}${texts.join('')}${cornerQr}${attribution}</svg>`;
 }

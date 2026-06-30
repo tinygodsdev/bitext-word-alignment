@@ -5,6 +5,7 @@
 	import LineEditModal from '$lib/components/editor/LineEditModal.svelte';
 	import LineSettingsSheet from '$lib/components/editor/LineSettingsSheet.svelte';
 	import AlignmentPreview from '$lib/components/preview/AlignmentPreview.svelte';
+	import StylePicker from '$lib/components/preview/StylePicker.svelte';
 	import SettingsPanel from '$lib/components/settings/SettingsPanel.svelte';
 	import ExportCard from '$lib/components/settings/ExportCard.svelte';
 	import ShareQuickRow from '$lib/components/share/ShareQuickRow.svelte';
@@ -365,6 +366,7 @@
 							</span>
 						</Button>
 						<div class="flex flex-wrap items-center gap-2">
+							<StylePicker />
 							<Button
 								color="light"
 								size="sm"

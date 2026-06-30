@@ -1,10 +1,16 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { projectStore } from '$lib/state/project.svelte.js';
+	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { googleFontUrlsForLines } from '$lib/fonts/visualization-font.js';
+	import { applyStyleFont, getStyle } from '$lib/domain/styles.js';
 	import { loadCustomFontBlob } from '$lib/fonts/custom-fonts.js';
 
-	const googleUrls = $derived(googleFontUrlsForLines(projectStore.lines));
+	const googleUrls = $derived(
+		googleFontUrlsForLines(
+			applyStyleFont(projectStore.lines, getStyle(settingsStore.settings.style))
+		)
+	);
 
 	let loadedCustom = $state<Record<string, true>>({});
 

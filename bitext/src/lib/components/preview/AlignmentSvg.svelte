@@ -9,6 +9,7 @@
 		tokenLineId
 	} from '$lib/domain/lines-helpers.js';
 	import { linkEndpoints, linkPathD } from '$lib/domain/link-geometry.js';
+	import { getStyle } from '$lib/domain/styles.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { linkHover } from '$lib/state/linkHover.svelte.js';
@@ -29,6 +30,7 @@
 	let displayTokenLayout = $state<Record<string, TokenLayout>>({});
 
 	const lineOrder = $derived(projectStore.lines.map((l) => l.id));
+	const style = $derived(getStyle(settingsStore.settings.style));
 
 	/** Opacity multiplier for connectors not usable while picking the second token (0 = hidden is wrong; use low alpha). */
 	const PENDING_DIM_FACTOR = 0.22;
@@ -113,6 +115,7 @@
 		}
 		void projectStore.pairControls;
 		void settingsStore.settings.lineStyle;
+		void settingsStore.settings.style;
 		void settingsStore.settings.previewHideChrome;
 		void projectStore.lines;
 		void writesExportLayout;
@@ -177,6 +180,9 @@
 							: settingsStore.settings.lineThickness}
 						opacity={pathOpacity}
 						linkId={conn.id}
+						cap={style.connector.cap}
+						dash={style.connector.dash}
+						glow={style.connector.glow ?? false}
 						onenter={(id) => {
 							linkHover.id = id;
 						}}
@@ -185,6 +191,27 @@
 						}}
 						onclick={(id) => projectStore.removeConnectionById(id)}
 					/>
+					{#if style.connector.endpointDots}
+						{@const dot = style.connector.endpointDots}
+						<circle
+							cx={pts.x1}
+							cy={pts.y1}
+							r={dot.r}
+							fill={dot.color ?? col}
+							stroke={dot.ring}
+							stroke-width={dot.ring ? 1.5 : undefined}
+							opacity={pathOpacity}
+						/>
+						<circle
+							cx={pts.x2}
+							cy={pts.y2}
+							r={dot.r}
+							fill={dot.color ?? col}
+							stroke={dot.ring}
+							stroke-width={dot.ring ? 1.5 : undefined}
+							opacity={pathOpacity}
+						/>
+					{/if}
 				{/if}
 			{/if}
 		{/each}
