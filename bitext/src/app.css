@@ -307,18 +307,18 @@ path.link-path {
 .token-view--chip {
 	padding: 0.08em 0.4em;
 	font-weight: 700;
+	transition:
+		transform 0.08s ease,
+		box-shadow 0.08s ease;
 }
 .token-view--chip .token-view__text {
 	font-weight: 700;
 }
-/* Chips set their own background/shadow, so hover & selection show as an outline instead. */
-.token-view--chip.token-view--accent-hover {
-	outline: 3px solid var(--token-accent);
-	outline-offset: 1px;
-}
+/* Brutalist press: the card sinks into its own offset shadow on hover / selection. */
+.token-view--chip.token-view--accent-hover,
 .token-view--chip.token-view--accent-sel {
-	outline: 4px solid var(--token-accent);
-	outline-offset: 1px;
+	transform: translate(0.11em, 0.11em);
+	box-shadow: none !important;
 }
 
 .gloss-row {

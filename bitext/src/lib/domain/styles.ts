@@ -178,7 +178,7 @@ const STYLES: Record<StyleId, VisualStyle> = {
 			textColor: '#2a2622',
 			tintBaseHex: '#f5efe7'
 		},
-		connector: { cap: 'round', mode: 'ribbon', ribbonScale: 8, taper: true, lineColor: '#1f1915' },
+		connector: { cap: 'round', mode: 'ribbon', ribbonScale: 6, taper: true, lineColor: '#1f1915' },
 		defaultFont: 'Spectral',
 		palette: 'ink'
 	},
