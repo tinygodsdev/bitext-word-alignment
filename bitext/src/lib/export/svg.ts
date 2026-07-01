@@ -112,15 +112,28 @@ export function buildStandaloneSvgString(args: {
 		siteQrPngDataUri
 	} = args;
 
-	const exportHeight = includeAttributionFooter ? height + ATTRIBUTION_FOOTER_PX : height;
-
 	const visualStyle = getStyle(style);
 	const conn = visualStyle.connector;
 	const isClassic = visualStyle.id === 'classic';
 	const resolvedTextColor = isClassic ? defaultTextColor : visualStyle.canvas.textColor;
 	const tintBase = isClassic ? backgroundColor : visualStyle.canvas.tintBaseHex;
+
+	// Innermost frame border inset so the attribution can sit inside the frame (matching the preview).
+	const frameInnerInset =
+		visualStyle.id === 'parchment'
+			? 20
+			: visualStyle.id === 'blueprint'
+				? 10
+				: visualStyle.id === 'bauhaus'
+					? 2
+					: 0;
+	const footerBand = includeAttributionFooter ? frameInnerInset + ATTRIBUTION_FOOTER_PX : 0;
+	const exportHeight = height + footerBand;
+	const attributionY = height + (footerBand - frameInnerInset) / 2;
+
 	const exportBg = styleExportBackground(visualStyle, width, exportHeight);
-	const frameSvg = styleExportFrame(visualStyle, width, height);
+	// Frame wraps the whole canvas (incl. the footer band) so the credit stays inside it.
+	const frameSvg = styleExportFrame(visualStyle, width, exportHeight);
 
 	const styleChunks: string[] = [];
 	if (embedFontCss && embedFontCss.length > 0) styleChunks.push(embedFontCss);
@@ -134,7 +147,21 @@ export function buildStandaloneSvgString(args: {
 	const fontStyleDef = styleChunks.length
 		? `<style type="text/css"><![CDATA[\n${styleChunks.join('\n')}\n]]></style>`
 		: '';
-	const defsInner = `${fontStyleDef}${exportBg?.defs ?? ''}`;
+	// Soft glow via Gaussian blur (matches the preview's drop-shadow, not a hard outline).
+	const effWidth = lineThickness * (conn.widthScale ?? 1);
+	const glowDefs: string[] = [];
+	if (conn.glow) {
+		const sd = Math.max(2, Math.round(effWidth * 1.1));
+		glowDefs.push(
+			`<filter id="wa-glow-line" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="${sd}"/></filter>`
+		);
+	}
+	if (visualStyle.glowText) {
+		glowDefs.push(
+			`<filter id="wa-glow-text" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="4"/></filter>`
+		);
+	}
+	const defsInner = `${fontStyleDef}${exportBg?.defs ?? ''}${glowDefs.join('')}`;
 	const fontDefs = defsInner ? `<defs>${defsInner}</defs>` : '';
 
 	const dashAttr = conn.dash ? ` stroke-dasharray="${escapeXml(conn.dash)}"` : '';
@@ -163,16 +190,14 @@ export function buildStandaloneSvgString(args: {
 			continue;
 		}
 		const d = linkPathD(x1, y1, x2, y2, lineStyle);
-		// Glow: a wider, low-opacity underlay of the same color (portable across renderers).
+		// Glow: a blurred copy of the same stroke behind the crisp one.
 		if (conn.glow) {
-			const glowWidth = Math.round(lineThickness * 2.4 * 100) / 100;
-			const glowOpacity = Math.round(lineOpacity * 0.35 * 1000) / 1000;
 			paths.push(
-				`<path fill="none" stroke="${escapeXml(color)}" stroke-width="${glowWidth}" stroke-opacity="${glowOpacity}" stroke-linecap="round" d="${d}"/>`
+				`<path fill="none" stroke="${escapeXml(color)}" stroke-width="${effWidth}" stroke-opacity="${lineOpacity}" stroke-linecap="round" filter="url(#wa-glow-line)" d="${d}"/>`
 			);
 		}
 		paths.push(
-			`<path fill="none" stroke="${escapeXml(color)}" stroke-width="${lineThickness}" stroke-opacity="${lineOpacity}" stroke-linecap="${conn.cap}"${dashAttr} d="${d}"/>`
+			`<path fill="none" stroke="${escapeXml(color)}" stroke-width="${effWidth}" stroke-opacity="${lineOpacity}" stroke-linecap="${conn.cap}"${dashAttr} d="${d}"/>`
 		);
 		if (conn.endpointDots) {
 			const dot = conn.endpointDots;
@@ -232,10 +257,9 @@ export function buildStandaloneSvgString(args: {
 		}
 		const common = `font-family="${escapeXml(fontFamily)}" font-size="${sizePx}" text-anchor="middle" dominant-baseline="central" transform="translate(${box.cx},${box.cy})"`;
 		if (visualStyle.glowText) {
-			// Portable halo: a soft wide outline of the same color behind the crisp glyph.
-			const halo = Math.round(sizePx * 0.18 * 100) / 100;
+			// Soft halo: a blurred copy of the glyph behind the crisp one.
 			texts.push(
-				`<text fill="none" stroke="${escapeXml(fill)}" stroke-width="${halo}" stroke-opacity="0.5" stroke-linejoin="round" font-weight="500" ${common}>${escapeXml(t.text)}</text>`
+				`<text fill="${escapeXml(fill)}" filter="url(#wa-glow-text)" font-weight="500" ${common}>${escapeXml(t.text)}</text>`
 			);
 		}
 		texts.push(
@@ -254,7 +278,7 @@ export function buildStandaloneSvgString(args: {
 		: `<rect x="0" y="0" width="${width}" height="${exportHeight}" fill="${escapeXml(backgroundColor)}"/>`;
 
 	const attribution = includeAttributionFooter
-		? `<text fill="${escapeXml(resolvedTextColor)}" opacity="0.55" font-family="${escapeXml(ATTRIBUTION_FONT)}" font-size="11" text-anchor="middle" dominant-baseline="central" transform="translate(${width / 2},${height + ATTRIBUTION_FOOTER_PX / 2})">${escapeXml(EXPORT_ATTRIBUTION_PLAIN)}</text>`
+		? `<text fill="${escapeXml(resolvedTextColor)}" opacity="0.55" font-family="${escapeXml(ATTRIBUTION_FONT)}" font-size="11" text-anchor="middle" dominant-baseline="central" transform="translate(${width / 2},${attributionY})">${escapeXml(EXPORT_ATTRIBUTION_PLAIN)}</text>`
 		: '';
 
 	/** Inset from the full export rectangle (including footer band) — same on right and bottom. */

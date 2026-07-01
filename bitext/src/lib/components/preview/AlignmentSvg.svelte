@@ -183,12 +183,12 @@
 						pend == null || connectionIsActiveForPendingSelection(lineOrder, conn, pend.lineId)}
 					{@const baseOp = settingsStore.settings.lineOpacity}
 					{@const pathOpacity = hi ? 1 : activeForPending ? baseOp : baseOp * PENDING_DIM_FACTOR}
+					{@const baseThickness =
+						settingsStore.settings.lineThickness * (style.connector.widthScale ?? 1)}
 					<LinkPath
 						{d}
 						color={col}
-						thickness={hi
-							? settingsStore.settings.lineThickness + 1
-							: settingsStore.settings.lineThickness}
+						thickness={hi ? baseThickness + 1 : baseThickness}
 						opacity={pathOpacity}
 						cap={style.connector.cap}
 						dash={style.connector.dash}

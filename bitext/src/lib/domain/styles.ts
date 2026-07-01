@@ -41,6 +41,8 @@ export interface StyleConnector {
 	lineColor?: string;
 	/** Filled circles at both endpoints. */
 	endpointDots?: { r: number; color?: string; ring?: string };
+	/** Stroke mode: multiply the user line thickness by this (thicker-by-default styles). */
+	widthScale?: number;
 	/** Ribbon mode: width = user line thickness × this scale (so thickness stays editable). */
 	ribbonScale?: number;
 	/** Ribbon mode: taper to a point at both ends (brush feel). */
@@ -162,7 +164,7 @@ const STYLES: Record<StyleId, VisualStyle> = {
 			textColor: '#171008',
 			tintBaseHex: '#fddb72'
 		},
-		connector: { cap: 'butt', lineColor: '#171008', endpointDots: { r: 6.5, color: '#171008' } },
+		connector: { cap: 'butt', lineColor: '#171008', widthScale: 3 },
 		tokenChips: { shadow: '#171008' },
 		defaultFont: 'Sora',
 		palette: 'primary',
@@ -178,7 +180,7 @@ const STYLES: Record<StyleId, VisualStyle> = {
 			textColor: '#2a2622',
 			tintBaseHex: '#f5efe7'
 		},
-		connector: { cap: 'round', mode: 'ribbon', ribbonScale: 6, taper: true, lineColor: '#1f1915' },
+		connector: { cap: 'round', mode: 'ribbon', ribbonScale: 5, taper: true, lineColor: '#1f1915' },
 		defaultFont: 'Spectral',
 		palette: 'ink'
 	},

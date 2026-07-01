@@ -51,18 +51,20 @@ describe('buildStandaloneSvgString — visual style', () => {
 		expect(svg).not.toContain('radialGradient');
 	});
 
-	it('aurora paints its gradient and adds a glow underlay', () => {
+	it('aurora paints its gradient and adds a blurred glow (line + text)', () => {
 		const svg = build('aurora');
 		expect(svg).toContain('radialGradient');
 		expect(svg).toContain('url(#bg-aurora)');
-		// glow = a wider, lower-opacity stroke of the same color in front of the crisp path
-		expect(svg).toContain('stroke-width="7.2"'); // 3 * 2.4
+		// glow = a blurred copy of the stroke/glyph behind the crisp one
+		expect(svg).toContain('wa-glow-line');
+		expect(svg).toContain('feGaussianBlur');
+		expect(svg).toContain('filter="url(#wa-glow-text)"');
 	});
 
 	it('atlas draws endpoint dots and no glow', () => {
 		const svg = build('atlas');
 		expect(svg).toContain('<circle');
-		expect(svg).not.toContain('stroke-width="7.2"');
+		expect(svg).not.toContain('feGaussianBlur');
 	});
 
 	it('bauhaus draws its frame border', () => {
