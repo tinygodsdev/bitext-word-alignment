@@ -2,7 +2,15 @@
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { layoutExportStore } from '$lib/state/layoutExport.svelte.js';
-	import { STYLES_LIST, getStyle, type StyleId } from '$lib/domain/styles.js';
+	import {
+		STYLES_LIST,
+		getStyle,
+		connectorColor,
+		readableTextOn,
+		type StyleId
+	} from '$lib/domain/styles.js';
+	import { ribbonPathD } from '$lib/domain/link-geometry.js';
+	import { PALETTES } from '$lib/domain/palettes.js';
 
 	let open = $state(false);
 	let detailsEl = $state<HTMLDetailsElement | null>(null);
@@ -51,6 +59,12 @@
 	>
 		{#each STYLES_LIST as st (st.id)}
 			{@const selected = st.id === current.id}
+			{@const pal = PALETTES[st.palette ?? 'pastel']}
+			{@const cA = pal[0]}
+			{@const cB = pal[1]}
+			{@const link = connectorColor(st, cA)}
+			{@const isRibbon = st.connector.mode === 'ribbon'}
+			{@const dot = st.connector.endpointDots}
 			<button
 				type="button"
 				role="menuitemradio"
@@ -64,32 +78,71 @@
 					class="relative flex h-12 items-center justify-center overflow-hidden rounded-sm"
 					style:background={st.canvas.previewBackground}
 				>
-					<svg viewBox="0 0 80 40" class="h-full w-full" aria-hidden="true">
-						<path
-							d="M 22 13 C 22 26 58 14 58 27"
-							fill="none"
-							stroke="#ef4444"
-							stroke-width="2.4"
-							stroke-linecap={st.connector.cap}
-							stroke-dasharray={st.connector.dash}
-							style:filter={st.connector.glow ? 'drop-shadow(0 0 3px #ef4444)' : undefined}
-						/>
-						{#if st.connector.endpointDots}
-							<circle
-								cx="22"
-								cy="13"
-								r={st.connector.endpointDots.r * 0.5}
-								fill={st.connector.endpointDots.color ?? '#ef4444'}
+					<svg viewBox="0 0 96 52" class="h-full w-full" aria-hidden="true">
+						<!-- connector (drawn first so Bauhaus cards sit on top) -->
+						{#if isRibbon}
+							<path
+								d={ribbonPathD(26, 26, 70, 32, 'curved', 6, st.connector.taper ?? false)}
+								fill={link}
 							/>
-							<circle
-								cx="58"
-								cy="27"
-								r={st.connector.endpointDots.r * 0.5}
-								fill={st.connector.endpointDots.color ?? '#ef4444'}
+						{:else}
+							<path
+								d="M 26 26 C 26 33 70 25 70 32"
+								fill="none"
+								stroke={link}
+								stroke-width="2.4"
+								stroke-linecap={st.connector.cap}
+								stroke-dasharray={st.connector.dash}
+								style:filter={st.connector.glow ? `drop-shadow(0 0 2.5px ${link})` : undefined}
 							/>
 						{/if}
-						<text x="14" y="20" font-size="13" font-weight="600" fill={st.canvas.textColor}>A</text>
-						<text x="56" y="34" font-size="13" font-weight="600" fill={st.canvas.textColor}>a</text>
+						{#if dot}
+							<circle cx="26" cy="26" r={dot.r * 0.55} fill={dot.color ?? link} stroke={dot.ring} />
+							<circle cx="70" cy="32" r={dot.r * 0.55} fill={dot.color ?? link} stroke={dot.ring} />
+						{/if}
+
+						{#if st.tokenChips}
+							<!-- word cards with hard offset shadow -->
+							<rect x="16.6" y="9.6" width="19" height="18" fill={st.tokenChips.shadow} />
+							<rect x="15" y="8" width="19" height="18" fill={cA} />
+							<text
+								x="24.5"
+								y="22"
+								font-size="15"
+								font-weight="700"
+								text-anchor="middle"
+								fill={readableTextOn(cA)}>A</text
+							>
+							<rect x="62.6" y="27.6" width="19" height="18" fill={st.tokenChips.shadow} />
+							<rect x="61" y="26" width="19" height="18" fill={cB} />
+							<text
+								x="70.5"
+								y="40"
+								font-size="15"
+								font-weight="700"
+								text-anchor="middle"
+								fill={readableTextOn(cB)}>a</text
+							>
+						{:else}
+							<text
+								x="26"
+								y="22"
+								font-size="17"
+								font-weight="600"
+								text-anchor="middle"
+								fill={cA}
+								style:filter={st.glowText ? `drop-shadow(0 0 2px ${cA})` : undefined}>A</text
+							>
+							<text
+								x="70"
+								y="44"
+								font-size="17"
+								font-weight="600"
+								text-anchor="middle"
+								fill={cB}
+								style:filter={st.glowText ? `drop-shadow(0 0 2px ${cB})` : undefined}>a</text
+							>
+						{/if}
 					</svg>
 				</span>
 				<span class="px-0.5 text-xs font-medium text-gray-800 dark:text-gray-100">{st.label}</span>
