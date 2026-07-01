@@ -190,18 +190,10 @@
 							? settingsStore.settings.lineThickness + 1
 							: settingsStore.settings.lineThickness}
 						opacity={pathOpacity}
-						linkId={conn.id}
 						cap={style.connector.cap}
 						dash={style.connector.dash}
 						glow={style.connector.glow ?? false}
 						fill={ribbon}
-						onenter={(id) => {
-							linkHover.id = id;
-						}}
-						onleave={() => {
-							linkHover.id = null;
-						}}
-						onclick={(id) => projectStore.removeConnectionById(id)}
 					/>
 					{#if style.connector.endpointDots}
 						{@const dot = style.connector.endpointDots}
@@ -228,4 +220,45 @@
 			{/if}
 		{/each}
 	</g>
+</svg>
+
+<!-- Interaction layer: a wide transparent hit target along each connector centerline,
+     always on top so ribbons (filled) and Bauhaus links (drawn under the cards) stay clickable. -->
+<svg class="preview-hit-layer">
+	{#each connections as conn (conn.id)}
+		{#if shouldDrawPath(conn)}
+			{@const p1 = displayTokenLayout[conn.upperTokenId]}
+			{@const p2 = displayTokenLayout[conn.lowerTokenId]}
+			{#if p1 && p2}
+				{@const pts = linkEndpoints(p1, p2, style.tokenChips ? 0 : undefined)}
+				{@const hitD = linkPathD(pts.x1, pts.y1, pts.x2, pts.y2, settingsStore.settings.lineStyle)}
+				{@const hitWidth = Math.max(settingsStore.settings.lineThickness, 5) + 10}
+				<path
+					class="link-hit-path"
+					d={hitD}
+					fill="none"
+					stroke="transparent"
+					stroke-width={hitWidth}
+					stroke-linecap="round"
+					role="button"
+					tabindex="0"
+					aria-label="Remove alignment link"
+					data-link-id={conn.id}
+					onmouseenter={() => {
+						linkHover.id = conn.id;
+					}}
+					onmouseleave={() => {
+						linkHover.id = null;
+					}}
+					onclick={() => projectStore.removeConnectionById(conn.id)}
+					onkeydown={(e) => {
+						if (e.key === 'Enter' || e.key === ' ') {
+							e.preventDefault();
+							projectStore.removeConnectionById(conn.id);
+						}
+					}}
+				/>
+			{/if}
+		{/if}
+	{/each}
 </svg>
