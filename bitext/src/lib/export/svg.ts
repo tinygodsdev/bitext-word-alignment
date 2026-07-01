@@ -16,7 +16,6 @@ import {
 } from '$lib/domain/styles.js';
 import { escapeXml } from './xml.js';
 
-const ATTRIBUTION_FOOTER_PX = 28;
 const ATTRIBUTION_FONT = '"Google Sans", sans-serif';
 
 function parseHexRgb(hex: string): [number, number, number] | null {
@@ -127,9 +126,16 @@ export function buildStandaloneSvgString(args: {
 				: visualStyle.id === 'bauhaus'
 					? 2
 					: 0;
-	const footerBand = includeAttributionFooter ? frameInnerInset + ATTRIBUTION_FOOTER_PX : 0;
+	// Credit band below the content: a gap above the text and a larger gap below (like the
+	// preview's margin + frame padding), plus room for the frame inset so it stays inside the frame.
+	const CREDIT_GAP_TOP = 16;
+	const CREDIT_TEXT = 12;
+	const CREDIT_GAP_BOTTOM = 24;
+	const footerBand = includeAttributionFooter
+		? CREDIT_GAP_TOP + CREDIT_TEXT + CREDIT_GAP_BOTTOM + frameInnerInset
+		: 0;
 	const exportHeight = height + footerBand;
-	const attributionY = height + (footerBand - frameInnerInset) / 2;
+	const attributionY = height + CREDIT_GAP_TOP + CREDIT_TEXT / 2;
 
 	const exportBg = styleExportBackground(visualStyle, width, exportHeight);
 	// Frame wraps the whole canvas (incl. the footer band) so the credit stays inside it.
@@ -277,8 +283,19 @@ export function buildStandaloneSvgString(args: {
 		? exportBg.rect
 		: `<rect x="0" y="0" width="${width}" height="${exportHeight}" fill="${escapeXml(backgroundColor)}"/>`;
 
+	// Match the preview's per-style credit treatment (uppercase Bauhaus, italic serif styles).
+	const isBauhausCredit = visualStyle.id === 'bauhaus';
+	const italicCredit = ['atlas', 'sumi', 'parchment'].includes(visualStyle.id);
+	const creditText = isBauhausCredit
+		? EXPORT_ATTRIBUTION_PLAIN.toUpperCase()
+		: EXPORT_ATTRIBUTION_PLAIN;
+	const creditExtra = isBauhausCredit
+		? ' letter-spacing="1.3" font-weight="600"'
+		: italicCredit
+			? ' font-style="italic"'
+			: '';
 	const attribution = includeAttributionFooter
-		? `<text fill="${escapeXml(resolvedTextColor)}" opacity="0.55" font-family="${escapeXml(ATTRIBUTION_FONT)}" font-size="11" text-anchor="middle" dominant-baseline="central" transform="translate(${width / 2},${attributionY})">${escapeXml(EXPORT_ATTRIBUTION_PLAIN)}</text>`
+		? `<text fill="${escapeXml(resolvedTextColor)}" opacity="0.6" font-family="${escapeXml(ATTRIBUTION_FONT)}" font-size="12"${creditExtra} text-anchor="middle" dominant-baseline="central" transform="translate(${width / 2},${attributionY})">${escapeXml(creditText)}</text>`
 		: '';
 
 	/** Inset from the full export rectangle (including footer band) — same on right and bottom. */
