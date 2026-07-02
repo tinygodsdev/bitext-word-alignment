@@ -397,10 +397,15 @@
 						</div>
 					</div>
 				</div>
-				<p class="mb-2 text-sm leading-snug text-gray-600 lg:hidden dark:text-gray-400" role="note">
-					Narrow screen: try landscape orientation or reduce line size in line settings—layouts stay
-					readable with a bit more horizontal space.
-				</p>
+				{#if !settingsStore.settings.autoFit}
+					<p
+						class="mb-2 text-sm leading-snug text-gray-600 lg:hidden dark:text-gray-400"
+						role="note"
+					>
+						Narrow screen: try landscape orientation or reduce line size in line settings—layouts
+						stay readable with a bit more horizontal space.
+					</p>
+				{/if}
 				<div class="-mx-4 sm:-mx-6 lg:mx-0">
 					<AlignmentPreview instancePrefix="preview-inline" writesExportLayout={!previewExpand} />
 				</div>

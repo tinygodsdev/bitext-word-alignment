@@ -70,11 +70,13 @@
 		const imports = opts.includeImports !== false ? googleFontImportList() : [];
 		const lineOrder = projectStore.lines.map((l) => l.id);
 		const styledLines = exportStyledLines();
+		// Auto-fit scales the DOM font size; the export draws glyphs at that same scaled size so
+		// they match the measured token boxes (positions already reflect the scaled DOM).
 		const lines = styledLines.map((l) => ({
 			lineId: l.id,
 			tokens: projectStore.tokensOnLine(l.id),
 			fontFamilyStack: svgFontFamilyStackLine(l),
-			textSizePx: l.textSizePx
+			textSizePx: l.textSizePx * (lay.fontScaleByLine[l.id] ?? 1)
 		}));
 		return buildStandaloneSvgString({
 			width: Math.max(1, lay.width),
@@ -87,6 +89,7 @@
 			lineStyle: s.lineStyle,
 			lineThickness: s.lineThickness,
 			lineOpacity: s.lineOpacity,
+			contentScale: lay.contentScale,
 			lineOrder,
 			lines,
 			tokenLayout: lay.tokenLayout,

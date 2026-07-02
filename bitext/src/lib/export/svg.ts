@@ -15,6 +15,11 @@ import {
 	styleExportFrame,
 	type StyleId
 } from '$lib/domain/styles.js';
+import {
+	chromeScale,
+	AUTOFIT_LINE_STRENGTH,
+	AUTOFIT_CREDIT_STRENGTH
+} from '$lib/domain/autofit.js';
 import { escapeXml } from './xml.js';
 
 const ATTRIBUTION_FONT = '"Google Sans", sans-serif';
@@ -75,6 +80,8 @@ export function buildStandaloneSvgString(args: {
 	lineStyle: 'straight' | 'curved';
 	lineThickness: number;
 	lineOpacity: number;
+	/** Overall auto-fit text scale (mean of per-line scales); gently shrinks lines + credit. */
+	contentScale?: number;
 	/** In display order (top to bottom). */
 	lineOrder: string[];
 	lines: { lineId: string; tokens: Token[]; fontFamilyStack: string; textSizePx: number }[];
@@ -101,6 +108,7 @@ export function buildStandaloneSvgString(args: {
 		lineStyle,
 		lineThickness,
 		lineOpacity,
+		contentScale = 1,
 		lineOrder,
 		lines,
 		tokenLayout,
@@ -178,7 +186,9 @@ export function buildStandaloneSvgString(args: {
 		? `<style type="text/css"><![CDATA[\n${styleChunks.join('\n')}\n]]></style>`
 		: '';
 	// Soft glow via Gaussian blur (matches the preview's drop-shadow, not a hard outline).
-	const effWidth = lineThickness * (conn.widthScale ?? 1);
+	const lineScale = chromeScale(contentScale, AUTOFIT_LINE_STRENGTH);
+	const creditScale = chromeScale(contentScale, AUTOFIT_CREDIT_STRENGTH);
+	const effWidth = lineThickness * (conn.widthScale ?? 1) * lineScale;
 	const glowDefs: string[] = [];
 	if (conn.glow) {
 		const sd = Math.max(2, Math.round(effWidth * 1.1));
@@ -211,7 +221,7 @@ export function buildStandaloneSvgString(args: {
 				x2,
 				y2,
 				lineStyle,
-				lineThickness * (conn.ribbonScale ?? 8),
+				lineThickness * (conn.ribbonScale ?? 8) * lineScale,
 				conn.taper ?? false
 			);
 			paths.push(
@@ -233,9 +243,10 @@ export function buildStandaloneSvgString(args: {
 			const dot = conn.endpointDots;
 			const fill = escapeXml(dot.color ?? color);
 			const ring = dot.ring ? ` stroke="${escapeXml(dot.ring)}" stroke-width="1.5"` : '';
+			const dr = Math.round(dot.r * lineScale * 100) / 100;
 			paths.push(
-				`<circle cx="${x1}" cy="${y1}" r="${dot.r}" fill="${fill}"${ring} fill-opacity="${lineOpacity}"/>`,
-				`<circle cx="${x2}" cy="${y2}" r="${dot.r}" fill="${fill}"${ring} fill-opacity="${lineOpacity}"/>`
+				`<circle cx="${x1}" cy="${y1}" r="${dr}" fill="${fill}"${ring} fill-opacity="${lineOpacity}"/>`,
+				`<circle cx="${x2}" cy="${y2}" r="${dr}" fill="${fill}"${ring} fill-opacity="${lineOpacity}"/>`
 			);
 		}
 	}
@@ -333,7 +344,7 @@ export function buildStandaloneSvgString(args: {
 			? ' font-style="italic"'
 			: '';
 	const attribution = includeAttributionFooter
-		? `<text fill="${escapeXml(resolvedTextColor)}" opacity="0.6" font-family="${escapeXml(ATTRIBUTION_FONT)}" font-size="12"${creditExtra} text-anchor="middle" dominant-baseline="central" transform="translate(${contentCx},${attributionY})">${escapeXml(creditText)}</text>`
+		? `<text fill="${escapeXml(resolvedTextColor)}" opacity="0.6" font-family="${escapeXml(ATTRIBUTION_FONT)}" font-size="${Math.round(12 * creditScale * 100) / 100}"${creditExtra} text-anchor="middle" dominant-baseline="central" transform="translate(${contentCx},${attributionY})">${escapeXml(creditText)}</text>`
 		: '';
 
 	/** Inset from the full export rectangle (including footer band) — same on right and bottom. */

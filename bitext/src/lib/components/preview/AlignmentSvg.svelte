@@ -19,12 +19,18 @@
 	let {
 		rootEl,
 		connections,
-		writesExportLayout = true
+		writesExportLayout = true,
+		thicknessScale = 1,
+		zoom = 1
 	}: {
 		rootEl: HTMLElement | null;
 		connections: Connection[];
 		/** When false, this preview only draws links locally (avoids clobbering export layout). */
 		writesExportLayout?: boolean;
+		/** Auto-fit shrink applied to connector thickness so lines don't look huge on small text. */
+		thicknessScale?: number;
+		/** Visual pan/zoom scale of the wrapper; measurements are divided by it to stay in layout space. */
+		zoom?: number;
 	} = $props();
 
 	let displayTokenLayout = $state<Record<string, TokenLayout>>({});
@@ -48,9 +54,16 @@
 
 	function measure() {
 		if (!rootEl) return;
+		// `rootEl` is the pan/zoom wrapper. Dividing every measured delta/size by the current zoom
+		// yields layout-space coordinates (transform-invariant), so connectors and the export are
+		// identical at any zoom.
+		const z = zoom || 1;
+		// Round to hundredths so dividing by the zoom yields the same values at any zoom (no
+		// floating-point drift) — keeps the export byte-identical and the SVG small.
+		const r2 = (n: number) => Math.round(n * 100) / 100;
 		const ro = rootEl.getBoundingClientRect();
-		const w = ro.width;
-		const h = ro.height;
+		const w = r2(ro.width / z);
+		const h = r2(ro.height / z);
 		const tokenLayout: Record<string, TokenLayout> = {};
 		const linkPaths: { linkId: string; color: string; d: string }[] = [];
 
@@ -61,15 +74,17 @@
 			const id = el.dataset.tokenId;
 			if (!id) return;
 			const b = el.getBoundingClientRect();
-			const x = b.left - ro.left;
-			const y = b.top - ro.top;
+			const x = r2((b.left - ro.left) / z);
+			const y = r2((b.top - ro.top) / z);
+			const bw = r2(b.width / z);
+			const bh = r2(b.height / z);
 			tokenLayout[id] = {
-				cx: x + b.width / 2,
-				cy: y + b.height / 2,
+				cx: r2(x + bw / 2),
+				cy: r2(y + bh / 2),
 				x,
 				y,
-				w: b.width,
-				h: b.height
+				w: bw,
+				h: bh
 			};
 		});
 
@@ -78,7 +93,7 @@
 			const lineId = row.dataset.line;
 			if (!lineId) return;
 			const b = row.getBoundingClientRect();
-			lineRowY[lineId] = b.top - ro.top + b.height / 2;
+			lineRowY[lineId] = r2((b.top - ro.top + b.height / 2) / z);
 		});
 
 		const style = settingsStore.settings.lineStyle;
@@ -172,7 +187,9 @@
 								pts.x2,
 								pts.y2,
 								settingsStore.settings.lineStyle,
-								settingsStore.settings.lineThickness * (style.connector.ribbonScale ?? 8),
+								settingsStore.settings.lineThickness *
+									(style.connector.ribbonScale ?? 8) *
+									thicknessScale,
 								style.connector.taper ?? false
 							)
 						: linkPathD(pts.x1, pts.y1, pts.x2, pts.y2, settingsStore.settings.lineStyle)}
@@ -184,7 +201,9 @@
 					{@const baseOp = settingsStore.settings.lineOpacity}
 					{@const pathOpacity = hi ? 1 : activeForPending ? baseOp : baseOp * PENDING_DIM_FACTOR}
 					{@const baseThickness =
-						settingsStore.settings.lineThickness * (style.connector.widthScale ?? 1)}
+						settingsStore.settings.lineThickness *
+						(style.connector.widthScale ?? 1) *
+						thicknessScale}
 					<LinkPath
 						{d}
 						color={col}
@@ -200,7 +219,7 @@
 						<circle
 							cx={pts.x1}
 							cy={pts.y1}
-							r={dot.r}
+							r={dot.r * thicknessScale}
 							fill={dot.color ?? col}
 							stroke={dot.ring}
 							stroke-width={dot.ring ? 1.5 : undefined}
@@ -209,7 +228,7 @@
 						<circle
 							cx={pts.x2}
 							cy={pts.y2}
-							r={dot.r}
+							r={dot.r * thicknessScale}
 							fill={dot.color ?? col}
 							stroke={dot.ring}
 							stroke-width={dot.ring ? 1.5 : undefined}

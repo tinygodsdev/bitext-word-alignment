@@ -95,6 +95,23 @@ describe('compact v3 encode/decode (current share format)', () => {
 		expect(decodeState(encodeState(classic)).settings.style).toBe('classic');
 	});
 
+	it('round-trip: auto-fit off + variance; defaults stay out of the URL', () => {
+		const base = migrate({});
+		expect(base.settings.autoFit).toBe(true);
+		expect(base.settings.autoFitVariance).toBe(0.5);
+		// Defaults (on, 0.5) must not enlarge the payload.
+		expect(encodeState(base)).toBe(
+			encodeState({ ...base, settings: { ...base.settings, autoFit: true, autoFitVariance: 0.5 } })
+		);
+		const s: AppStateV2 = {
+			...base,
+			settings: { ...base.settings, autoFit: false, autoFitVariance: 0.3 }
+		};
+		const out = decodeState(encodeState(s)).settings;
+		expect(out.autoFit).toBe(false);
+		expect(out.autoFitVariance).toBeCloseTo(0.3, 5);
+	});
+
 	it('round-trip: three lines, connections, hidden pair control', () => {
 		const base = migrate({});
 		const lines = [

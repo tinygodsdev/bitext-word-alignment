@@ -202,6 +202,40 @@ html {
 		0 1px 3px rgb(0 0 0 / 0.9);
 }
 
+/* Discoverability pill for the zoom gesture */
+.preview-zoom-hint {
+	position: absolute;
+	right: 0.5rem;
+	bottom: 0.5rem;
+	z-index: 20;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.3rem;
+	padding: 0.2rem 0.55rem;
+	font-family: var(--font-body, system-ui, sans-serif);
+	font-size: 0.7rem;
+	line-height: 1;
+	border-radius: 9999px;
+	pointer-events: none;
+	color: #475569;
+	background: rgb(255 255 255 / 0.82);
+	border: 1px solid rgb(0 0 0 / 0.08);
+	box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+	backdrop-filter: blur(4px);
+}
+.preview-frame--dark .preview-zoom-hint {
+	color: #cbd5e1;
+	background: rgb(24 24 27 / 0.7);
+	border-color: rgb(255 255 255 / 0.12);
+}
+
+/* Interaction-only pan/zoom layer (pinch to magnify small text; never affects export) */
+.preview-zoom {
+	position: relative;
+	transform-origin: 0 0;
+	will-change: transform;
+}
+
 .preview-stack {
 	position: relative;
 	z-index: 1;
@@ -317,9 +351,14 @@ path.link-path {
 
 .token-row {
 	display: flex;
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
 	justify-content: center;
 	align-items: baseline;
+}
+
+/* Auto-fit off → restore legacy wrapping (a line may spill onto multiple rows) */
+.preview-frame[data-autofit='off'] .token-row {
+	flex-wrap: wrap;
 }
 
 .token-view {
@@ -347,6 +386,8 @@ path.link-path {
 
 .token-view__text {
 	font-weight: 500;
+	/* A token is one alignment unit — never let it break inside (e.g. at a hyphen). */
+	white-space: nowrap;
 }
 
 /* Bauhaus-style word cards */
