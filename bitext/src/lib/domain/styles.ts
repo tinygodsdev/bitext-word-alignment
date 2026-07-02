@@ -255,7 +255,7 @@ const STYLES: Record<StyleId, VisualStyle> = {
 			textColor: '#584332',
 			tintBaseHex: '#f2eadd'
 		},
-		connector: { cap: 'round', widthScale: 4 },
+		connector: { cap: 'round', widthScale: 2.6 },
 		textOffsetShadow: { dx: 2, dy: 2 },
 		defaultFont: 'Sora',
 		palette: 'riso'
@@ -270,7 +270,7 @@ const STYLES: Record<StyleId, VisualStyle> = {
 			textColor: '#e0d4ff',
 			tintBaseHex: '#130d21'
 		},
-		connector: { cap: 'round', mode: 'ribbon', taper: false, ribbonScale: 9 },
+		connector: { cap: 'round', mode: 'ribbon', taper: false, ribbonScale: 6 },
 		defaultFont: 'Sora',
 		palette: 'spectrum'
 	}
@@ -383,83 +383,92 @@ export function effectiveLineFamily(line: LineV2, style: VisualStyle): string {
  */
 export function styleExportBackground(
 	style: VisualStyle,
+	x: number,
+	y: number,
 	width: number,
 	height: number
 ): { defs: string; rect: string } | null {
 	if (style.id === 'classic') return null;
-	const full = `width="${width}" height="${height}"`;
+	const box = `x="${x}" y="${y}" width="${width}" height="${height}"`;
 	switch (style.id) {
 		case 'aurora':
 			return {
 				defs: `<radialGradient id="bg-aurora" cx="0.5" cy="-0.1" r="1.1"><stop offset="0" stop-color="#2a2150"/><stop offset="0.7" stop-color="#14111f"/><stop offset="1" stop-color="#14111f"/></radialGradient>`,
-				rect: `<rect x="0" y="0" ${full} fill="url(#bg-aurora)"/>`
+				rect: `<rect ${box} fill="url(#bg-aurora)"/>`
 			};
 		case 'synthwave':
 			return {
 				defs: `<linearGradient id="bg-synth" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#241a4d"/><stop offset="0.52" stop-color="#4a1f63"/><stop offset="1" stop-color="#6b2f3a"/></linearGradient>`,
-				rect: `<rect x="0" y="0" ${full} fill="url(#bg-synth)"/>`
+				rect: `<rect ${box} fill="url(#bg-synth)"/>`
 			};
 		case 'parchment':
 			return {
 				defs: `<radialGradient id="bg-parch" cx="0.5" cy="0.3" r="0.9"><stop offset="0" stop-color="#efe2c2"/><stop offset="1" stop-color="#e2cfa0"/></radialGradient>`,
-				rect: `<rect x="0" y="0" ${full} fill="url(#bg-parch)"/>`
+				rect: `<rect ${box} fill="url(#bg-parch)"/>`
 			};
 		case 'blueprint':
 			return {
 				defs: `<pattern id="bg-grid" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M28 0H0V28" fill="none" stroke="#ffffff" stroke-opacity="0.10" stroke-width="1"/></pattern>`,
-				rect: `<rect x="0" y="0" ${full} fill="#0e2a52"/><rect x="0" y="0" ${full} fill="url(#bg-grid)"/>`
+				rect: `<rect ${box} fill="#0e2a52"/><rect ${box} fill="url(#bg-grid)"/>`
 			};
 		case 'deco':
 			return {
 				defs: `<linearGradient id="bg-deco" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#0c2a22"/><stop offset="1" stop-color="#07181b"/></linearGradient>`,
-				rect: `<rect x="0" y="0" ${full} fill="url(#bg-deco)"/>`
+				rect: `<rect ${box} fill="url(#bg-deco)"/>`
 			};
 		case 'nouveau':
 			return {
 				defs: `<linearGradient id="bg-nouv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3efdb"/><stop offset="1" stop-color="#e5e7cd"/></linearGradient>`,
-				rect: `<rect x="0" y="0" ${full} fill="url(#bg-nouv)"/>`
+				rect: `<rect ${box} fill="url(#bg-nouv)"/>`
 			};
 		case 'spectrum':
 			return {
 				defs: `<linearGradient id="bg-spec" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#130d21"/><stop offset="1" stop-color="#060613"/></linearGradient>`,
-				rect: `<rect x="0" y="0" ${full} fill="url(#bg-spec)"/>`
+				rect: `<rect ${box} fill="url(#bg-spec)"/>`
 			};
 		case 'riso':
 			// Off-white + a faint halftone dot grain (parity-friendly stand-in for film grain).
 			return {
 				defs: `<pattern id="bg-riso" width="5" height="5" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.6" fill="#281909" fill-opacity="0.10"/></pattern>`,
-				rect: `<rect x="0" y="0" ${full} fill="#f2eadd"/><rect x="0" y="0" ${full} fill="url(#bg-riso)"/>`
+				rect: `<rect ${box} fill="#f2eadd"/><rect ${box} fill="url(#bg-riso)"/>`
 			};
 		default:
-			return { defs: '', rect: `<rect x="0" y="0" ${full} fill="${style.canvas.tintBaseHex}"/>` };
+			return { defs: '', rect: `<rect ${box} fill="${style.canvas.tintBaseHex}"/>` };
 	}
 }
 
 /** Decorative frame for the export, drawn over the background and under the tokens. `''` when none. */
-export function styleExportFrame(style: VisualStyle, width: number, height: number): string {
+export function styleExportFrame(
+	style: VisualStyle,
+	x: number,
+	y: number,
+	width: number,
+	height: number
+): string {
+	const bottom = y + height;
+	const cx = x + width / 2;
 	switch (style.id) {
 		case 'parchment':
 			return (
-				`<rect x="14" y="14" width="${width - 28}" height="${height - 28}" fill="none" stroke="#b8902f" stroke-opacity="0.55" stroke-width="2"/>` +
-				`<rect x="20" y="20" width="${width - 40}" height="${height - 40}" fill="none" stroke="#6b4d23" stroke-opacity="0.45" stroke-width="1"/>`
+				`<rect x="${x + 14}" y="${y + 14}" width="${width - 28}" height="${height - 28}" fill="none" stroke="#b8902f" stroke-opacity="0.55" stroke-width="2"/>` +
+				`<rect x="${x + 20}" y="${y + 20}" width="${width - 40}" height="${height - 40}" fill="none" stroke="#6b4d23" stroke-opacity="0.45" stroke-width="1"/>`
 			);
 		case 'bauhaus':
-			return `<rect x="2" y="2" width="${width - 4}" height="${height - 4}" fill="none" stroke="#171008" stroke-width="4"/>`;
+			return `<rect x="${x + 2}" y="${y + 2}" width="${width - 4}" height="${height - 4}" fill="none" stroke="#171008" stroke-width="4"/>`;
 		case 'blueprint':
-			return `<rect x="10" y="10" width="${width - 20}" height="${height - 20}" fill="none" stroke="#cfe0ff" stroke-opacity="0.35" stroke-width="1"/>`;
+			return `<rect x="${x + 10}" y="${y + 10}" width="${width - 20}" height="${height - 20}" fill="none" stroke="#cfe0ff" stroke-opacity="0.35" stroke-width="1"/>`;
 		case 'deco': {
-			const cx = width / 2;
-			const dia = (y: number) =>
-				`<rect x="${cx - 7}" y="${y - 7}" width="14" height="14" fill="#e9be57" transform="rotate(45 ${cx} ${y})"/>`;
+			const dia = (dy: number) =>
+				`<rect x="${cx - 7}" y="${dy - 7}" width="14" height="14" fill="#e9be57" transform="rotate(45 ${cx} ${dy})"/>`;
 			return (
-				`<rect x="16" y="16" width="${width - 32}" height="${height - 32}" fill="none" stroke="#e9be57" stroke-opacity="0.55" stroke-width="1.5"/>` +
-				`<rect x="22" y="22" width="${width - 44}" height="${height - 44}" fill="none" stroke="#e9be57" stroke-opacity="0.3" stroke-width="0.75"/>` +
-				dia(16) +
-				dia(height - 16)
+				`<rect x="${x + 16}" y="${y + 16}" width="${width - 32}" height="${height - 32}" fill="none" stroke="#e9be57" stroke-opacity="0.55" stroke-width="1.5"/>` +
+				`<rect x="${x + 22}" y="${y + 22}" width="${width - 44}" height="${height - 44}" fill="none" stroke="#e9be57" stroke-opacity="0.3" stroke-width="0.75"/>` +
+				dia(y + 16) +
+				dia(bottom - 16)
 			);
 		}
 		case 'nouveau':
-			return `<rect x="16" y="16" width="${width - 32}" height="${height - 32}" rx="90" ry="18" fill="none" stroke="#7b865d" stroke-opacity="0.5" stroke-width="1"/>`;
+			return `<rect x="${x + 16}" y="${y + 16}" width="${width - 32}" height="${height - 32}" rx="90" ry="18" fill="none" stroke="#7b865d" stroke-opacity="0.5" stroke-width="1"/>`;
 		default:
 			return '';
 	}
