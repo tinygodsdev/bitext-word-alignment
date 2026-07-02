@@ -4,7 +4,8 @@ import {
 	type Connection
 } from '$lib/domain/alignment.js';
 import { tokenize, tokenizeOptionsFromVisualSettings } from '$lib/domain/tokens.js';
-import { PALETTES, type PaletteName } from '$lib/domain/palettes.js';
+import { PALETTES, isPaletteName, type PaletteName } from '$lib/domain/palettes.js';
+import { isStyleId, type StyleId } from '$lib/domain/styles.js';
 
 export const SCHEMA_VERSION = 2 as const;
 /** @deprecated Legacy share payloads only */
@@ -156,6 +157,8 @@ export interface VisualSettingsV2 {
 	/** Hide preview chrome (line controls, gap sliders, toolbar) and show export-style attribution in-frame. */
 	previewHideChrome: boolean;
 	background: BackgroundMode;
+	/** Visual style preset (background, frame, connector treatment, default font). */
+	style: StyleId;
 }
 
 export interface AppStateV2 {
@@ -231,7 +234,8 @@ export function defaultVisualSettingsV2(): VisualSettingsV2 {
 		tokenSplitPunctuation: false,
 		tokenPunctuationChars: '',
 		previewHideChrome: false,
-		background: 'light'
+		background: 'light',
+		style: 'classic'
 	};
 }
 
@@ -306,7 +310,8 @@ export function visualSettingsV1ToV2(v1: VisualSettingsV1): VisualSettingsV2 {
 		tokenSplitPunctuation: false,
 		tokenPunctuationChars: '',
 		previewHideChrome: false,
-		background: normalizePreviewBackground(v1.background)
+		background: normalizePreviewBackground(v1.background),
+		style: 'classic'
 	};
 }
 
@@ -755,10 +760,7 @@ export function normalizeVisualSettingsV2(
 				: d.lineOpacity,
 		lineStyle:
 			raw.lineStyle === 'straight' || raw.lineStyle === 'curved' ? raw.lineStyle : d.lineStyle,
-		palette:
-			raw.palette === 'pastel' || raw.palette === 'vivid' || raw.palette === 'academic'
-				? raw.palette
-				: d.palette,
+		palette: isPaletteName(raw.palette) ? raw.palette : d.palette,
 		showNumbers: typeof raw.showNumbers === 'boolean' ? raw.showNumbers : d.showNumbers,
 		colorTokensByLink:
 			typeof raw.colorTokensByLink === 'boolean' ? raw.colorTokensByLink : d.colorTokensByLink,
@@ -775,6 +777,7 @@ export function normalizeVisualSettingsV2(
 		tokenSplitChars: splitNorm,
 		previewHideChrome:
 			typeof raw.previewHideChrome === 'boolean' ? raw.previewHideChrome : d.previewHideChrome,
-		background: normalizePreviewBackground(raw.background ?? d.background)
+		background: normalizePreviewBackground(raw.background ?? d.background),
+		style: isStyleId(raw.style) ? raw.style : d.style
 	};
 }

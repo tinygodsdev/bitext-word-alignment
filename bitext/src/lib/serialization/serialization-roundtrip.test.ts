@@ -81,6 +81,20 @@ describe('compact v3 encode/decode (current share format)', () => {
 		expect(encodeState(s).length).toBeLessThan(120);
 	});
 
+	it('round-trip: visual style preset', () => {
+		const base = migrate({});
+		const s: AppStateV2 = { ...base, settings: { ...base.settings, style: 'aurora' } };
+		expect(decodeState(encodeState(s)).settings.style).toBe('aurora');
+	});
+
+	it('default style "classic" is not emitted and decodes back to classic', () => {
+		const base = migrate({});
+		const classic: AppStateV2 = { ...base, settings: { ...base.settings, style: 'classic' } };
+		// Same payload as the untouched default → default style stays out of the share URL.
+		expect(encodeState(classic)).toBe(encodeState(base));
+		expect(decodeState(encodeState(classic)).settings.style).toBe('classic');
+	});
+
 	it('round-trip: three lines, connections, hidden pair control', () => {
 		const base = migrate({});
 		const lines = [

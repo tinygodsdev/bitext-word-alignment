@@ -8,7 +8,8 @@
 		showConnectorsForPair,
 		tokenLineId
 	} from '$lib/domain/lines-helpers.js';
-	import { linkEndpoints, linkPathD } from '$lib/domain/link-geometry.js';
+	import { linkEndpoints, linkPathD, ribbonPathD } from '$lib/domain/link-geometry.js';
+	import { connectorColor, getStyle } from '$lib/domain/styles.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { linkHover } from '$lib/state/linkHover.svelte.js';
@@ -29,6 +30,7 @@
 	let displayTokenLayout = $state<Record<string, TokenLayout>>({});
 
 	const lineOrder = $derived(projectStore.lines.map((l) => l.id));
+	const style = $derived(getStyle(settingsStore.settings.style));
 
 	/** Opacity multiplier for connectors not usable while picking the second token (0 = hidden is wrong; use low alpha). */
 	const PENDING_DIM_FACTOR = 0.22;
@@ -113,6 +115,7 @@
 		}
 		void projectStore.pairControls;
 		void settingsStore.settings.lineStyle;
+		void settingsStore.settings.style;
 		void settingsStore.settings.previewHideChrome;
 		void projectStore.lines;
 		void writesExportLayout;
@@ -160,33 +163,102 @@
 				{@const p1 = displayTokenLayout[conn.upperTokenId]}
 				{@const p2 = displayTokenLayout[conn.lowerTokenId]}
 				{#if p1 && p2}
-					{@const pts = linkEndpoints(p1, p2)}
-					{@const d = linkPathD(pts.x1, pts.y1, pts.x2, pts.y2, settingsStore.settings.lineStyle)}
-					{@const col = conn.color ?? '#94a3b8'}
+					{@const pts = linkEndpoints(p1, p2, style.tokenChips ? 0 : undefined)}
+					{@const ribbon = style.connector.mode === 'ribbon'}
+					{@const d = ribbon
+						? ribbonPathD(
+								pts.x1,
+								pts.y1,
+								pts.x2,
+								pts.y2,
+								settingsStore.settings.lineStyle,
+								settingsStore.settings.lineThickness * (style.connector.ribbonScale ?? 8),
+								style.connector.taper ?? false
+							)
+						: linkPathD(pts.x1, pts.y1, pts.x2, pts.y2, settingsStore.settings.lineStyle)}
+					{@const col = connectorColor(style, conn.color ?? '#94a3b8')}
 					{@const hi = linkHover.id === conn.id}
 					{@const pend = selectionStore.pending}
 					{@const activeForPending =
 						pend == null || connectionIsActiveForPendingSelection(lineOrder, conn, pend.lineId)}
 					{@const baseOp = settingsStore.settings.lineOpacity}
 					{@const pathOpacity = hi ? 1 : activeForPending ? baseOp : baseOp * PENDING_DIM_FACTOR}
+					{@const baseThickness =
+						settingsStore.settings.lineThickness * (style.connector.widthScale ?? 1)}
 					<LinkPath
 						{d}
 						color={col}
-						thickness={hi
-							? settingsStore.settings.lineThickness + 1
-							: settingsStore.settings.lineThickness}
+						thickness={hi ? baseThickness + 1 : baseThickness}
 						opacity={pathOpacity}
-						linkId={conn.id}
-						onenter={(id) => {
-							linkHover.id = id;
-						}}
-						onleave={() => {
-							linkHover.id = null;
-						}}
-						onclick={(id) => projectStore.removeConnectionById(id)}
+						cap={style.connector.cap}
+						dash={style.connector.dash}
+						glow={style.connector.glow ?? false}
+						fill={ribbon}
 					/>
+					{#if style.connector.endpointDots}
+						{@const dot = style.connector.endpointDots}
+						<circle
+							cx={pts.x1}
+							cy={pts.y1}
+							r={dot.r}
+							fill={dot.color ?? col}
+							stroke={dot.ring}
+							stroke-width={dot.ring ? 1.5 : undefined}
+							opacity={pathOpacity}
+						/>
+						<circle
+							cx={pts.x2}
+							cy={pts.y2}
+							r={dot.r}
+							fill={dot.color ?? col}
+							stroke={dot.ring}
+							stroke-width={dot.ring ? 1.5 : undefined}
+							opacity={pathOpacity}
+						/>
+					{/if}
 				{/if}
 			{/if}
 		{/each}
 	</g>
+</svg>
+
+<!-- Interaction layer: a wide transparent hit target along each connector centerline,
+     always on top so ribbons (filled) and Bauhaus links (drawn under the cards) stay clickable. -->
+<svg class="preview-hit-layer">
+	{#each connections as conn (conn.id)}
+		{#if shouldDrawPath(conn)}
+			{@const p1 = displayTokenLayout[conn.upperTokenId]}
+			{@const p2 = displayTokenLayout[conn.lowerTokenId]}
+			{#if p1 && p2}
+				{@const pts = linkEndpoints(p1, p2, style.tokenChips ? 0 : undefined)}
+				{@const hitD = linkPathD(pts.x1, pts.y1, pts.x2, pts.y2, settingsStore.settings.lineStyle)}
+				{@const hitWidth = Math.max(settingsStore.settings.lineThickness, 5) + 10}
+				<path
+					class="link-hit-path"
+					d={hitD}
+					fill="none"
+					stroke="transparent"
+					stroke-width={hitWidth}
+					stroke-linecap="round"
+					role="button"
+					tabindex="0"
+					aria-label="Remove alignment link"
+					data-link-id={conn.id}
+					onmouseenter={() => {
+						linkHover.id = conn.id;
+					}}
+					onmouseleave={() => {
+						linkHover.id = null;
+					}}
+					onclick={() => projectStore.removeConnectionById(conn.id)}
+					onkeydown={(e) => {
+						if (e.key === 'Enter' || e.key === ' ') {
+							e.preventDefault();
+							projectStore.removeConnectionById(conn.id);
+						}
+					}}
+				/>
+			{/if}
+		{/if}
+	{/each}
 </svg>

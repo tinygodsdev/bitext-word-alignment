@@ -12,8 +12,19 @@
 	} from '$lib/serialization/schema.js';
 	import { listStoredCustomFontNames, saveCustomFontBlob } from '$lib/fonts/custom-fonts.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
+	import { settingsStore } from '$lib/state/settings.svelte.js';
+	import { getStyle, effectiveLineFamily, APP_DEFAULT_FONT_FAMILY } from '$lib/domain/styles.js';
 
 	let { line, index, total }: { line: LineV2; index: number; total: number } = $props();
+
+	const activeStyle = $derived(getStyle(settingsStore.settings.style));
+	/** What the preview actually renders: the style's default font can stand in for the app default. */
+	const effectiveFamily = $derived(effectiveLineFamily(line, activeStyle));
+	const fontFromStyle = $derived(
+		line.font.source === 'google' &&
+			line.font.family === APP_DEFAULT_FONT_FAMILY &&
+			!!activeStyle.defaultFont
+	);
 
 	/** Below `sm`: stacked; `sm`–`lg`: one row of four; `lg+`: 2×2 (popover / wide). */
 	const controlsGridClass = 'mb-3 grid grid-cols-1 gap-3 sm:grid-cols-4 lg:grid-cols-2';
@@ -140,7 +151,7 @@
 				<Label class="mb-1 block text-xs text-gray-600 dark:text-gray-400">Typeface</Label>
 				<select
 					class={sel}
-					value={line.font.family}
+					value={effectiveFamily}
 					onchange={(e) =>
 						projectStore.updateLineStyle(line.id, {
 							font: {
@@ -153,6 +164,11 @@
 						<option value={o.label}>{o.label}</option>
 					{/each}
 				</select>
+				{#if fontFromStyle}
+					<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+						From the {activeStyle.label} style — pick a typeface to override.
+					</p>
+				{/if}
 			</div>
 		{:else}
 			<div class="min-w-0">

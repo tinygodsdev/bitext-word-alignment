@@ -15,7 +15,9 @@ export const GOOGLE_FONT_OPTIONS: { family: string; label: string }[] = [
 	{ family: 'JetBrains+Mono', label: 'JetBrains Mono' },
 	{ family: 'Literata', label: 'Literata' },
 	{ family: 'Crimson+Pro', label: 'Crimson Pro' },
-	{ family: 'Libre+Baskerville', label: 'Libre Baskerville' }
+	{ family: 'Libre+Baskerville', label: 'Libre Baskerville' },
+	{ family: 'Spectral', label: 'Spectral' },
+	{ family: 'Sora', label: 'Sora' }
 ];
 
 export function googleFontStylesheetUrl(familyCss: string): string {

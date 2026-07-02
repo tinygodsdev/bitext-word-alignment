@@ -9,7 +9,8 @@
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { selectionStore } from '$lib/state/selection.svelte.js';
 	import { lineIsLinkTargetWhilePending } from '$lib/domain/lines-helpers.js';
-	import { resolveLineFontCss } from '$lib/fonts/visualization-font.js';
+	import { getStyle, effectiveLineFamily } from '$lib/domain/styles.js';
+	import type { LineV2 } from '$lib/serialization/schema.js';
 	import { ALIGNER_SITE_HOST, ALIGNER_SITE_URL } from '$lib/brand.js';
 	import { MAX_LINES } from '$lib/serialization/schema.js';
 
@@ -29,7 +30,13 @@
 	let rootEl = $state<HTMLElement | null>(null);
 
 	const bg = $derived(settingsStore.settings.background);
-	const previewDark = $derived(bg === 'dark');
+	const style = $derived(getStyle(settingsStore.settings.style));
+	const isClassicStyle = $derived(style.id === 'classic');
+	const previewDark = $derived(isClassicStyle ? bg === 'dark' : style.canvas.isDark);
+
+	function lineFontCss(line: LineV2): string {
+		return `"${effectiveLineFamily(line, style)}", sans-serif`;
+	}
 	const hideChrome = $derived(readonly || settingsStore.settings.previewHideChrome);
 	const chromeHiddenLayer = 'invisible pointer-events-none select-none';
 	const connections = $derived(projectStore.connections);
@@ -40,9 +47,12 @@
 
 <div
 	bind:this={rootEl}
-	class="preview-frame"
-	class:preview-frame--light={bg === 'light'}
-	class:preview-frame--dark={bg === 'dark'}
+	class="preview-frame {style.frameClass ?? ''}"
+	class:preview-frame--light={!previewDark}
+	class:preview-frame--dark={previewDark}
+	data-aligner-style={style.id}
+	style:background={isClassicStyle ? undefined : style.canvas.previewBackground}
+	style:color={isClassicStyle ? undefined : style.canvas.textColor}
 >
 	{#if !readonly && selectionStore.showLinkHint()}
 		<p
@@ -83,7 +93,7 @@
 				data-line={line.id}
 				class="preview-token-line flex items-center gap-3 transition-opacity duration-150"
 				class:opacity-[0.34]={!readonly && rowDimmed}
-				style:font-family={resolveLineFontCss(line)}
+				style:font-family={lineFontCss(line)}
 			>
 				{#if !readonly}
 					<div

@@ -11,6 +11,7 @@
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { layoutExportStore } from '$lib/state/layoutExport.svelte.js';
 	import { googleFontUrlsForLines, svgFontFamilyStackLine } from '$lib/fonts/visualization-font.js';
+	import { applyStyleFont, getStyle } from '$lib/domain/styles.js';
 	import { buildInlinedFontCssFromLines } from '$lib/fonts/inline-fonts.js';
 	import { ensureVisualizationCustomFontsFromLines } from '$lib/fonts/ensure-document-fonts.js';
 	import { convertCustomFontTextToPaths } from '$lib/fonts/text-to-paths.js';
@@ -49,8 +50,13 @@
 		return '#ffffff';
 	}
 
+	/** Lines with the active style's default font applied (so exports embed it like the preview). */
+	function exportStyledLines() {
+		return applyStyleFont(projectStore.lines, getStyle(settingsStore.settings.style));
+	}
+
 	function googleFontImportList(): string[] {
-		return googleFontUrlsForLines(projectStore.lines);
+		return googleFontUrlsForLines(exportStyledLines());
 	}
 
 	function buildSvg(opts: {
@@ -63,7 +69,8 @@
 		const s = settingsStore.settings;
 		const imports = opts.includeImports !== false ? googleFontImportList() : [];
 		const lineOrder = projectStore.lines.map((l) => l.id);
-		const lines = projectStore.lines.map((l) => ({
+		const styledLines = exportStyledLines();
+		const lines = styledLines.map((l) => ({
 			lineId: l.id,
 			tokens: projectStore.tokensOnLine(l.id),
 			fontFamilyStack: svgFontFamilyStackLine(l),
@@ -74,6 +81,7 @@
 			height: Math.max(1, lay.height),
 			backgroundColor: exportBackgroundColor(),
 			defaultTextColor: exportTextColor(),
+			style: s.style,
 			colorTokensByLink: s.colorTokensByLink,
 			tokenLinkColorMode: s.tokenLinkColorMode,
 			lineStyle: s.lineStyle,
@@ -100,7 +108,7 @@
 
 	async function buildRasterSvg(): Promise<string> {
 		await ensureVisualizationCustomFontsFromLines(projectStore.lines);
-		const embedFontCss = await buildInlinedFontCssFromLines(projectStore.lines);
+		const embedFontCss = await buildInlinedFontCssFromLines(exportStyledLines());
 		const svg = buildSvg({ includeAttributionFooter: true, embedFontCss, includeImports: false });
 		return await convertCustomFontTextToPaths(svg, projectStore.lines);
 	}

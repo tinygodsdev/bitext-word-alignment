@@ -5,10 +5,17 @@ import type { Connection } from '$lib/domain/alignment.js';
 import { primaryConnectionForToken } from '$lib/domain/alignment.js';
 import { canonicalPair, showConnectorsForPair, tokenLineId } from '$lib/domain/lines-helpers.js';
 import type { PairControlV2, TokenLinkColorMode } from '$lib/serialization/schema.js';
-import { linkEndpoints, linkPathD } from '$lib/domain/link-geometry.js';
+import { linkEndpoints, linkPathD, ribbonPathD } from '$lib/domain/link-geometry.js';
+import {
+	connectorColor,
+	getStyle,
+	readableTextOn,
+	styleExportBackground,
+	styleExportFrame,
+	type StyleId
+} from '$lib/domain/styles.js';
 import { escapeXml } from './xml.js';
 
-const ATTRIBUTION_FOOTER_PX = 28;
 const ATTRIBUTION_FONT = '"Google Sans", sans-serif';
 
 function parseHexRgb(hex: string): [number, number, number] | null {
@@ -57,9 +64,11 @@ function shouldRenderConnectionPath(
 export function buildStandaloneSvgString(args: {
 	width: number;
 	height: number;
-	/** Matches on-screen preview / raster exports (PNG, PDF). */
+	/** Matches on-screen preview / raster exports (PNG, PDF). Used for the `classic` style. */
 	backgroundColor: string;
 	defaultTextColor: string;
+	/** Visual style preset; drives canvas, frame and connector treatment. */
+	style?: StyleId;
 	colorTokensByLink: boolean;
 	tokenLinkColorMode?: TokenLinkColorMode;
 	lineStyle: 'straight' | 'curved';
@@ -85,6 +94,7 @@ export function buildStandaloneSvgString(args: {
 		height,
 		backgroundColor,
 		defaultTextColor,
+		style = 'classic',
 		colorTokensByLink,
 		tokenLinkColorMode = 'text',
 		lineStyle,
@@ -101,7 +111,35 @@ export function buildStandaloneSvgString(args: {
 		siteQrPngDataUri
 	} = args;
 
-	const exportHeight = includeAttributionFooter ? height + ATTRIBUTION_FOOTER_PX : height;
+	const visualStyle = getStyle(style);
+	const conn = visualStyle.connector;
+	const isClassic = visualStyle.id === 'classic';
+	const resolvedTextColor = isClassic ? defaultTextColor : visualStyle.canvas.textColor;
+	const tintBase = isClassic ? backgroundColor : visualStyle.canvas.tintBaseHex;
+
+	// Innermost frame border inset so the attribution can sit inside the frame (matching the preview).
+	const frameInnerInset =
+		visualStyle.id === 'parchment'
+			? 20
+			: visualStyle.id === 'blueprint'
+				? 10
+				: visualStyle.id === 'bauhaus'
+					? 2
+					: 0;
+	// Credit band below the content: a gap above the text and a larger gap below (like the
+	// preview's margin + frame padding), plus room for the frame inset so it stays inside the frame.
+	const CREDIT_GAP_TOP = 16;
+	const CREDIT_TEXT = 12;
+	const CREDIT_GAP_BOTTOM = 24;
+	const footerBand = includeAttributionFooter
+		? CREDIT_GAP_TOP + CREDIT_TEXT + CREDIT_GAP_BOTTOM + frameInnerInset
+		: 0;
+	const exportHeight = height + footerBand;
+	const attributionY = height + CREDIT_GAP_TOP + CREDIT_TEXT / 2;
+
+	const exportBg = styleExportBackground(visualStyle, width, exportHeight);
+	// Frame wraps the whole canvas (incl. the footer band) so the credit stays inside it.
+	const frameSvg = styleExportFrame(visualStyle, width, exportHeight);
 
 	const styleChunks: string[] = [];
 	if (embedFontCss && embedFontCss.length > 0) styleChunks.push(embedFontCss);
@@ -112,32 +150,80 @@ export function buildStandaloneSvgString(args: {
 				.join('\n')
 		);
 	}
-	const fontDefs = styleChunks.length
-		? `<defs><style type="text/css"><![CDATA[\n${styleChunks.join('\n')}\n]]></style></defs>`
+	const fontStyleDef = styleChunks.length
+		? `<style type="text/css"><![CDATA[\n${styleChunks.join('\n')}\n]]></style>`
 		: '';
-
-	const paths: string[] = [];
-	for (const conn of connections) {
-		if (!shouldRenderConnectionPath(conn, lineOrder, pairControls)) continue;
-		const color = conn.color ?? '#94a3b8';
-		const p1 = tokenLayout[conn.upperTokenId];
-		const p2 = tokenLayout[conn.lowerTokenId];
-		if (!p1 || !p2) continue;
-		const { x1, y1, x2, y2 } = linkEndpoints(p1, p2);
-		const d = linkPathD(x1, y1, x2, y2, lineStyle);
-		paths.push(
-			`<path fill="none" stroke="${escapeXml(color)}" stroke-width="${lineThickness}" stroke-opacity="${lineOpacity}" stroke-linecap="round" d="${d}"/>`
+	// Soft glow via Gaussian blur (matches the preview's drop-shadow, not a hard outline).
+	const effWidth = lineThickness * (conn.widthScale ?? 1);
+	const glowDefs: string[] = [];
+	if (conn.glow) {
+		const sd = Math.max(2, Math.round(effWidth * 1.1));
+		glowDefs.push(
+			`<filter id="wa-glow-line" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="${sd}"/></filter>`
 		);
+	}
+	if (visualStyle.glowText) {
+		glowDefs.push(
+			`<filter id="wa-glow-text" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="4"/></filter>`
+		);
+	}
+	const defsInner = `${fontStyleDef}${exportBg?.defs ?? ''}${glowDefs.join('')}`;
+	const fontDefs = defsInner ? `<defs>${defsInner}</defs>` : '';
+
+	const dashAttr = conn.dash ? ` stroke-dasharray="${escapeXml(conn.dash)}"` : '';
+	const isRibbon = conn.mode === 'ribbon';
+	const paths: string[] = [];
+	for (const c of connections) {
+		if (!shouldRenderConnectionPath(c, lineOrder, pairControls)) continue;
+		const color = connectorColor(visualStyle, c.color ?? '#94a3b8');
+		const p1 = tokenLayout[c.upperTokenId];
+		const p2 = tokenLayout[c.lowerTokenId];
+		if (!p1 || !p2) continue;
+		const { x1, y1, x2, y2 } = linkEndpoints(p1, p2, visualStyle.tokenChips ? 0 : undefined);
+		if (isRibbon) {
+			const d = ribbonPathD(
+				x1,
+				y1,
+				x2,
+				y2,
+				lineStyle,
+				lineThickness * (conn.ribbonScale ?? 8),
+				conn.taper ?? false
+			);
+			paths.push(
+				`<path stroke="none" fill="${escapeXml(color)}" fill-opacity="${lineOpacity}" d="${d}"/>`
+			);
+			continue;
+		}
+		const d = linkPathD(x1, y1, x2, y2, lineStyle);
+		// Glow: a blurred copy of the same stroke behind the crisp one.
+		if (conn.glow) {
+			paths.push(
+				`<path fill="none" stroke="${escapeXml(color)}" stroke-width="${effWidth}" stroke-opacity="${lineOpacity}" stroke-linecap="round" filter="url(#wa-glow-line)" d="${d}"/>`
+			);
+		}
+		paths.push(
+			`<path fill="none" stroke="${escapeXml(color)}" stroke-width="${effWidth}" stroke-opacity="${lineOpacity}" stroke-linecap="${conn.cap}"${dashAttr} d="${d}"/>`
+		);
+		if (conn.endpointDots) {
+			const dot = conn.endpointDots;
+			const fill = escapeXml(dot.color ?? color);
+			const ring = dot.ring ? ` stroke="${escapeXml(dot.ring)}" stroke-width="1.5"` : '';
+			paths.push(
+				`<circle cx="${x1}" cy="${y1}" r="${dot.r}" fill="${fill}"${ring} fill-opacity="${lineOpacity}"/>`,
+				`<circle cx="${x2}" cy="${y2}" r="${dot.r}" fill="${fill}"${ring} fill-opacity="${lineOpacity}"/>`
+			);
+		}
 	}
 
 	const tokenRects: string[] = [];
 	const texts: string[] = [];
 
 	function tokenFill(tokenId: string): string {
-		if (!colorTokensByLink) return defaultTextColor;
+		if (!colorTokensByLink) return resolvedTextColor;
 		const link = primaryConnectionForToken(connections, tokenId);
-		if (!link?.color) return defaultTextColor;
-		if (tokenLinkColorMode === 'background') return defaultTextColor;
+		if (!link?.color) return resolvedTextColor;
+		if (tokenLinkColorMode === 'background') return resolvedTextColor;
 		return link.color;
 	}
 
@@ -145,12 +231,29 @@ export function buildStandaloneSvgString(args: {
 		if (!colorTokensByLink || tokenLinkColorMode !== 'background') return null;
 		const link = primaryConnectionForToken(connections, tokenId);
 		if (!link?.color) return null;
-		return mixLinkBackground(link.color, backgroundColor, 0.28);
+		return mixLinkBackground(link.color, tintBase, 0.28);
 	}
 
 	function pushTokenText(t: Token, fontFamily: string, sizePx: number) {
 		const box = tokenLayout[t.id];
 		if (!box) return;
+		const link = primaryConnectionForToken(connections, t.id);
+		const chipColor = visualStyle.tokenChips && link?.color ? link.color : null;
+
+		if (chipColor) {
+			// Word card: hard offset shadow + solid chip + readable text.
+			const off = Math.round(sizePx * 0.11 * 100) / 100;
+			const shadow = visualStyle.tokenChips!.shadow;
+			tokenRects.push(
+				`<rect x="${box.x + off}" y="${box.y + off}" width="${box.w}" height="${box.h}" fill="${escapeXml(shadow)}"/>`,
+				`<rect x="${box.x}" y="${box.y}" width="${box.w}" height="${box.h}" fill="${escapeXml(chipColor)}"/>`
+			);
+			texts.push(
+				`<text fill="${escapeXml(readableTextOn(chipColor))}" font-family="${escapeXml(fontFamily)}" font-size="${sizePx}" font-weight="700" text-anchor="middle" dominant-baseline="central" transform="translate(${box.cx},${box.cy})">${escapeXml(t.text)}</text>`
+			);
+			return;
+		}
+
 		const fill = tokenFill(t.id);
 		const bg = tokenBgHex(t.id);
 		if (bg) {
@@ -158,8 +261,15 @@ export function buildStandaloneSvgString(args: {
 				`<rect x="${box.x}" y="${box.y}" width="${box.w}" height="${box.h}" fill="${escapeXml(bg)}"/>`
 			);
 		}
+		const common = `font-family="${escapeXml(fontFamily)}" font-size="${sizePx}" text-anchor="middle" dominant-baseline="central" transform="translate(${box.cx},${box.cy})"`;
+		if (visualStyle.glowText) {
+			// Soft halo: a blurred copy of the glyph behind the crisp one.
+			texts.push(
+				`<text fill="${escapeXml(fill)}" filter="url(#wa-glow-text)" font-weight="500" ${common}>${escapeXml(t.text)}</text>`
+			);
+		}
 		texts.push(
-			`<text fill="${escapeXml(fill)}" font-family="${escapeXml(fontFamily)}" font-size="${sizePx}" font-weight="500" text-anchor="middle" dominant-baseline="central" transform="translate(${box.cx},${box.cy})">${escapeXml(t.text)}</text>`
+			`<text fill="${escapeXml(fill)}" font-weight="500" ${common}>${escapeXml(t.text)}</text>`
 		);
 	}
 
@@ -169,10 +279,23 @@ export function buildStandaloneSvgString(args: {
 		}
 	}
 
-	const bgRect = `<rect x="0" y="0" width="${width}" height="${exportHeight}" fill="${escapeXml(backgroundColor)}"/>`;
+	const bgRect = exportBg
+		? exportBg.rect
+		: `<rect x="0" y="0" width="${width}" height="${exportHeight}" fill="${escapeXml(backgroundColor)}"/>`;
 
+	// Match the preview's per-style credit treatment (uppercase Bauhaus, italic serif styles).
+	const isBauhausCredit = visualStyle.id === 'bauhaus';
+	const italicCredit = ['atlas', 'sumi', 'parchment'].includes(visualStyle.id);
+	const creditText = isBauhausCredit
+		? EXPORT_ATTRIBUTION_PLAIN.toUpperCase()
+		: EXPORT_ATTRIBUTION_PLAIN;
+	const creditExtra = isBauhausCredit
+		? ' letter-spacing="1.3" font-weight="600"'
+		: italicCredit
+			? ' font-style="italic"'
+			: '';
 	const attribution = includeAttributionFooter
-		? `<text fill="${escapeXml(defaultTextColor)}" opacity="0.55" font-family="${escapeXml(ATTRIBUTION_FONT)}" font-size="11" text-anchor="middle" dominant-baseline="central" transform="translate(${width / 2},${height + ATTRIBUTION_FOOTER_PX / 2})">${escapeXml(EXPORT_ATTRIBUTION_PLAIN)}</text>`
+		? `<text fill="${escapeXml(resolvedTextColor)}" opacity="0.6" font-family="${escapeXml(ATTRIBUTION_FONT)}" font-size="12"${creditExtra} text-anchor="middle" dominant-baseline="central" transform="translate(${width / 2},${attributionY})">${escapeXml(creditText)}</text>`
 		: '';
 
 	/** Inset from the full export rectangle (including footer band) — same on right and bottom. */
@@ -189,5 +312,10 @@ export function buildStandaloneSvgString(args: {
 </g>`
 		: '';
 
-	return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${exportHeight}" viewBox="0 0 ${width} ${exportHeight}">${fontDefs}${bgRect}${tokenRects.join('')}${paths.join('')}${texts.join('')}${cornerQr}${attribution}</svg>`;
+	// Chip styles (Bauhaus) draw connectors under the cards; otherwise links sit above the text.
+	const body = visualStyle.tokenChips
+		? `${paths.join('')}${tokenRects.join('')}${texts.join('')}`
+		: `${tokenRects.join('')}${paths.join('')}${texts.join('')}`;
+
+	return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${exportHeight}" viewBox="0 0 ${width} ${exportHeight}">${fontDefs}${bgRect}${frameSvg}${body}${cornerQr}${attribution}</svg>`;
 }
