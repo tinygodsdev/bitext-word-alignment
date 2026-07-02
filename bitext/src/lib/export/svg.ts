@@ -10,6 +10,7 @@ import {
 	connectorColor,
 	getStyle,
 	readableTextOn,
+	shiftHue,
 	styleExportBackground,
 	styleExportFrame,
 	type StyleId
@@ -261,15 +262,29 @@ export function buildStandaloneSvgString(args: {
 				`<rect x="${box.x}" y="${box.y}" width="${box.w}" height="${box.h}" fill="${escapeXml(bg)}"/>`
 			);
 		}
-		const common = `font-family="${escapeXml(fontFamily)}" font-size="${sizePx}" text-anchor="middle" dominant-baseline="central" transform="translate(${box.cx},${box.cy})"`;
+		// Deco lettering: uppercase + letter-spacing (compensate the trailing space for centering).
+		const tt = visualStyle.tokenTransform;
+		const label = tt?.uppercase ? t.text.toUpperCase() : t.text;
+		const ls = tt?.letterSpacingEm ? Math.round(sizePx * tt.letterSpacingEm * 100) / 100 : 0;
+		const lsAttr = ls ? ` letter-spacing="${ls}"` : '';
+		const cx = box.cx - ls / 2;
+		const common = `font-family="${escapeXml(fontFamily)}" font-size="${sizePx}"${lsAttr} text-anchor="middle" dominant-baseline="central" transform="translate(${cx},${box.cy})"`;
 		if (visualStyle.glowText) {
 			// Soft halo: a blurred copy of the glyph behind the crisp one.
 			texts.push(
-				`<text fill="${escapeXml(fill)}" filter="url(#wa-glow-text)" font-weight="500" ${common}>${escapeXml(t.text)}</text>`
+				`<text fill="${escapeXml(fill)}" filter="url(#wa-glow-text)" font-weight="500" ${common}>${escapeXml(label)}</text>`
+			);
+		}
+		if (visualStyle.textOffsetShadow) {
+			// Riso misregistration: a hard offset copy in a hue-shifted spot ink, behind the glyph.
+			const { dx, dy } = visualStyle.textOffsetShadow;
+			const shadowCommon = `font-family="${escapeXml(fontFamily)}" font-size="${sizePx}"${lsAttr} text-anchor="middle" dominant-baseline="central" transform="translate(${cx + dx},${box.cy + dy})"`;
+			texts.push(
+				`<text fill="${escapeXml(shiftHue(fill, 165))}" font-weight="500" ${shadowCommon}>${escapeXml(label)}</text>`
 			);
 		}
 		texts.push(
-			`<text fill="${escapeXml(fill)}" font-weight="500" ${common}>${escapeXml(t.text)}</text>`
+			`<text fill="${escapeXml(fill)}" font-weight="500" ${common}>${escapeXml(label)}</text>`
 		);
 	}
 
