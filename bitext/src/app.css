@@ -317,9 +317,14 @@ path.link-path {
 
 .token-row {
 	display: flex;
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
 	justify-content: center;
 	align-items: baseline;
+}
+
+/* Auto-fit off → restore legacy wrapping (a line may spill onto multiple rows) */
+.preview-frame[data-autofit='off'] .token-row {
+	flex-wrap: wrap;
 }
 
 .token-view {

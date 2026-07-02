@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import TokenRow from './TokenRow.svelte';
 	import AlignmentSvg from './AlignmentSvg.svelte';
 	import PreviewFontLoader from './PreviewFontLoader.svelte';
@@ -8,8 +9,10 @@
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { selectionStore } from '$lib/state/selection.svelte.js';
+	import { layoutExportStore } from '$lib/state/layoutExport.svelte.js';
 	import { lineIsLinkTargetWhilePending } from '$lib/domain/lines-helpers.js';
 	import { getStyle, effectiveLineFamily } from '$lib/domain/styles.js';
+	import { computeAutoFitScales, scalesChanged } from '$lib/domain/autofit.js';
 	import type { LineV2 } from '$lib/serialization/schema.js';
 	import { ALIGNER_SITE_HOST, ALIGNER_SITE_URL } from '$lib/brand.js';
 	import { MAX_LINES } from '$lib/serialization/schema.js';
@@ -41,6 +44,77 @@
 	const chromeHiddenLayer = 'invisible pointer-events-none select-none';
 	const connections = $derived(projectStore.connections);
 	const lineIds = $derived(projectStore.lines.map((l) => l.id));
+
+	// --- Auto-fit: shrink font/gap so a line never wraps to a second row ---
+	const autoFit = $derived(settingsStore.settings.autoFit);
+	const autoFitVariance = $derived(settingsStore.settings.autoFitVariance);
+	let effScale = $state<Record<string, number>>({});
+
+	function scaleFor(id: string): number {
+		return autoFit ? (effScale[id] ?? 1) : 1;
+	}
+
+	$effect(() => {
+		// Re-run when anything that changes line widths changes.
+		void projectStore.lines;
+		for (const l of projectStore.lines) {
+			void l.rawText;
+			void l.textSizePx;
+			void l.gapWordPx;
+			void l.font;
+		}
+		void settingsStore.settings.autoFit;
+		void settingsStore.settings.autoFitVariance;
+		void settingsStore.settings.showNumbers;
+		void settingsStore.settings.tokenSplitChars;
+		void settingsStore.settings.style;
+		void writesExportLayout;
+		void layoutExportStore.layoutRemeasureTick;
+
+		if (!browser || !rootEl) return;
+
+		if (!autoFit) {
+			if (Object.keys(effScale).length) effScale = {};
+			if (writesExportLayout) layoutExportStore.setFontScaleByLine({});
+			return;
+		}
+
+		function recompute() {
+			if (!rootEl) return;
+			const rows: { lineId: string; width: number; effScale: number }[] = [];
+			let avail = Infinity;
+			rootEl.querySelectorAll<HTMLElement>('.token-row[data-line]').forEach((row) => {
+				const id = row.dataset.line;
+				if (!id) return;
+				const a = row.parentElement?.clientWidth ?? row.clientWidth;
+				if (a > 0) avail = Math.min(avail, a);
+				rows.push({ lineId: id, width: row.scrollWidth, effScale: effScale[id] ?? 1 });
+			});
+			if (!rows.length || !Number.isFinite(avail)) return;
+			const next = computeAutoFitScales(rows, avail * 0.98, autoFitVariance);
+			if (scalesChanged(effScale, next)) effScale = next;
+			if (writesExportLayout) layoutExportStore.setFontScaleByLine(effScale);
+		}
+
+		const ro = new ResizeObserver(() => {
+			requestAnimationFrame(() => recompute());
+		});
+		ro.observe(rootEl);
+		requestAnimationFrame(() => requestAnimationFrame(() => recompute()));
+
+		let cancelled = false;
+		if (document.fonts) {
+			void document.fonts.ready.then(() => {
+				if (!cancelled) recompute();
+			});
+			document.fonts.addEventListener('loadingdone', recompute);
+		}
+		return () => {
+			cancelled = true;
+			ro.disconnect();
+			if (document.fonts) document.fonts.removeEventListener('loadingdone', recompute);
+		};
+	});
 </script>
 
 <PreviewFontLoader />
@@ -51,6 +125,7 @@
 	class:preview-frame--light={!previewDark}
 	class:preview-frame--dark={previewDark}
 	data-aligner-style={style.id}
+	data-autofit={autoFit ? 'on' : 'off'}
 	style:background={isClassicStyle ? undefined : style.canvas.previewBackground}
 	style:color={isClassicStyle ? undefined : style.canvas.textColor}
 >
@@ -111,8 +186,8 @@
 					<TokenRow
 						tokens={projectStore.tokensOnLine(line.id)}
 						lineId={line.id}
-						textSizePx={line.textSizePx}
-						gapWordPx={line.gapWordPx}
+						textSizePx={line.textSizePx * scaleFor(line.id)}
+						gapWordPx={line.gapWordPx * scaleFor(line.id)}
 						showNumbers={settingsStore.settings.showNumbers}
 						interactive={!readonly}
 						rtl={Boolean(line.rtl)}

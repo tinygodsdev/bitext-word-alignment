@@ -159,6 +159,10 @@ export interface VisualSettingsV2 {
 	background: BackgroundMode;
 	/** Visual style preset (background, frame, connector treatment, default font). */
 	style: StyleId;
+	/** Shrink text to fit so a line never wraps to a second display row. */
+	autoFit: boolean;
+	/** 0 = all lines share one scale (uniform); 1 = each line fits independently. */
+	autoFitVariance: number;
 }
 
 export interface AppStateV2 {
@@ -235,7 +239,9 @@ export function defaultVisualSettingsV2(): VisualSettingsV2 {
 		tokenPunctuationChars: '',
 		previewHideChrome: false,
 		background: 'light',
-		style: 'classic'
+		style: 'classic',
+		autoFit: true,
+		autoFitVariance: 0.5
 	};
 }
 
@@ -311,7 +317,9 @@ export function visualSettingsV1ToV2(v1: VisualSettingsV1): VisualSettingsV2 {
 		tokenPunctuationChars: '',
 		previewHideChrome: false,
 		background: normalizePreviewBackground(v1.background),
-		style: 'classic'
+		style: 'classic',
+		autoFit: true,
+		autoFitVariance: 0.5
 	};
 }
 
@@ -778,6 +786,11 @@ export function normalizeVisualSettingsV2(
 		previewHideChrome:
 			typeof raw.previewHideChrome === 'boolean' ? raw.previewHideChrome : d.previewHideChrome,
 		background: normalizePreviewBackground(raw.background ?? d.background),
-		style: isStyleId(raw.style) ? raw.style : d.style
+		style: isStyleId(raw.style) ? raw.style : d.style,
+		autoFit: typeof raw.autoFit === 'boolean' ? raw.autoFit : d.autoFit,
+		autoFitVariance:
+			typeof raw.autoFitVariance === 'number' && Number.isFinite(raw.autoFitVariance)
+				? Math.max(0, Math.min(1, raw.autoFitVariance))
+				: d.autoFitVariance
 	};
 }

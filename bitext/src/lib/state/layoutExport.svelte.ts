@@ -15,8 +15,14 @@ class LayoutExportStore {
 	linkPaths = $state<LinkLayout[]>([]);
 	/** Vertical center Y of each line’s token row, keyed by line id */
 	lineRowY = $state<Record<string, number>>({});
+	/** Auto-fit scale applied to each line's font size (keyed by line id; missing ⇒ 1). */
+	fontScaleByLine = $state<Record<string, number>>({});
 	/** Bumped so preview layout is remeasured (e.g. before export) with up-to-date font metrics. */
 	layoutRemeasureTick = $state(0);
+
+	setFontScaleByLine(map: Record<string, number>) {
+		this.fontScaleByLine = map;
+	}
 
 	requestRemeasure() {
 		this.layoutRemeasureTick++;
