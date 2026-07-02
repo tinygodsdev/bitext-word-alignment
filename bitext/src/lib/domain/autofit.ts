@@ -55,7 +55,7 @@ export function computeAutoFitScales(
  * only partially, so they don't vanish. `strength` is how much of the shrink to apply (0 = none,
  * 1 = full). `contentScale` is the overall text scale (e.g. the mean of the per-line scales).
  */
-export const AUTOFIT_LINE_STRENGTH = 0.4;
+export const AUTOFIT_LINE_STRENGTH = 0.5;
 export const AUTOFIT_CREDIT_STRENGTH = 0.65;
 
 export function chromeScale(contentScale: number, strength: number): number {
