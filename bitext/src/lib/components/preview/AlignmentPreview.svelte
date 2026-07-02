@@ -247,6 +247,18 @@
 	function resetZoom() {
 		zoom = { ...IDENTITY_ZOOM };
 	}
+
+	// Discoverability: hint that zoom exists, but only when the text got small enough to need it.
+	let coarsePointer = $state(false);
+	$effect(() => {
+		if (browser) coarsePointer = window.matchMedia('(pointer: coarse)').matches;
+	});
+	const zoomHint = $derived.by(() => {
+		if (readonly || hideChrome) return null;
+		if (zoom.z > 1) return coarsePointer ? 'Double-tap to reset' : 'Double-click to reset';
+		if (contentScale < 0.8) return coarsePointer ? 'Pinch to zoom in' : 'Ctrl + scroll to zoom in';
+		return null;
+	});
 </script>
 
 <PreviewFontLoader />
@@ -284,6 +296,15 @@
 				Click a word on an <strong>adjacent</strong> line to create the link.
 			{/if}
 		</p>
+	{/if}
+	{#if zoomHint}
+		<div class="preview-zoom-hint" aria-hidden="true">
+			<svg viewBox="0 0 16 16" class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor">
+				<circle cx="7" cy="7" r="4.5" stroke-width="1.5" />
+				<path d="M10.5 10.5 L14 14" stroke-width="1.5" stroke-linecap="round" />
+			</svg>
+			<span>{zoomHint}</span>
+		</div>
 	{/if}
 	<div class="preview-zoom" bind:this={zoomEl} style:transform={zoomTransform}>
 		<div class="preview-stack">
