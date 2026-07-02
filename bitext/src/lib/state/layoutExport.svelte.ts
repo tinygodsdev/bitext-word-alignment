@@ -17,11 +17,17 @@ class LayoutExportStore {
 	lineRowY = $state<Record<string, number>>({});
 	/** Auto-fit scale applied to each line's font size (keyed by line id; missing ⇒ 1). */
 	fontScaleByLine = $state<Record<string, number>>({});
+	/** Overall text scale (mean of per-line auto-fit scales); used to shrink lines/credit in export. */
+	contentScale = $state(1);
 	/** Bumped so preview layout is remeasured (e.g. before export) with up-to-date font metrics. */
 	layoutRemeasureTick = $state(0);
 
 	setFontScaleByLine(map: Record<string, number>) {
 		this.fontScaleByLine = map;
+	}
+
+	setContentScale(scale: number) {
+		this.contentScale = scale;
 	}
 
 	requestRemeasure() {

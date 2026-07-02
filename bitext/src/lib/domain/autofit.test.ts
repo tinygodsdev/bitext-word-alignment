@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { computeAutoFitScales, scalesChanged } from './autofit.js';
+import { chromeScale, computeAutoFitScales, scalesChanged } from './autofit.js';
 
 describe('computeAutoFitScales', () => {
 	it('leaves lines that fit at scale 1', () => {
@@ -72,6 +72,17 @@ describe('computeAutoFitScales', () => {
 			eff = computeAutoFitScales([{ lineId: 'a', width, effScale: eff }], avail, 1).a;
 		}
 		expect(eff).toBeCloseTo(0.5, 3);
+	});
+});
+
+describe('chromeScale', () => {
+	it('is 1 when text is full size and shrinks partially otherwise', () => {
+		expect(chromeScale(1, 0.4)).toBe(1);
+		// content at 0.5 → 40% of the way down: 1 - 0.4*0.5 = 0.8
+		expect(chromeScale(0.5, 0.4)).toBeCloseTo(0.8, 5);
+		// stronger strength shrinks more
+		expect(chromeScale(0.5, 0.65)).toBeCloseTo(0.675, 5);
+		expect(chromeScale(0, 1)).toBe(0);
 	});
 });
 

@@ -352,6 +352,8 @@ path.link-path {
 
 .token-view__text {
 	font-weight: 500;
+	/* A token is one alignment unit — never let it break inside (e.g. at a hyphen). */
+	white-space: nowrap;
 }
 
 /* Bauhaus-style word cards */

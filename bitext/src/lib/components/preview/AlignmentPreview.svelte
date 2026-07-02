@@ -12,7 +12,13 @@
 	import { layoutExportStore } from '$lib/state/layoutExport.svelte.js';
 	import { lineIsLinkTargetWhilePending } from '$lib/domain/lines-helpers.js';
 	import { getStyle, effectiveLineFamily } from '$lib/domain/styles.js';
-	import { computeAutoFitScales, scalesChanged } from '$lib/domain/autofit.js';
+	import {
+		computeAutoFitScales,
+		scalesChanged,
+		chromeScale,
+		AUTOFIT_LINE_STRENGTH,
+		AUTOFIT_CREDIT_STRENGTH
+	} from '$lib/domain/autofit.js';
 	import type { LineV2 } from '$lib/serialization/schema.js';
 	import { ALIGNER_SITE_HOST, ALIGNER_SITE_URL } from '$lib/brand.js';
 	import { MAX_LINES } from '$lib/serialization/schema.js';
@@ -54,6 +60,15 @@
 		return autoFit ? (effScale[id] ?? 1) : 1;
 	}
 
+	// Overall text scale (mean of per-line scales) → gently shrink connectors + credit with it.
+	const contentScale = $derived.by(() => {
+		if (!autoFit) return 1;
+		const v = Object.values(effScale);
+		return v.length ? v.reduce((a, b) => a + b, 0) / v.length : 1;
+	});
+	const thicknessScale = $derived(chromeScale(contentScale, AUTOFIT_LINE_STRENGTH));
+	const creditScale = $derived(chromeScale(contentScale, AUTOFIT_CREDIT_STRENGTH));
+
 	$effect(() => {
 		// Re-run when anything that changes line widths changes.
 		void projectStore.lines;
@@ -75,7 +90,10 @@
 
 		if (!autoFit) {
 			if (Object.keys(effScale).length) effScale = {};
-			if (writesExportLayout) layoutExportStore.setFontScaleByLine({});
+			if (writesExportLayout) {
+				layoutExportStore.setFontScaleByLine({});
+				layoutExportStore.setContentScale(1);
+			}
 			return;
 		}
 
@@ -93,7 +111,13 @@
 			if (!rows.length || !Number.isFinite(avail)) return;
 			const next = computeAutoFitScales(rows, avail * 0.98, autoFitVariance);
 			if (scalesChanged(effScale, next)) effScale = next;
-			if (writesExportLayout) layoutExportStore.setFontScaleByLine(effScale);
+			if (writesExportLayout) {
+				layoutExportStore.setFontScaleByLine(effScale);
+				const vals = Object.values(effScale);
+				layoutExportStore.setContentScale(
+					vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 1
+				);
+			}
 		}
 
 		const ro = new ResizeObserver(() => {
@@ -237,7 +261,7 @@
 			</div>
 		{/if}
 		{#if hideChrome}
-			<p class="preview-frame__attribution">
+			<p class="preview-frame__attribution" style:font-size="{0.75 * creditScale}rem">
 				Created with
 				<button
 					type="button"
@@ -249,5 +273,5 @@
 			</p>
 		{/if}
 	</div>
-	<AlignmentSvg {rootEl} {connections} {writesExportLayout} />
+	<AlignmentSvg {rootEl} {connections} {writesExportLayout} {thicknessScale} />
 </div>

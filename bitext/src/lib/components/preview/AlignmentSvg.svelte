@@ -19,12 +19,15 @@
 	let {
 		rootEl,
 		connections,
-		writesExportLayout = true
+		writesExportLayout = true,
+		thicknessScale = 1
 	}: {
 		rootEl: HTMLElement | null;
 		connections: Connection[];
 		/** When false, this preview only draws links locally (avoids clobbering export layout). */
 		writesExportLayout?: boolean;
+		/** Auto-fit shrink applied to connector thickness so lines don't look huge on small text. */
+		thicknessScale?: number;
 	} = $props();
 
 	let displayTokenLayout = $state<Record<string, TokenLayout>>({});
@@ -172,7 +175,9 @@
 								pts.x2,
 								pts.y2,
 								settingsStore.settings.lineStyle,
-								settingsStore.settings.lineThickness * (style.connector.ribbonScale ?? 8),
+								settingsStore.settings.lineThickness *
+									(style.connector.ribbonScale ?? 8) *
+									thicknessScale,
 								style.connector.taper ?? false
 							)
 						: linkPathD(pts.x1, pts.y1, pts.x2, pts.y2, settingsStore.settings.lineStyle)}
@@ -184,7 +189,9 @@
 					{@const baseOp = settingsStore.settings.lineOpacity}
 					{@const pathOpacity = hi ? 1 : activeForPending ? baseOp : baseOp * PENDING_DIM_FACTOR}
 					{@const baseThickness =
-						settingsStore.settings.lineThickness * (style.connector.widthScale ?? 1)}
+						settingsStore.settings.lineThickness *
+						(style.connector.widthScale ?? 1) *
+						thicknessScale}
 					<LinkPath
 						{d}
 						color={col}
@@ -200,7 +207,7 @@
 						<circle
 							cx={pts.x1}
 							cy={pts.y1}
-							r={dot.r}
+							r={dot.r * thicknessScale}
 							fill={dot.color ?? col}
 							stroke={dot.ring}
 							stroke-width={dot.ring ? 1.5 : undefined}
@@ -209,7 +216,7 @@
 						<circle
 							cx={pts.x2}
 							cy={pts.y2}
-							r={dot.r}
+							r={dot.r * thicknessScale}
 							fill={dot.color ?? col}
 							stroke={dot.ring}
 							stroke-width={dot.ring ? 1.5 : undefined}

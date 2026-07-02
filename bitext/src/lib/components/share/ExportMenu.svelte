@@ -89,6 +89,7 @@
 			lineStyle: s.lineStyle,
 			lineThickness: s.lineThickness,
 			lineOpacity: s.lineOpacity,
+			contentScale: lay.contentScale,
 			lineOrder,
 			lines,
 			tokenLayout: lay.tokenLayout,

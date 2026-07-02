@@ -50,6 +50,19 @@ export function computeAutoFitScales(
 	return out;
 }
 
+/**
+ * When auto-fit shrinks the text, connectors and the attribution credit should shrink too — but
+ * only partially, so they don't vanish. `strength` is how much of the shrink to apply (0 = none,
+ * 1 = full). `contentScale` is the overall text scale (e.g. the mean of the per-line scales).
+ */
+export const AUTOFIT_LINE_STRENGTH = 0.4;
+export const AUTOFIT_CREDIT_STRENGTH = 0.65;
+
+export function chromeScale(contentScale: number, strength: number): number {
+	const s = Math.max(0, Math.min(1, contentScale));
+	return 1 - strength * (1 - s);
+}
+
 /** True when any line's scale changed by more than `eps` (used to stop the reactive re-measure loop). */
 export function scalesChanged(
 	prev: Record<string, number>,
