@@ -19,6 +19,14 @@
 		AUTOFIT_LINE_STRENGTH,
 		AUTOFIT_CREDIT_STRENGTH
 	} from '$lib/domain/autofit.js';
+	import {
+		type ZoomState,
+		IDENTITY_ZOOM,
+		zoomAt,
+		clampPan,
+		clampZoom,
+		wheelZoomFactor
+	} from '$lib/domain/zoom.js';
 	import type { LineV2 } from '$lib/serialization/schema.js';
 	import { ALIGNER_SITE_HOST, ALIGNER_SITE_URL } from '$lib/brand.js';
 	import { MAX_LINES } from '$lib/serialization/schema.js';
@@ -139,10 +147,111 @@
 			if (document.fonts) document.fonts.removeEventListener('loadingdone', recompute);
 		};
 	});
+
+	// --- Interaction-only pinch/scroll zoom + pan (never affects layout or export) ---
+	let zoomEl = $state<HTMLElement | null>(null);
+	let zoom = $state<ZoomState>({ ...IDENTITY_ZOOM });
+	const zoomTransform = $derived(`translate(${zoom.x}px, ${zoom.y}px) scale(${zoom.z})`);
+
+	// Imperative gesture bookkeeping — not reactive, so a plain Map is fine here.
+	// eslint-disable-next-line svelte/prefer-svelte-reactivity
+	const pointers = new Map<number, { x: number; y: number }>();
+	let panStart: { cx: number; cy: number; x: number; y: number } | null = null;
+	let pinchPrev: { dist: number; mx: number; my: number } | null = null;
+	let dragged = false;
+
+	function viewport(): { w: number; h: number } {
+		return { w: zoomEl?.offsetWidth ?? 0, h: zoomEl?.offsetHeight ?? 0 };
+	}
+	/** Screen point → the wrapper's untransformed local space (transform-origin is 0 0). */
+	function localPoint(cx: number, cy: number): { x: number; y: number } {
+		if (!zoomEl) return { x: 0, y: 0 };
+		const r = zoomEl.getBoundingClientRect();
+		return { x: cx - (r.left - zoom.x), y: cy - (r.top - zoom.y) };
+	}
+	function twoFinger(): { dist: number; mx: number; my: number } | null {
+		if (pointers.size < 2) return null;
+		const [a, b] = [...pointers.values()];
+		return {
+			dist: Math.hypot(a.x - b.x, a.y - b.y),
+			mx: (a.x + b.x) / 2,
+			my: (a.y + b.y) / 2
+		};
+	}
+	/** Drag on the gap sliders must adjust them, not pan. */
+	function isFormControl(t: EventTarget | null): boolean {
+		return t instanceof Element && !!t.closest('input, [role="slider"], .line-gap-range');
+	}
+
+	function onPointerDown(e: PointerEvent) {
+		if (e.pointerType === 'mouse' && e.button !== 0) return;
+		pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+		dragged = false;
+		if (pointers.size === 2) {
+			panStart = null;
+			pinchPrev = twoFinger();
+		} else if (pointers.size === 1 && zoom.z > 1 && !isFormControl(e.target)) {
+			panStart = { cx: e.clientX, cy: e.clientY, x: zoom.x, y: zoom.y };
+		}
+	}
+	function onPointerMove(e: PointerEvent) {
+		if (!pointers.has(e.pointerId)) return;
+		pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+		const { w, h } = viewport();
+
+		if (pointers.size >= 2 && pinchPrev) {
+			const cur = twoFinger()!;
+			const factor = cur.dist > 0 && pinchPrev.dist > 0 ? cur.dist / pinchPrev.dist : 1;
+			let next = zoomAt(zoom, clampZoom(zoom.z * factor), localPoint(cur.mx, cur.my));
+			next = {
+				z: next.z,
+				x: next.x + (cur.mx - pinchPrev.mx),
+				y: next.y + (cur.my - pinchPrev.my)
+			};
+			zoom = clampPan(next, w, h);
+			pinchPrev = cur;
+			dragged = true;
+			e.preventDefault();
+			return;
+		}
+		if (pointers.size === 1 && panStart) {
+			const dx = e.clientX - panStart.cx;
+			const dy = e.clientY - panStart.cy;
+			if (!dragged && Math.hypot(dx, dy) > 6) {
+				dragged = true;
+				(e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+			}
+			if (dragged) {
+				zoom = clampPan({ z: zoom.z, x: panStart.x + dx, y: panStart.y + dy }, w, h);
+				e.preventDefault();
+			}
+		}
+	}
+	function onPointerUp(e: PointerEvent) {
+		pointers.delete(e.pointerId);
+		if (pointers.size < 2) pinchPrev = null;
+		if (pointers.size === 0) panStart = null;
+	}
+	function onWheel(e: WheelEvent) {
+		// Trackpad pinch / ctrl+wheel zooms; a plain wheel keeps scrolling the page.
+		if (!e.ctrlKey) return;
+		e.preventDefault();
+		const { w, h } = viewport();
+		const next = zoomAt(
+			zoom,
+			clampZoom(zoom.z * wheelZoomFactor(e.deltaY)),
+			localPoint(e.clientX, e.clientY)
+		);
+		zoom = clampPan(next, w, h);
+	}
+	function resetZoom() {
+		zoom = { ...IDENTITY_ZOOM };
+	}
 </script>
 
 <PreviewFontLoader />
 
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
 	bind:this={rootEl}
 	class="preview-frame {style.frameClass ?? ''}"
@@ -152,6 +261,13 @@
 	data-autofit={autoFit ? 'on' : 'off'}
 	style:background={isClassicStyle ? undefined : style.canvas.previewBackground}
 	style:color={isClassicStyle ? undefined : style.canvas.textColor}
+	style:touch-action={zoom.z > 1 ? 'none' : 'pan-y'}
+	onpointerdown={onPointerDown}
+	onpointermove={onPointerMove}
+	onpointerup={onPointerUp}
+	onpointercancel={onPointerUp}
+	onwheel={onWheel}
+	ondblclick={resetZoom}
 >
 	{#if style.id === 'deco'}
 		<span class="aligner-deco-diamond aligner-deco-diamond--top" aria-hidden="true"></span>
@@ -169,109 +285,122 @@
 			{/if}
 		</p>
 	{/if}
-	<div class="preview-stack">
-		{#if !readonly}
-			<div
-				class="mb-1 flex justify-center {hideChrome ? chromeHiddenLayer : ''}"
-				aria-hidden={hideChrome ? true : undefined}
-			>
-				<button
-					type="button"
-					class="rounded-none border border-dashed px-2 py-0.5 text-xs font-medium disabled:opacity-40 {previewDark
-						? 'border-gray-600 text-gray-400 hover:border-primary-400 hover:text-primary-300'
-						: 'border-gray-400 text-gray-600 hover:border-primary-500 hover:text-primary-700'}"
-					disabled={projectStore.lines.length >= MAX_LINES}
-					onclick={() => projectStore.addLine(0)}
+	<div class="preview-zoom" bind:this={zoomEl} style:transform={zoomTransform}>
+		<div class="preview-stack">
+			{#if !readonly}
+				<div
+					class="mb-1 flex justify-center {hideChrome ? chromeHiddenLayer : ''}"
+					aria-hidden={hideChrome ? true : undefined}
 				>
-					+ Add line
-				</button>
-			</div>
-		{/if}
-		{#each projectStore.lines as line, li (line.id)}
-			{@const gearDomId = `${instancePrefix}-line-gear-${line.id}`}
-			{@const pending = selectionStore.pending}
-			{@const rowDimmed =
-				pending != null && !lineIsLinkTargetWhilePending(lineIds, pending.lineId, line.id)}
-			<div
-				data-line={line.id}
-				class="preview-token-line flex items-center gap-3 transition-opacity duration-150"
-				class:opacity-[0.34]={!readonly && rowDimmed}
-				style:font-family={lineFontCss(line)}
-			>
-				{#if !readonly}
-					<div
-						class="shrink-0 {hideChrome ? chromeHiddenLayer : ''}"
-						aria-hidden={hideChrome ? true : undefined}
+					<button
+						type="button"
+						class="rounded-none border border-dashed px-2 py-0.5 text-xs font-medium disabled:opacity-40 {previewDark
+							? 'border-gray-600 text-gray-400 hover:border-primary-400 hover:text-primary-300'
+							: 'border-gray-400 text-gray-600 hover:border-primary-500 hover:text-primary-700'}"
+						disabled={projectStore.lines.length >= MAX_LINES}
+						onclick={() => projectStore.addLine(0)}
 					>
-						<LineReorderButtons {line} index={li} total={projectStore.lines.length} {previewDark} />
-					</div>
-				{/if}
-				<div class="preview-gloss-wrap min-w-0 flex-1">
-					<TokenRow
-						tokens={projectStore.tokensOnLine(line.id)}
-						lineId={line.id}
-						textSizePx={line.textSizePx * scaleFor(line.id)}
-						gapWordPx={line.gapWordPx * scaleFor(line.id)}
-						showNumbers={settingsStore.settings.showNumbers}
-						interactive={!readonly}
-						rtl={Boolean(line.rtl)}
-					/>
+						+ Add line
+					</button>
 				</div>
-				{#if !readonly}
-					<div
-						class="shrink-0 {hideChrome ? chromeHiddenLayer : ''}"
-						aria-hidden={hideChrome ? true : undefined}
-					>
-						<LineTrailingActions
-							{line}
-							index={li}
-							total={projectStore.lines.length}
-							{gearDomId}
-							triggeredBy={`#${gearDomId}`}
-							{previewDark}
+			{/if}
+			{#each projectStore.lines as line, li (line.id)}
+				{@const gearDomId = `${instancePrefix}-line-gear-${line.id}`}
+				{@const pending = selectionStore.pending}
+				{@const rowDimmed =
+					pending != null && !lineIsLinkTargetWhilePending(lineIds, pending.lineId, line.id)}
+				<div
+					data-line={line.id}
+					class="preview-token-line flex items-center gap-3 transition-opacity duration-150"
+					class:opacity-[0.34]={!readonly && rowDimmed}
+					style:font-family={lineFontCss(line)}
+				>
+					{#if !readonly}
+						<div
+							class="shrink-0 {hideChrome ? chromeHiddenLayer : ''}"
+							aria-hidden={hideChrome ? true : undefined}
+						>
+							<LineReorderButtons
+								{line}
+								index={li}
+								total={projectStore.lines.length}
+								{previewDark}
+							/>
+						</div>
+					{/if}
+					<div class="preview-gloss-wrap min-w-0 flex-1">
+						<TokenRow
+							tokens={projectStore.tokensOnLine(line.id)}
+							lineId={line.id}
+							textSizePx={line.textSizePx * scaleFor(line.id)}
+							gapWordPx={line.gapWordPx * scaleFor(line.id)}
+							showNumbers={settingsStore.settings.showNumbers}
+							interactive={!readonly}
+							rtl={Boolean(line.rtl)}
 						/>
 					</div>
+					{#if !readonly}
+						<div
+							class="shrink-0 {hideChrome ? chromeHiddenLayer : ''}"
+							aria-hidden={hideChrome ? true : undefined}
+						>
+							<LineTrailingActions
+								{line}
+								index={li}
+								total={projectStore.lines.length}
+								{gearDomId}
+								triggeredBy={`#${gearDomId}`}
+								{previewDark}
+							/>
+						</div>
+					{/if}
+				</div>
+				{#if li < projectStore.lines.length - 1}
+					{@const lowerLine = projectStore.lines[li + 1]!}
+					<LinePairGapSlider
+						upperLineId={line.id}
+						lowerLineId={lowerLine.id}
+						{previewDark}
+						showControls={!readonly && !hideChrome}
+					/>
 				{/if}
-			</div>
-			{#if li < projectStore.lines.length - 1}
-				{@const lowerLine = projectStore.lines[li + 1]!}
-				<LinePairGapSlider
-					upperLineId={line.id}
-					lowerLineId={lowerLine.id}
-					{previewDark}
-					showControls={!readonly && !hideChrome}
-				/>
+			{/each}
+			{#if !readonly}
+				<div
+					class="mt-1 flex justify-center {hideChrome ? chromeHiddenLayer : ''}"
+					aria-hidden={hideChrome ? true : undefined}
+				>
+					<button
+						type="button"
+						class="rounded-none border border-dashed px-2 py-0.5 text-xs font-medium disabled:opacity-40 {previewDark
+							? 'border-gray-600 text-gray-400 hover:border-primary-400 hover:text-primary-300'
+							: 'border-gray-400 text-gray-600 hover:border-primary-500 hover:text-primary-700'}"
+						disabled={projectStore.lines.length >= MAX_LINES}
+						onclick={() => projectStore.addLine()}
+					>
+						+ Add line
+					</button>
+				</div>
 			{/if}
-		{/each}
-		{#if !readonly}
-			<div
-				class="mt-1 flex justify-center {hideChrome ? chromeHiddenLayer : ''}"
-				aria-hidden={hideChrome ? true : undefined}
-			>
-				<button
-					type="button"
-					class="rounded-none border border-dashed px-2 py-0.5 text-xs font-medium disabled:opacity-40 {previewDark
-						? 'border-gray-600 text-gray-400 hover:border-primary-400 hover:text-primary-300'
-						: 'border-gray-400 text-gray-600 hover:border-primary-500 hover:text-primary-700'}"
-					disabled={projectStore.lines.length >= MAX_LINES}
-					onclick={() => projectStore.addLine()}
-				>
-					+ Add line
-				</button>
-			</div>
-		{/if}
-		{#if hideChrome}
-			<p class="preview-frame__attribution" style:font-size="{0.75 * creditScale}rem">
-				Created with
-				<button
-					type="button"
-					class="preview-frame__attribution-link inline cursor-pointer border-0 bg-transparent p-0 font-inherit underline"
-					onclick={() => window.open(ALIGNER_SITE_URL, '_blank', 'noopener,noreferrer')}
-				>
-					{ALIGNER_SITE_HOST}
-				</button>
-			</p>
-		{/if}
+			{#if hideChrome}
+				<p class="preview-frame__attribution" style:font-size="{0.75 * creditScale}rem">
+					Created with
+					<button
+						type="button"
+						class="preview-frame__attribution-link inline cursor-pointer border-0 bg-transparent p-0 font-inherit underline"
+						onclick={() => window.open(ALIGNER_SITE_URL, '_blank', 'noopener,noreferrer')}
+					>
+						{ALIGNER_SITE_HOST}
+					</button>
+				</p>
+			{/if}
+		</div>
+		<AlignmentSvg
+			rootEl={zoomEl}
+			{connections}
+			{writesExportLayout}
+			{thicknessScale}
+			zoom={zoom.z}
+		/>
 	</div>
-	<AlignmentSvg {rootEl} {connections} {writesExportLayout} {thicknessScale} />
 </div>

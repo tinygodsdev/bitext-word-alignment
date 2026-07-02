@@ -202,6 +202,13 @@ html {
 		0 1px 3px rgb(0 0 0 / 0.9);
 }
 
+/* Interaction-only pan/zoom layer (pinch to magnify small text; never affects export) */
+.preview-zoom {
+	position: relative;
+	transform-origin: 0 0;
+	will-change: transform;
+}
+
 .preview-stack {
 	position: relative;
 	z-index: 1;
