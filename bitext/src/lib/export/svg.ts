@@ -10,6 +10,7 @@ import {
 	connectorColor,
 	getStyle,
 	readableTextOn,
+	shiftHue,
 	styleExportBackground,
 	styleExportFrame,
 	type StyleId
@@ -126,20 +127,43 @@ export function buildStandaloneSvgString(args: {
 				: visualStyle.id === 'bauhaus'
 					? 2
 					: 0;
-	// Credit band below the content: a gap above the text and a larger gap below (like the
-	// preview's margin + frame padding), plus room for the frame inset so it stays inside the frame.
-	const CREDIT_GAP_TOP = 16;
-	const CREDIT_TEXT = 12;
-	const CREDIT_GAP_BOTTOM = 24;
-	const footerBand = includeAttributionFooter
-		? CREDIT_GAP_TOP + CREDIT_TEXT + CREDIT_GAP_BOTTOM + frameInnerInset
-		: 0;
-	const exportHeight = height + footerBand;
-	const attributionY = height + CREDIT_GAP_TOP + CREDIT_TEXT / 2;
 
-	const exportBg = styleExportBackground(visualStyle, width, exportHeight);
-	// Frame wraps the whole canvas (incl. the footer band) so the credit stays inside it.
-	const frameSvg = styleExportFrame(visualStyle, width, exportHeight);
+	// Crop tightly to the token bounding box so exports aren't stretched by editor chrome/padding.
+	// The credit then sits just below the diagram instead of far down an empty canvas.
+	let minX = Infinity;
+	let minY = Infinity;
+	let maxX = -Infinity;
+	let maxY = -Infinity;
+	for (const b of Object.values(tokenLayout)) {
+		if (b.x < minX) minX = b.x;
+		if (b.y < minY) minY = b.y;
+		if (b.x + b.w > maxX) maxX = b.x + b.w;
+		if (b.y + b.h > maxY) maxY = b.y + b.h;
+	}
+	if (!Number.isFinite(minX)) {
+		minX = 0;
+		minY = 0;
+		maxX = width;
+		maxY = height;
+	}
+
+	const PAD = 40;
+	const CREDIT_GAP_TOP = 18;
+	const CREDIT_TEXT = 12;
+	const CREDIT_GAP_BOTTOM = 22;
+	const contentCx = (minX + maxX) / 2;
+	const cropX = minX - PAD;
+	const cropY = minY - PAD;
+	const cropW = maxX - minX + PAD * 2;
+	const bottomBand = includeAttributionFooter
+		? CREDIT_GAP_TOP + CREDIT_TEXT + CREDIT_GAP_BOTTOM + frameInnerInset
+		: PAD;
+	const cropH = maxY - minY + PAD + bottomBand;
+	const attributionY = maxY + CREDIT_GAP_TOP + CREDIT_TEXT / 2;
+
+	const exportBg = styleExportBackground(visualStyle, cropX, cropY, cropW, cropH);
+	// Frame wraps the whole (cropped) canvas so the credit stays inside it.
+	const frameSvg = styleExportFrame(visualStyle, cropX, cropY, cropW, cropH);
 
 	const styleChunks: string[] = [];
 	if (embedFontCss && embedFontCss.length > 0) styleChunks.push(embedFontCss);
@@ -261,15 +285,29 @@ export function buildStandaloneSvgString(args: {
 				`<rect x="${box.x}" y="${box.y}" width="${box.w}" height="${box.h}" fill="${escapeXml(bg)}"/>`
 			);
 		}
-		const common = `font-family="${escapeXml(fontFamily)}" font-size="${sizePx}" text-anchor="middle" dominant-baseline="central" transform="translate(${box.cx},${box.cy})"`;
+		// Deco lettering: uppercase + letter-spacing (compensate the trailing space for centering).
+		const tt = visualStyle.tokenTransform;
+		const label = tt?.uppercase ? t.text.toUpperCase() : t.text;
+		const ls = tt?.letterSpacingEm ? Math.round(sizePx * tt.letterSpacingEm * 100) / 100 : 0;
+		const lsAttr = ls ? ` letter-spacing="${ls}"` : '';
+		const cx = box.cx - ls / 2;
+		const common = `font-family="${escapeXml(fontFamily)}" font-size="${sizePx}"${lsAttr} text-anchor="middle" dominant-baseline="central" transform="translate(${cx},${box.cy})"`;
 		if (visualStyle.glowText) {
 			// Soft halo: a blurred copy of the glyph behind the crisp one.
 			texts.push(
-				`<text fill="${escapeXml(fill)}" filter="url(#wa-glow-text)" font-weight="500" ${common}>${escapeXml(t.text)}</text>`
+				`<text fill="${escapeXml(fill)}" filter="url(#wa-glow-text)" font-weight="500" ${common}>${escapeXml(label)}</text>`
+			);
+		}
+		if (visualStyle.textOffsetShadow) {
+			// Riso misregistration: a hard offset copy in a hue-shifted spot ink, behind the glyph.
+			const { dx, dy } = visualStyle.textOffsetShadow;
+			const shadowCommon = `font-family="${escapeXml(fontFamily)}" font-size="${sizePx}"${lsAttr} text-anchor="middle" dominant-baseline="central" transform="translate(${cx + dx},${box.cy + dy})"`;
+			texts.push(
+				`<text fill="${escapeXml(shiftHue(fill, 165))}" font-weight="500" ${shadowCommon}>${escapeXml(label)}</text>`
 			);
 		}
 		texts.push(
-			`<text fill="${escapeXml(fill)}" font-weight="500" ${common}>${escapeXml(t.text)}</text>`
+			`<text fill="${escapeXml(fill)}" font-weight="500" ${common}>${escapeXml(label)}</text>`
 		);
 	}
 
@@ -281,7 +319,7 @@ export function buildStandaloneSvgString(args: {
 
 	const bgRect = exportBg
 		? exportBg.rect
-		: `<rect x="0" y="0" width="${width}" height="${exportHeight}" fill="${escapeXml(backgroundColor)}"/>`;
+		: `<rect x="${cropX}" y="${cropY}" width="${cropW}" height="${cropH}" fill="${escapeXml(backgroundColor)}"/>`;
 
 	// Match the preview's per-style credit treatment (uppercase Bauhaus, italic serif styles).
 	const isBauhausCredit = visualStyle.id === 'bauhaus';
@@ -295,7 +333,7 @@ export function buildStandaloneSvgString(args: {
 			? ' font-style="italic"'
 			: '';
 	const attribution = includeAttributionFooter
-		? `<text fill="${escapeXml(resolvedTextColor)}" opacity="0.6" font-family="${escapeXml(ATTRIBUTION_FONT)}" font-size="12"${creditExtra} text-anchor="middle" dominant-baseline="central" transform="translate(${width / 2},${attributionY})">${escapeXml(creditText)}</text>`
+		? `<text fill="${escapeXml(resolvedTextColor)}" opacity="0.6" font-family="${escapeXml(ATTRIBUTION_FONT)}" font-size="12"${creditExtra} text-anchor="middle" dominant-baseline="central" transform="translate(${contentCx},${attributionY})">${escapeXml(creditText)}</text>`
 		: '';
 
 	/** Inset from the full export rectangle (including footer band) — same on right and bottom. */
@@ -303,8 +341,8 @@ export function buildStandaloneSvgString(args: {
 	const QR_INNER_PAD = 2;
 	const qrDisplay = 48;
 	const qrTotal = qrDisplay + QR_INNER_PAD * 2;
-	const qrLeft = width - CORNER_INSET - qrTotal;
-	const qrTop = exportHeight - CORNER_INSET - qrTotal;
+	const qrLeft = cropX + cropW - CORNER_INSET - qrTotal;
+	const qrTop = cropY + cropH - CORNER_INSET - qrTotal;
 	const cornerQr = siteQrPngDataUri
 		? `<g aria-label="QR code — ${escapeXml(ALIGNER_SITE_HOST)}">
 <rect x="${qrLeft}" y="${qrTop}" width="${qrTotal}" height="${qrTotal}" fill="#ffffff" fill-opacity="0.94"/>
@@ -317,5 +355,5 @@ export function buildStandaloneSvgString(args: {
 		? `${paths.join('')}${tokenRects.join('')}${texts.join('')}`
 		: `${tokenRects.join('')}${paths.join('')}${texts.join('')}`;
 
-	return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${exportHeight}" viewBox="0 0 ${width} ${exportHeight}">${fontDefs}${bgRect}${frameSvg}${body}${cornerQr}${attribution}</svg>`;
+	return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${cropW}" height="${cropH}" viewBox="${cropX} ${cropY} ${cropW} ${cropH}">${fontDefs}${bgRect}${frameSvg}${body}${cornerQr}${attribution}</svg>`;
 }

@@ -54,6 +54,10 @@
 	style:background={isClassicStyle ? undefined : style.canvas.previewBackground}
 	style:color={isClassicStyle ? undefined : style.canvas.textColor}
 >
+	{#if style.id === 'deco'}
+		<span class="aligner-deco-diamond aligner-deco-diamond--top" aria-hidden="true"></span>
+		<span class="aligner-deco-diamond aligner-deco-diamond--bottom" aria-hidden="true"></span>
+	{/if}
 	{#if !readonly && selectionStore.showLinkHint()}
 		<p
 			class="preview-frame__link-hint pointer-events-none absolute left-3 top-3 z-30 max-w-[min(calc(100%-1.5rem),15rem)] px-2 py-1 text-xs leading-snug"

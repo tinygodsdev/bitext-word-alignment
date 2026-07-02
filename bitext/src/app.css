@@ -135,6 +135,52 @@ html {
 	border: 1px solid rgb(207 224 255 / 0.35);
 }
 
+/* Deco: double gold border + corner diamonds */
+.preview-frame.aligner-frame-deco::before {
+	content: '';
+	position: absolute;
+	inset: 16px;
+	pointer-events: none;
+	z-index: 4;
+	border: 1.5px solid rgb(233 190 87 / 0.55);
+}
+.preview-frame.aligner-frame-deco::after {
+	content: '';
+	position: absolute;
+	inset: 22px;
+	pointer-events: none;
+	z-index: 4;
+	border: 0.75px solid rgb(233 190 87 / 0.3);
+}
+.aligner-deco-diamond {
+	position: absolute;
+	left: 50%;
+	width: 12px;
+	height: 12px;
+	z-index: 4;
+	background: #e9be57;
+	pointer-events: none;
+}
+.aligner-deco-diamond--top {
+	top: 16px;
+	transform: translate(-50%, -50%) rotate(45deg);
+}
+.aligner-deco-diamond--bottom {
+	bottom: 16px;
+	transform: translate(-50%, 50%) rotate(45deg);
+}
+
+/* Nouveau: soft organic (oval) inset border */
+.preview-frame.aligner-frame-nouveau::before {
+	content: '';
+	position: absolute;
+	inset: 16px;
+	pointer-events: none;
+	z-index: 4;
+	border: 1px solid rgb(123 134 93 / 0.5);
+	border-radius: 90px / 18px;
+}
+
 /* Floating link hint — no panel chrome; halo keeps text readable on busy previews */
 .preview-frame__link-hint {
 	margin: 0;

@@ -6,7 +6,9 @@ import {
 	getStyle,
 	isStyleId,
 	readableTextOn,
+	shiftHue,
 	styleExportBackground,
+	styleExportFrame,
 	STYLE_ORDER
 } from './styles.js';
 import { isPaletteName, PALETTE_NAMES, PALETTES } from './palettes.js';
@@ -64,19 +66,34 @@ describe('style default font', () => {
 
 describe('style export background', () => {
 	it('returns null for classic (caller-provided fill)', () => {
-		expect(styleExportBackground(getStyle('classic'), 100, 100)).toBeNull();
+		expect(styleExportBackground(getStyle('classic'), 0, 0, 100, 100)).toBeNull();
 	});
 
 	it('produces gradient defs for aurora', () => {
-		const bg = styleExportBackground(getStyle('aurora'), 100, 100);
+		const bg = styleExportBackground(getStyle('aurora'), 0, 0, 100, 100);
 		expect(bg?.defs).toContain('radialGradient');
 		expect(bg?.rect).toContain('url(#bg-aurora)');
 	});
 
 	it('produces a solid fill for atlas', () => {
-		const bg = styleExportBackground(getStyle('atlas'), 100, 100);
+		const bg = styleExportBackground(getStyle('atlas'), 0, 0, 100, 100);
 		expect(bg?.defs).toBe('');
 		expect(bg?.rect).toContain(getStyle('atlas').canvas.tintBaseHex);
+	});
+
+	it('deco/nouveau/spectrum use gradients; riso adds a grain pattern', () => {
+		expect(styleExportBackground(getStyle('deco'), 0, 0, 100, 100)?.rect).toContain(
+			'url(#bg-deco)'
+		);
+		expect(styleExportBackground(getStyle('nouveau'), 0, 0, 100, 100)?.rect).toContain(
+			'url(#bg-nouv)'
+		);
+		expect(styleExportBackground(getStyle('spectrum'), 0, 0, 100, 100)?.rect).toContain(
+			'url(#bg-spec)'
+		);
+		const riso = styleExportBackground(getStyle('riso'), 0, 0, 100, 100);
+		expect(riso?.defs).toContain('pattern');
+		expect(riso?.rect).toContain('url(#bg-riso)');
 	});
 });
 
@@ -95,6 +112,19 @@ describe('connector + chip helpers', () => {
 		const d = ribbonPathD(0, 0, 100, 100, 'curved', 24, true);
 		expect(d.startsWith('M ')).toBe(true);
 		expect(d.endsWith(' Z')).toBe(true);
+	});
+
+	it('shiftHue returns a different valid hex (Riso companion ink)', () => {
+		const out = shiftHue('#df2321', 165);
+		expect(out).toMatch(/^#[0-9a-f]{6}$/);
+		expect(out).not.toBe('#df2321');
+	});
+
+	it('deco frame draws corner diamonds; nouveau frame is rounded', () => {
+		const deco = styleExportFrame(getStyle('deco'), 0, 0, 200, 120);
+		expect(deco).toContain('#e9be57');
+		expect(deco).toContain('rotate(45');
+		expect(styleExportFrame(getStyle('nouveau'), 0, 0, 200, 120)).toContain('rx="90"');
 	});
 });
 

@@ -4,7 +4,7 @@
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { selectionStore } from '$lib/state/selection.svelte.js';
-	import { getStyle, readableTextOn } from '$lib/domain/styles.js';
+	import { getStyle, readableTextOn, shiftHue } from '$lib/domain/styles.js';
 
 	let {
 		token,
@@ -102,12 +102,21 @@
 		};
 	});
 
-	// Neon styles glow the text in its own color.
-	const textGlow = $derived.by(() => {
-		if (!style.glowText || chip) return undefined;
-		const c = displayColor ?? textColor ?? style.canvas.textColor;
-		return `0 0 0.5em ${c}`;
+	// Neon glow (own color) or Riso misregistration (hard offset in a shifted spot color).
+	const tokenTextShadow = $derived.by(() => {
+		if (chip) return undefined;
+		const base = displayColor ?? textColor ?? style.canvas.textColor;
+		if (style.glowText) return `0 0 0.5em ${base}`;
+		if (style.textOffsetShadow) {
+			const { dx, dy } = style.textOffsetShadow;
+			return `${dx}px ${dy}px 0 ${shiftHue(base, 165)}`;
+		}
+		return undefined;
 	});
+	const letterSpacingCss = $derived(
+		style.tokenTransform?.letterSpacingEm ? `${style.tokenTransform.letterSpacingEm}em` : undefined
+	);
+	const textTransformCss = $derived(style.tokenTransform?.uppercase ? 'uppercase' : undefined);
 
 	const bgFinal = $derived(chip ? chip.bg : (linkFillBackground ?? undefined));
 	const interactiveColor = $derived(linkBgMode ? undefined : displayColor);
@@ -136,7 +145,9 @@
 		style:background={bgFinal}
 		style:color={chip ? chip.fg : interactiveColor}
 		style:box-shadow={chip ? chip.shadow : undefined}
-		style:text-shadow={textGlow}
+		style:text-shadow={tokenTextShadow}
+		style:letter-spacing={letterSpacingCss}
+		style:text-transform={textTransformCss}
 		onclick={onClick}
 		onmouseenter={() => {
 			hovering = true;
@@ -163,7 +174,9 @@
 		style:background={bgFinal}
 		style:color={chip ? chip.fg : readonlyColor}
 		style:box-shadow={chip ? chip.shadow : undefined}
-		style:text-shadow={textGlow}
+		style:text-shadow={tokenTextShadow}
+		style:letter-spacing={letterSpacingCss}
+		style:text-transform={textTransformCss}
 	>
 		{#if showNumber}
 			<span class="token-view__num">{index + 1}</span>

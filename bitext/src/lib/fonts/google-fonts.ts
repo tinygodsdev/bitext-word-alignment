@@ -17,7 +17,8 @@ export const GOOGLE_FONT_OPTIONS: { family: string; label: string }[] = [
 	{ family: 'Crimson+Pro', label: 'Crimson Pro' },
 	{ family: 'Libre+Baskerville', label: 'Libre Baskerville' },
 	{ family: 'Spectral', label: 'Spectral' },
-	{ family: 'Sora', label: 'Sora' }
+	{ family: 'Sora', label: 'Sora' },
+	{ family: 'Poiret+One', label: 'Poiret One' }
 ];
 
 export function googleFontStylesheetUrl(familyCss: string): string {
