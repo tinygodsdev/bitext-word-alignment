@@ -31,6 +31,10 @@ examples-upload:
 examples-build:
 	cd $(BITEXT) && npm run build
 
+.PHONY: dev
+dev:
+	cd bitext && npm run dev
+
 .PHONY: agentsmd
 agentsmd:
 	curl -fsSL https://raw.githubusercontent.com/dani-polani/agents-init/main/install.sh | sh

@@ -9,8 +9,6 @@ export type WorkspaceMode = 'link' | 'text' | 'style' | 'export';
 
 class WorkspaceStore {
 	mode = $state<WorkspaceMode>('link');
-	/** The fine-tuning disclosure inside the Style panel. */
-	fineTuneOpen = $state(false);
 
 	setMode(mode: WorkspaceMode) {
 		this.mode = mode;

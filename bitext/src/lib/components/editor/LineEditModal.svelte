@@ -8,6 +8,8 @@
 	import { selectionStore } from '$lib/state/selection.svelte.js';
 	import { layoutExportStore } from '$lib/state/layoutExport.svelte.js';
 	import { editorUiStore } from '$lib/state/editorUi.svelte.js';
+	import { editorShellStore } from '$lib/state/editorShell.svelte.js';
+	import { viewportStore } from '$lib/state/viewport.svelte.js';
 	import { linkHover } from '$lib/state/linkHover.svelte.js';
 	import { connectionForId, primaryConnectionForToken } from '$lib/domain/alignment.js';
 	import TokenChip from './TokenChip.svelte';
@@ -84,6 +86,13 @@
 		modalOpen = false;
 		queueMicrotask(() => layoutExportStore.requestRemeasure());
 	}
+
+	function openTokenizationSettings() {
+		done();
+		editorShellStore.selectTab('text');
+		if (viewportStore.isNarrow) editorShellStore.sheetOpen = true;
+		settingsNavStore.focusTokensTab();
+	}
 </script>
 
 <Modal
@@ -126,9 +135,9 @@
 			<button
 				type="button"
 				class="shrink-0 rounded-none border border-gray-300 bg-gray-50 p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200 dark:focus-visible:outline-gray-400"
-				title="Edit tokenization (Settings → Tokens)"
-				aria-label="Edit tokenization rules"
-				onclick={() => settingsNavStore.focusTokensTab()}
+				title="Edit word splitting (Text → Word splitting)"
+				aria-label="Edit word splitting rules"
+				onclick={openTokenizationSettings}
 			>
 				<LanguageOutline class="h-5 w-5" aria-hidden="true" />
 			</button>
