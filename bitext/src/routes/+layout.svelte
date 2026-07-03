@@ -10,6 +10,7 @@
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { viewportStore } from '$lib/state/viewport.svelte.js';
 	import { ThemeProvider } from 'flowbite-svelte';
+	import SiteHeader from '$lib/components/layout/SiteHeader.svelte';
 
 	let { children } = $props();
 
@@ -69,6 +70,7 @@
 	<div
 		class="min-h-screen bg-app-shell font-sans text-gray-900 antialiased dark:bg-gray-900 dark:text-gray-100"
 	>
+		<SiteHeader />
 		{@render children()}
 	</div>
 </ThemeProvider>

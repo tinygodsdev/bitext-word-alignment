@@ -10,7 +10,6 @@
 	import StructuredData from '$lib/components/seo/StructuredData.svelte';
 	import { breadcrumbList, personCreator } from '$lib/seo/structured-data.js';
 	import { SITE_AUTHOR_URL } from '$lib/brand.js';
-	import { settingsStore } from '$lib/state/settings.svelte.js';
 
 	const TITLE = 'About';
 	const DISPLAY_NAME = 'Word Aligner';
@@ -28,12 +27,6 @@
 		]),
 		personCreator()
 	];
-
-	const siteTheme = $derived(settingsStore.settings.theme);
-	const themeIconBtn =
-		'box-border m-0 inline-flex h-9 w-9 shrink-0 items-center justify-center border-0 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:focus-visible:outline-gray-400';
-	const themeIconActive = `${themeIconBtn} bg-gray-200 text-gray-900 dark:bg-gray-600 dark:text-gray-100`;
-	const themeIconIdle = `${themeIconBtn} bg-transparent text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800`;
 
 	const EXAMPLES_IMAGE_VERTICAL_CROP = '10%';
 	const examplesImageClipPath = `inset(${EXAMPLES_IMAGE_VERTICAL_CROP} 0 ${EXAMPLES_IMAGE_VERTICAL_CROP} 0)`;
@@ -171,69 +164,11 @@
 	class="mx-auto w-full max-w-3xl min-w-0 px-4 pt-4 pb-16 leading-relaxed text-gray-700 sm:px-6 md:pt-6 md:pb-20 dark:text-gray-300"
 >
 	<header class="mb-8 border-b border-gray-200 pb-6 dark:border-gray-700">
-		<div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-			<nav class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-				<a href={resolve('/')} class={linkClass}>← {DISPLAY_NAME}</a>
-				<span class="text-gray-400 dark:text-gray-500" aria-hidden="true">·</span>
-				<a href={resolve('/examples')} class={linkClass}>Examples</a>
-			</nav>
-			<div
-				class="inline-flex overflow-hidden rounded-none border border-gray-300 dark:border-gray-600"
-				role="group"
-				aria-label="Site theme (light or dark)"
-			>
-				<button
-					type="button"
-					class={siteTheme === 'light' ? themeIconActive : themeIconIdle}
-					aria-pressed={siteTheme === 'light'}
-					title="Light theme"
-					onclick={() => settingsStore.patch({ theme: 'light' })}
-				>
-					<span class="sr-only">Light theme</span>
-					<svg
-						class="h-5 w-5"
-						xmlns="http://www.w3.org/2000/svg"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke-width="1.5"
-						stroke="currentColor"
-						aria-hidden="true"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
-						/>
-					</svg>
-				</button>
-				<button
-					type="button"
-					class="{siteTheme === 'dark'
-						? themeIconActive
-						: themeIconIdle} border-l border-gray-300 dark:border-gray-600"
-					aria-pressed={siteTheme === 'dark'}
-					title="Dark theme"
-					onclick={() => settingsStore.patch({ theme: 'dark' })}
-				>
-					<span class="sr-only">Dark theme</span>
-					<svg
-						class="h-5 w-5"
-						xmlns="http://www.w3.org/2000/svg"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke-width="1.5"
-						stroke="currentColor"
-						aria-hidden="true"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"
-						/>
-					</svg>
-				</button>
-			</div>
-		</div>
+		<nav class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+			<a href={resolve('/')} class={linkClass}>← {DISPLAY_NAME}</a>
+			<span class="text-gray-400 dark:text-gray-500" aria-hidden="true">·</span>
+			<a href={resolve('/examples')} class={linkClass}>Examples</a>
+		</nav>
 	</header>
 
 	<h1

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import StylePicker from '$lib/components/preview/StylePicker.svelte';
 	import ColorsTab from '$lib/components/settings/ColorsTab.svelte';
 	import AppearanceTab from '$lib/components/settings/AppearanceTab.svelte';
 	import LinguisticsTab from '$lib/components/settings/LinguisticsTab.svelte';
@@ -8,13 +7,6 @@
 </script>
 
 <div class="flex flex-col gap-5">
-	<div>
-		<p class="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-			Theme
-		</p>
-		<StylePicker />
-	</div>
-
 	<div>
 		<p class="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
 			Colors

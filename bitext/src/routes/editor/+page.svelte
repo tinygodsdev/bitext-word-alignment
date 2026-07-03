@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { resolve } from '$app/paths';
 	import { Button } from 'flowbite-svelte';
 	import {
 		ChevronDownOutline,
@@ -12,6 +11,7 @@
 		TrashBinOutline
 	} from 'flowbite-svelte-icons';
 	import AlignmentPreview from '$lib/components/preview/AlignmentPreview.svelte';
+	import StylePicker from '$lib/components/preview/StylePicker.svelte';
 	import LineEditModal from '$lib/components/editor/LineEditModal.svelte';
 	import LineSettingsSheet from '$lib/components/editor/LineSettingsSheet.svelte';
 	import EditorTabBar from '$lib/components/editor-shell/EditorTabBar.svelte';
@@ -29,7 +29,6 @@
 	import { SITE_NAME } from '$lib/seo/metadata.js';
 
 	const previewHideChrome = $derived(settingsStore.settings.previewHideChrome);
-	const siteTheme = $derived(settingsStore.settings.theme);
 
 	const sheetTitle = $derived(
 		editorShellStore.tab === 'text'
@@ -103,14 +102,6 @@
 		if (loadExampleEl) loadExampleEl.open = false;
 	}
 
-	const navLink =
-		'text-sm font-medium text-gray-600 underline decoration-gray-400/50 underline-offset-2 hover:text-gray-900 hover:decoration-gray-500/60 dark:text-gray-400 dark:decoration-gray-500/50 dark:hover:text-gray-100 dark:hover:decoration-gray-400/60';
-
-	const themeBtn =
-		'inline-flex h-8 w-8 items-center justify-center border-0 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500';
-	const themeActive = `${themeBtn} bg-gray-200 text-gray-900 dark:bg-gray-600 dark:text-gray-100`;
-	const themeIdle = `${themeBtn} bg-transparent text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800`;
-
 	const exampleBtn =
 		'inline-flex list-none cursor-pointer items-center gap-1 rounded-none border border-gray-300 bg-white px-2 py-1.5 text-sm font-medium text-gray-800 shadow-sm marker:hidden outline-none hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-primary-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700/80 [&::-webkit-details-marker]:hidden';
 	const exampleItem =
@@ -122,43 +113,12 @@
 	<meta name="robots" content="noindex" />
 </svelte:head>
 
-<div class="flex h-dvh flex-col overflow-hidden bg-app-shell dark:bg-gray-900">
-	<!-- Top bar: brand + site nav -->
-	<header
-		class="flex h-12 shrink-0 items-center justify-between gap-3 border-b border-gray-200 bg-white px-3 dark:border-gray-700 dark:bg-gray-900"
-	>
-		<a
-			href="/"
-			class="flex shrink-0 items-center gap-2 text-gray-900 dark:text-white"
-			title="Word Aligner home"
-		>
-			<svg class="h-4 w-6" viewBox="0 0 30 20" fill="none" aria-hidden="true">
-				<circle cx="5" cy="5" r="2.4" fill="none" stroke="currentColor" stroke-width="1.6" />
-				<circle cx="25" cy="15" r="2.4" fill="none" stroke="currentColor" stroke-width="1.6" />
-				<line
-					x1="6.6"
-					y1="6.4"
-					x2="23.4"
-					y2="13.6"
-					stroke="currentColor"
-					stroke-width="1.6"
-					stroke-linecap="round"
-				/>
-			</svg>
-			<span class="font-heading text-sm font-semibold">Word Aligner</span>
-		</a>
-		<nav class="flex shrink-0 items-center gap-3" aria-label="Site">
-			<a href={resolve('/examples')} class={navLink}>Examples</a>
-			<a href={resolve('/guide')} class={navLink}>Guides</a>
-			<a href={resolve('/about')} class={navLink}>About</a>
-		</nav>
-	</header>
-
+<div class="flex h-[calc(100dvh-3.5rem)] flex-col overflow-hidden bg-app-shell dark:bg-gray-900">
 	<!-- Body: canvas + (wide) rail -->
 	<div class="flex min-h-0 flex-1">
 		<!-- Canvas column -->
 		<main class="relative flex min-h-0 flex-1 flex-col">
-			<!-- Panel above the editor: example loader + view controls + theme -->
+			<!-- Panel above the editor: example loader + style picker + view controls -->
 			<div
 				class="flex shrink-0 flex-wrap items-center gap-2 border-b border-gray-200 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900"
 			>
@@ -195,6 +155,7 @@
 				</details>
 
 				<div class="flex flex-1 flex-wrap items-center justify-end gap-2">
+					<StylePicker />
 					<Button
 						color="light"
 						size="sm"
@@ -239,58 +200,6 @@
 						<ExpandOutline class="h-4 w-4 shrink-0" aria-hidden="true" />
 						<span class="sr-only md:not-sr-only md:ml-1 md:inline">Expand</span>
 					</Button>
-					<div
-						class="inline-flex shrink-0 overflow-hidden rounded-none border border-gray-300 dark:border-gray-600"
-						role="group"
-						aria-label="Theme"
-					>
-						<button
-							type="button"
-							class={siteTheme === 'light' ? themeActive : themeIdle}
-							aria-pressed={siteTheme === 'light'}
-							title="Light theme"
-							onclick={() => settingsStore.patch({ theme: 'light' })}
-						>
-							<span class="sr-only">Light theme</span>
-							<svg
-								class="h-4 w-4"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="1.5"
-								aria-hidden="true"
-								><path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"
-								/></svg
-							>
-						</button>
-						<button
-							type="button"
-							class="{siteTheme === 'dark'
-								? themeActive
-								: themeIdle} border-l border-gray-300 dark:border-gray-600"
-							aria-pressed={siteTheme === 'dark'}
-							title="Dark theme"
-							onclick={() => settingsStore.patch({ theme: 'dark' })}
-						>
-							<span class="sr-only">Dark theme</span>
-							<svg
-								class="h-4 w-4"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="1.5"
-								aria-hidden="true"
-								><path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									d="M21.752 15.002A9.718 9.718 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"
-								/></svg
-							>
-						</button>
-					</div>
 				</div>
 			</div>
 
