@@ -16,6 +16,7 @@
 	import StylePicker from '$lib/components/preview/StylePicker.svelte';
 	import LineEditModal from '$lib/components/editor/LineEditModal.svelte';
 	import LineSettingsSheet from '$lib/components/editor/LineSettingsSheet.svelte';
+	import GroupColorPopover from '$lib/components/preview/GroupColorPopover.svelte';
 	import EditorTabBar from '$lib/components/editor-shell/EditorTabBar.svelte';
 	import EditorPanels from '$lib/components/editor-shell/EditorPanels.svelte';
 	import JsonLd from '$lib/components/seo/JsonLd.svelte';
@@ -407,3 +408,4 @@
 
 <LineEditModal />
 <LineSettingsSheet />
+<GroupColorPopover />

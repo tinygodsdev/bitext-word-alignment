@@ -3,7 +3,7 @@ import { connectedConnectionIds } from '$lib/domain/link-graph.js';
 import { pickUnusedPaletteColor, type PaletteName } from '$lib/domain/palettes.js';
 import { tokenize, tokenizeOptionsFromVisualSettings } from '$lib/domain/tokens.js';
 import {
-	DEFAULT_TOKEN_SPLIT_CHARS,
+	LEGACY_TOKEN_SPLIT_CHARS,
 	defaultProjectSnapshot,
 	defaultVisualSettings,
 	normalizeVisualSettings,
@@ -267,7 +267,8 @@ function compactToVisualSettings(s: CompactSettings | undefined): VisualSettings
 	if (s.gff !== undefined) raw.glossFontFamily = String(s.gff);
 	if (s.gfs !== undefined) raw.glossFontSource = Number(s.gfs) === 1 ? 'custom' : 'google';
 	if (s.gcn !== undefined) raw.glossCustomFontName = String(s.gcn);
-	if (s.sp !== undefined) raw.tokenSplitChars = String(s.sp);
+	// v2 predates the default-separator change; a missing `sp` meant the old `.-|` default.
+	raw.tokenSplitChars = s.sp !== undefined ? String(s.sp) : LEGACY_TOKEN_SPLIT_CHARS;
 	if (s.bg !== undefined) {
 		const n = Number(s.bg);
 		/* Legacy 2 = image → light */
@@ -325,7 +326,7 @@ function compactToProject(
 	}
 	const sourceText = p.st ?? def.sourceText;
 	const targetText = p.tt ?? def.targetText;
-	const splitChars = settings.tokenSplitChars ?? DEFAULT_TOKEN_SPLIT_CHARS;
+	const splitChars = settings.tokenSplitChars ?? LEGACY_TOKEN_SPLIT_CHARS;
 	const tz = tokenizeOptionsFromVisualSettings({
 		tokenSplitChars: splitChars,
 		tokenMergeChar: '',

@@ -2,7 +2,6 @@ import { createConnectionId, type Connection } from '$lib/domain/alignment.js';
 import { tokenize, tokenizeOptionsFromVisualSettings } from '$lib/domain/tokens.js';
 import {
 	SCHEMA_VERSION,
-	LEGACY_TOKEN_SPLIT_CHARS,
 	clampLineGapPx,
 	clampWordGapPx,
 	DEFAULT_WORD_GAP_PX,
@@ -18,15 +17,15 @@ import {
 	type VisualSettingsV2
 } from './schema.js';
 
-export const COMPACT_SCHEMA_VERSION = 3 as const;
+export const COMPACT_SCHEMA_VERSION = 4 as const;
 
-type CompactSettings3 = Record<string, string | number>;
-type CompactProject3 = Record<string, string>;
+type CompactSettings4 = Record<string, string | number>;
+type CompactProject4 = Record<string, string>;
 
-export type CompactV3Wire = {
+export type CompactV4Wire = {
 	v: typeof COMPACT_SCHEMA_VERSION;
-	s?: CompactSettings3;
-	p?: CompactProject3;
+	s?: CompactSettings4;
+	p?: CompactProject4;
 };
 
 function sortKeys<T extends Record<string, unknown>>(obj: T): T {
@@ -46,9 +45,9 @@ function roundVisualSettings(s: VisualSettingsV2): VisualSettingsV2 {
 	};
 }
 
-function settingsToCompact(rounded: VisualSettingsV2): CompactSettings3 | undefined {
+function settingsToCompact(rounded: VisualSettingsV2): CompactSettings4 | undefined {
 	const def = roundVisualSettings(defaultVisualSettingsV2());
-	const o: CompactSettings3 = {};
+	const o: CompactSettings4 = {};
 	// Site chrome (`theme`) and preview toolbar visibility (`previewHideChrome`) are local UI only;
 	// they must not affect share URLs or decoded alignment payloads.
 	if (rounded.lineThickness !== def.lineThickness) o.lt = rounded.lineThickness;
@@ -78,10 +77,9 @@ function settingsToCompact(rounded: VisualSettingsV2): CompactSettings3 | undefi
 	return keysBeforeFinalize > 0 ? sortKeys(o) : undefined;
 }
 
-function compactToVisualSettings(s: CompactSettings3 | undefined): VisualSettingsV2 {
-	// v3 predates the default-separator change; a missing `sp` meant the old `.-|` default.
-	if (!s) return { ...defaultVisualSettingsV2(), tokenSplitChars: LEGACY_TOKEN_SPLIT_CHARS };
-	const raw: Record<string, unknown> = { tokenSplitChars: LEGACY_TOKEN_SPLIT_CHARS };
+function compactToVisualSettings(s: CompactSettings4 | undefined): VisualSettingsV2 {
+	if (!s) return defaultVisualSettingsV2();
+	const raw: Record<string, unknown> = {};
 	if (s.lt !== undefined) raw.lineThickness = Number(s.lt);
 	if (s.lo !== undefined) raw.lineOpacity = Number(s.lo);
 	if (s.ls !== undefined) raw.lineStyle = Number(s.ls) === 0 ? 'straight' : 'curved';
@@ -164,8 +162,12 @@ function encodeConnections(conns: Connection[]): string {
 	return conns
 		.map((c) => {
 			const hex = c.color?.replace(/^#/u, '').replace(/[^0-9a-fA-F]/gu, '') ?? '';
+			// A pinned group keeps its color across palette changes; encoded as a trailing `p`.
+			// Pinning requires a color, so `hex` is always present when `pinned` is set.
 			if (hex.length >= 3) {
-				return `${c.upperTokenId},${c.lowerTokenId},${hex}`;
+				return c.pinned
+					? `${c.upperTokenId},${c.lowerTokenId},${hex},p`
+					: `${c.upperTokenId},${c.lowerTokenId},${hex}`;
 			}
 			return `${c.upperTokenId},${c.lowerTokenId}`;
 		})
@@ -182,7 +184,14 @@ function decodeConnections(s: string): Connection[] {
 		if (!u || !lo) continue;
 		const colorHex = parts[2];
 		const color = colorHex && /^[0-9a-fA-F]{3,8}$/u.test(colorHex) ? `#${colorHex}` : undefined;
-		out.push({ id: createConnectionId(), upperTokenId: u, lowerTokenId: lo, color });
+		const pinned = parts[3] === 'p' && color != null;
+		out.push({
+			id: createConnectionId(),
+			upperTokenId: u,
+			lowerTokenId: lo,
+			color,
+			...(pinned ? { pinned: true } : {})
+		});
 	}
 	return out;
 }
@@ -243,7 +252,7 @@ function lineEquals(a: LineV2 | undefined, b: LineV2 | undefined): boolean {
 	);
 }
 
-function projectToCompact(project: ProjectSnapshotV2): CompactProject3 | undefined {
+function projectToCompact(project: ProjectSnapshotV2): CompactProject4 | undefined {
 	const def = defaultProjectSnapshotV2();
 	const linesMatch =
 		project.lines.length === def.lines.length &&
@@ -254,7 +263,7 @@ function projectToCompact(project: ProjectSnapshotV2): CompactProject3 | undefin
 		project.linePairGaps.length === 0;
 	if (linesMatch && extrasEmpty) return undefined;
 
-	const o: CompactProject3 = {};
+	const o: CompactProject4 = {};
 	o.ln = encodeLines(project.lines);
 	if (project.connections.length) o.cn = encodeConnections(project.connections);
 	const pcEnc = encodePairControls(project.pairControls);
@@ -264,7 +273,7 @@ function projectToCompact(project: ProjectSnapshotV2): CompactProject3 | undefin
 	return sortKeys(o);
 }
 
-function compactToProject(p: CompactProject3 | undefined): ProjectSnapshotV2 {
+function compactToProject(p: CompactProject4 | undefined): ProjectSnapshotV2 {
 	const def = defaultProjectSnapshotV2();
 	if (!p?.ln) return { ...def };
 	const lines = decodeLines(p.ln);
@@ -307,13 +316,13 @@ export function toCompactJSON(state: AppStateV2): string {
 	const rounded = roundVisualSettings(slimSettings);
 	const sCompact = settingsToCompact(rounded);
 	const pCompact = projectToCompact(state.project);
-	const wire: CompactV3Wire = { v: COMPACT_SCHEMA_VERSION };
+	const wire: CompactV4Wire = { v: COMPACT_SCHEMA_VERSION };
 	if (sCompact) wire.s = sCompact;
 	if (pCompact) wire.p = pCompact;
 	return JSON.stringify(wire);
 }
 
-export function fromCompactWire(wire: CompactV3Wire): AppStateV2 {
+export function fromCompactWire(wire: CompactV4Wire): AppStateV2 {
 	if (wire.v !== COMPACT_SCHEMA_VERSION) {
 		throw new Error(`compact: expected v:${COMPACT_SCHEMA_VERSION}`);
 	}

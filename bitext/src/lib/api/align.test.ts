@@ -179,8 +179,8 @@ describe('buildAlignUrl', () => {
 	});
 
 	it('keeps periods inside gloss tokens when tokenSplitChars omits the dot', () => {
-		// With default ".-|", "1SG.NOM" would split into two tokens. With "-|" it stays one,
-		// so word index 1 of the gloss line is "go.PST.IPFV" and the connection resolves.
+		// If "." were a separator, "1SG.NOM" would split into two tokens. With "-|" the dot is
+		// not a separator, so it stays one and word index 1 is "go.PST.IPFV" — the connection resolves.
 		const result = buildAlignUrl(ORIGIN, {
 			lines: ['1SG.NOM go.PST.IPFV', 'Я ходил'],
 			alignments: [
@@ -197,16 +197,14 @@ describe('buildAlignUrl', () => {
 		expect(c?.upperTokenId).toBe('l0-1');
 	});
 
-	it('rejects gloss word index that only resolves under the default split chars', () => {
-		// Under default ".-|", "1SG.NOM PST.IPFV" has 4 tokens, so word 3 exists.
-		// We do NOT pass tokenSplitChars here, proving the dot still splits by default.
+	it('rejects a gloss word index that only existed under the old dot-splitting default', () => {
+		// The default is now "|"; the dot no longer splits. "1SG.NOM PST.IPFV" has 2 tokens,
+		// so word index 3 (which existed only when "." split by default) is out of range.
 		const result = buildAlignUrl(ORIGIN, {
 			lines: ['Я ходил', '1SG.NOM PST.IPFV'],
 			alignments: [[0, 1, 1, 3]]
 		});
-		if (!('url' in result)) throw new Error('expected url');
-		const state = decodeState(new URL(result.url).searchParams.get('data'));
-		expect(state.project.connections[0]!.lowerTokenId).toBe('l1-3'); // "IPFV"
+		expect('err' in result).toBe(true);
 	});
 
 	it('rejects invalid tokenMergeChar (more than one character)', () => {

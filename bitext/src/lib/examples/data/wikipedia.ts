@@ -64,7 +64,7 @@ export const WIKIPEDIA_EXAMPLES: ExampleEntry[] = [
 				['src-2', 'tr-2'],
 				['src-3', 'tr-3'],
 				['src-4', 'tr-4'],
-				['src-5', 'tr-5']
+				['src-4', 'tr-5']
 			]
 		};
 	})(),

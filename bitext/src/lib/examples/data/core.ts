@@ -57,6 +57,8 @@ export const CORE_EXAMPLES: ExampleEntry[] = [
 			noto('أنا أسكن في بيت كبير', 'ar', 'Noto Sans Arabic', 36, true),
 			inter('I live in a big house', 'en', 30)
 		],
+		// The Hebrew prefix ב- ("in") is split from בית ("house") — needs hyphen as a separator.
+		settings: { tokenSplitChars: '-' },
 		connections: [
 			['he-0', 'ar-0'],
 			['he-1', 'ar-1'],
