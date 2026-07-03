@@ -1,11 +1,15 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
+	import { TALLY_FORM_ID } from '$lib/brand.js';
 
 	const siteTheme = $derived(settingsStore.settings.theme);
 
 	const navLink =
 		'text-sm font-medium text-gray-600 underline decoration-gray-400/50 underline-offset-2 hover:text-gray-900 hover:decoration-gray-500/60 dark:text-gray-400 dark:decoration-gray-500/50 dark:hover:text-gray-100 dark:hover:decoration-gray-400/60';
+
+	const feedbackBtn =
+		'inline-flex cursor-pointer items-center gap-1.5 rounded-none border-0 bg-transparent p-0 text-sm font-medium text-primary-700 hover:text-primary-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:text-primary-400 dark:hover:text-primary-300';
 
 	const themeBtn =
 		'inline-flex h-8 w-8 items-center justify-center border-0 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:focus-visible:outline-gray-400';
@@ -45,6 +49,31 @@
 			<a href={resolve('/guide')} class={navLink}>Guides</a>
 			<a href={resolve('/about')} class={navLink}>About</a>
 		</nav>
+		<button
+			type="button"
+			class={feedbackBtn}
+			title="Send feedback"
+			data-tally-open={TALLY_FORM_ID}
+			data-tally-auto-close="0"
+			data-tally-hide-title="1"
+			data-tally-form-events-forwarding="1"
+		>
+			<svg
+				class="h-4 w-4 shrink-0"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="1.8"
+				aria-hidden="true"
+			>
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					d="M8 10h8M8 14h5M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12Z"
+				/>
+			</svg>
+			<span class="hidden sm:inline">Feedback</span>
+		</button>
 		<div
 			class="inline-flex overflow-hidden rounded-none border border-gray-300 dark:border-gray-600"
 			role="group"
