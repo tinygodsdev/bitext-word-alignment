@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { page } from '$app/state';
+	import { resolve } from '$app/paths';
 	import { Button } from 'flowbite-svelte';
 	import {
 		ChevronDownOutline,
@@ -28,7 +29,7 @@
 	import { SCHEMA_VERSION, type AppStateV2 } from '$lib/serialization/schema.js';
 	import { editorExamples, type ExampleId } from '$lib/state/examples.js';
 	import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, SITE_NAME } from '$lib/seo/metadata.js';
-	import { SITE_AUTHOR_URL, TALLY_FORM_ID } from '$lib/brand.js';
+	import { SITE_AUTHOR_URL } from '$lib/brand.js';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -124,8 +125,7 @@
 
 	const footerLink =
 		'font-medium text-gray-700 underline decoration-gray-400/50 underline-offset-2 hover:text-gray-900 dark:text-gray-300 dark:decoration-gray-500/50 dark:hover:text-gray-100';
-	const footerFeedback =
-		'inline cursor-pointer border-0 bg-transparent p-0 font-medium text-primary-700 underline decoration-primary-700/40 underline-offset-2 hover:text-primary-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:text-primary-400 dark:hover:text-primary-300';
+	const footerSep = 'text-gray-300 dark:text-gray-600';
 
 	const exampleBtn =
 		'inline-flex list-none cursor-pointer items-center gap-1 rounded-none border border-gray-300 bg-white px-2 py-1.5 text-sm font-medium text-gray-800 shadow-sm marker:hidden outline-none hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-primary-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700/80 [&::-webkit-details-marker]:hidden';
@@ -310,7 +310,7 @@
 			<EditorTabBar variant="bottom" />
 		</div>
 	{:else}
-		<!-- Wide: single-line footer (credit · menu · feedback) -->
+		<!-- Wide: single-line footer (credit + full menu) -->
 		<footer
 			class="flex shrink-0 items-center justify-between gap-4 border-t border-gray-200 bg-white px-4 py-2 text-xs text-gray-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
 		>
@@ -326,20 +326,20 @@
 					rel="noopener noreferrer">tools</a
 				> for linguistics and conlanging.
 			</p>
-			<nav class="flex shrink-0 items-center gap-3" aria-label="Footer">
-				<a href="/examples" class={footerLink}>Examples</a>
-				<a href="/guide" class={footerLink}>Guides</a>
-				<a href="/about" class={footerLink}>About</a>
-				<button
-					type="button"
-					class={footerFeedback}
-					data-tally-open={TALLY_FORM_ID}
-					data-tally-auto-close="0"
-					data-tally-hide-title="1"
-					data-tally-form-events-forwarding="1"
-				>
-					Send feedback
-				</button>
+			<nav class="flex shrink-0 items-center gap-x-2 whitespace-nowrap" aria-label="Footer">
+				<a href={resolve('/')} class={footerLink}>Open Aligner</a>
+				<span class={footerSep} aria-hidden="true">·</span>
+				<a href={resolve('/examples')} class={footerLink}>Examples</a>
+				<span class={footerSep} aria-hidden="true">·</span>
+				<a href={resolve('/guide')} class={footerLink}>Guides</a>
+				<span class={footerSep} aria-hidden="true">·</span>
+				<a href={resolve('/api')} class={footerLink}>API</a>
+				<span class={footerSep} aria-hidden="true">·</span>
+				<a href={resolve('/skill')} class={footerLink}>Agent skill</a>
+				<span class={footerSep} aria-hidden="true">·</span>
+				<a href={resolve('/privacy')} class={footerLink}>Privacy policy</a>
+				<span class={footerSep} aria-hidden="true">·</span>
+				<a href={resolve('/terms')} class={footerLink}>Terms of use</a>
 			</nav>
 		</footer>
 	{/if}
