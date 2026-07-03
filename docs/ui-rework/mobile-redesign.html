@@ -1,0 +1,795 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Word Aligner — mobile-first UI rework</title>
+</head>
+<body>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  :root{
+    --bg:#0E1116; --panel:#161A21; --panel-2:#1E232C;
+    --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.14);
+    --ink:#E9ECF2; --ink-dim:#98A1B2; --ink-faint:#626B7C;
+    --accent:#E8B45A; --accent-dim:#7A6636;
+
+    /* product's own dark UI chrome, shown inside the phone */
+    --p-chrome:#0F1420; --p-chrome-2:#171D2B; --p-sheet:#131824;
+    --p-ink:#E8EBF2; --p-dim:#8A93A6; --p-brand:#6366F1; --p-brand-soft:#252a52;
+    --p-line:rgba(255,255,255,.09); --p-line-2:rgba(255,255,255,.16);
+
+    --sans:"SF Pro Display","Segoe UI Variable Display",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:var(--sans); font-size:16px; line-height:1.6;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  }
+  .wrap{ max-width:1120px; margin:0 auto; padding:0 24px; }
+  a{ color:var(--accent); text-decoration:none; }
+  a:hover{ text-decoration:underline; }
+
+  .eyebrow{
+    font-family:var(--mono); font-size:12px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--accent); margin:0 0 14px;
+  }
+  h1,h2,h3{ font-family:var(--sans); font-weight:640; text-wrap:balance; letter-spacing:-.02em; margin:0; }
+  h1{ font-size:clamp(30px,5.4vw,52px); line-height:1.05; }
+  h2{ font-size:clamp(23px,3.4vw,33px); line-height:1.12; }
+  h3{ font-size:19px; letter-spacing:-.01em; }
+  p{ margin:0; }
+  .lead{ font-size:clamp(17px,2vw,20px); color:var(--ink-dim); max-width:62ch; }
+
+  /* ---------- hero ---------- */
+  header.hero{ padding:76px 0 34px; border-bottom:1px solid var(--line); position:relative; overflow:hidden; }
+  .hero-grid{ display:grid; grid-template-columns:1.05fr .95fr; gap:56px; align-items:center; }
+  @media (max-width:900px){ .hero-grid{ grid-template-columns:1fr; gap:40px; } }
+  .brandline{ display:flex; align-items:center; gap:11px; margin-bottom:30px; }
+  .brandmark{ width:30px; height:20px; }
+  .brandmark line, .brandmark path{ stroke:var(--accent); }
+  .brandword{ font-family:var(--mono); font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-dim); }
+  .hero h1 span{ color:var(--accent); }
+  .hero .lead{ margin-top:22px; }
+  .meta-row{ display:flex; flex-wrap:wrap; gap:10px 26px; margin-top:30px; font-family:var(--mono); font-size:12.5px; color:var(--ink-faint); letter-spacing:.02em; }
+  .meta-row b{ color:var(--ink-dim); font-weight:500; }
+
+  /* ---------- phone ---------- */
+  .phone-stage{ display:flex; justify-content:center; }
+  .phone{
+    width:340px; height:716px; background:#05070b; border-radius:44px;
+    padding:11px; position:relative; box-shadow:0 40px 80px -30px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.06);
+    flex:0 0 auto;
+  }
+  .phone::after{ content:""; position:absolute; top:20px; left:50%; transform:translateX(-50%); width:112px; height:26px; background:#05070b; border-radius:0 0 16px 16px; z-index:8; }
+  .screen{
+    position:relative; width:100%; height:100%; background:var(--p-chrome);
+    border-radius:34px; overflow:hidden; display:flex; flex-direction:column;
+    color:var(--p-ink); font-size:14px;
+  }
+  .statusbar{ height:40px; flex:0 0 auto; display:flex; align-items:flex-end; justify-content:space-between; padding:0 22px 5px; font-size:12px; font-weight:600; color:var(--p-ink); letter-spacing:.02em; }
+  .statusbar .dots{ display:flex; gap:4px; align-items:center; opacity:.85; }
+  .statusbar .dots svg{ display:block; }
+
+  /* app bar */
+  .appbar{ height:50px; flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; padding:0 14px; border-bottom:1px solid var(--p-line); }
+  .appbar .left{ display:flex; align-items:center; gap:9px; }
+  .appbar .mk{ width:26px; height:17px; }
+  .appbar .mk line, .appbar .mk circle{ stroke:var(--p-brand); }
+  .appbar .name{ font-size:14.5px; font-weight:600; letter-spacing:-.01em; }
+  .iconbtn{ width:38px; height:38px; border-radius:11px; border:1px solid transparent; background:transparent; color:var(--p-dim); display:grid; place-items:center; cursor:pointer; }
+  .iconbtn:hover{ background:var(--p-chrome-2); color:var(--p-ink); }
+  .appbar .right{ display:flex; align-items:center; gap:4px; }
+  .exportbtn{ height:36px; padding:0 15px; border-radius:11px; background:var(--p-brand); color:#fff; font-size:13.5px; font-weight:600; border:none; cursor:pointer; display:flex; align-items:center; gap:7px; }
+  .exportbtn:hover{ filter:brightness(1.08); }
+
+  /* canvas */
+  .canvas{ position:relative; flex:1 1 auto; background:
+      radial-gradient(120% 90% at 50% 0%, #10151f 0%, #0c1017 60%, #0a0d13 100%);
+    display:flex; flex-direction:column; min-height:0; }
+  .canvas-hint-top{ position:absolute; top:0; left:0; right:0; z-index:5; padding:10px 12px; }
+  .paper{
+    margin:auto; width:298px; background:#F7F5EF; border-radius:16px;
+    box-shadow:0 20px 40px -22px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.05);
+    padding:8px 6px 12px; position:relative;
+  }
+  .paper svg{ display:block; width:100%; height:auto; }
+  .paper .cap{ text-align:center; font-family:var(--mono); font-size:9.5px; letter-spacing:.09em; color:#9a958a; text-transform:uppercase; padding-top:2px; }
+  .zoomhint{
+    position:absolute; right:14px; bottom:14px; z-index:5;
+    font-size:11px; color:var(--p-dim); background:rgba(12,16,24,.82);
+    border:1px solid var(--p-line); border-radius:999px; padding:5px 11px; display:flex; align-items:center; gap:6px;
+    backdrop-filter:blur(4px);
+  }
+
+  /* connect banner (Link teaching state) */
+  .connect-banner{
+    display:flex; align-items:center; gap:9px; background:rgba(99,102,241,.14);
+    border:1px solid rgba(129,140,248,.4); border-radius:13px; padding:9px 11px; color:#c7ccff; font-size:12.5px; line-height:1.35;
+  }
+  .connect-banner .chip{ background:#fff; color:#1c1d22; border-radius:7px; padding:2px 8px; font-weight:600; font-size:12px; }
+  .connect-banner .x{ margin-left:auto; color:#aeb4ff; cursor:pointer; padding:2px; }
+
+  /* bottom tab bar */
+  .tabbar{ flex:0 0 auto; height:62px; display:flex; border-top:1px solid var(--p-line); background:var(--p-chrome); position:relative; z-index:20; padding-bottom:4px; }
+  .tab{ flex:1; border:none; background:transparent; color:var(--p-dim); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; cursor:pointer; font-size:11px; font-weight:600; letter-spacing:.01em; min-height:44px; }
+  .tab svg{ opacity:.9; }
+  .tab[aria-selected="true"]{ color:var(--p-brand); }
+  .tab[aria-selected="true"] .tab-ico{ color:var(--p-brand); }
+  .tab .tab-ico{ color:var(--p-dim); display:grid; place-items:center; height:22px; }
+
+  /* bottom sheet */
+  .sheet{
+    position:absolute; left:0; right:0; bottom:62px; z-index:15;
+    background:var(--p-sheet); border-top:1px solid var(--p-line-2);
+    border-radius:20px 20px 0 0; box-shadow:0 -20px 40px -24px rgba(0,0,0,.75);
+    transform:translateY(110%); transition:transform .34s cubic-bezier(.22,.61,.36,1);
+    max-height:74%; display:flex; flex-direction:column;
+  }
+  .sheet.open{ transform:translateY(0); }
+  .sheet-grip{ width:38px; height:4px; border-radius:2px; background:var(--p-line-2); margin:9px auto 4px; flex:0 0 auto; }
+  .sheet-head{ display:flex; align-items:center; justify-content:space-between; padding:2px 16px 10px; }
+  .sheet-title{ font-size:15px; font-weight:640; letter-spacing:-.01em; }
+  .sheet-sub{ font-size:11.5px; color:var(--p-dim); }
+  .sheet-body{ overflow-y:auto; padding:2px 16px 18px; }
+
+  .field-group-label{ font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--p-dim); margin:14px 0 8px; }
+  .field-group-label:first-child{ margin-top:2px; }
+
+  /* style swatches */
+  .swatch-row{ display:flex; gap:9px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; }
+  .swatch-row::-webkit-scrollbar{ display:none; }
+  .swatch{ flex:0 0 auto; width:66px; cursor:pointer; }
+  .swatch .sw-thumb{ width:66px; height:48px; border-radius:11px; border:1px solid var(--p-line); background:#12172200; overflow:hidden; display:block; }
+  .swatch.sel .sw-thumb{ border-color:var(--p-brand); box-shadow:0 0 0 2px rgba(99,102,241,.45); }
+  .swatch .sw-name{ font-size:10.5px; color:var(--p-dim); text-align:center; margin-top:5px; }
+  .swatch.sel .sw-name{ color:var(--p-ink); }
+
+  .dot-row{ display:flex; gap:10px; flex-wrap:wrap; }
+  .pdot{ width:30px; height:30px; border-radius:999px; border:2px solid transparent; cursor:pointer; position:relative; }
+  .pdot.sel{ border-color:var(--p-ink); }
+
+  .seg{ display:flex; background:var(--p-chrome-2); border-radius:11px; padding:3px; gap:3px; }
+  .seg button{ flex:1; border:none; background:transparent; color:var(--p-dim); font-size:12.5px; font-weight:600; padding:8px 0; border-radius:8px; cursor:pointer; min-height:40px; }
+  .seg button.on{ background:var(--p-brand); color:#fff; }
+
+  .disclosure{ margin-top:16px; border-top:1px solid var(--p-line); padding-top:12px; }
+  .disclosure > button{ width:100%; display:flex; align-items:center; justify-content:space-between; background:transparent; border:none; color:var(--p-ink); font-size:13.5px; font-weight:600; cursor:pointer; padding:6px 0; min-height:40px; }
+  .disclosure .chev{ transition:transform .25s ease; color:var(--p-dim); }
+  .disclosure.exp .chev{ transform:rotate(90deg); }
+  .disclosure .inner{ display:none; padding-top:6px; }
+  .disclosure.exp .inner{ display:block; }
+  .fine-note{ font-size:11.5px; color:var(--p-dim); margin-bottom:10px; }
+
+  .slider{ margin:12px 0; }
+  .slider .lab{ display:flex; justify-content:space-between; font-size:12.5px; color:var(--p-ink); margin-bottom:7px; }
+  .slider .lab span:last-child{ font-family:var(--mono); color:var(--p-dim); }
+  .track{ height:6px; border-radius:999px; background:var(--p-chrome-2); position:relative; }
+  .track .fill{ position:absolute; left:0; top:0; bottom:0; border-radius:999px; background:var(--p-brand); }
+  .track .knob{ position:absolute; top:50%; transform:translate(-50%,-50%); width:18px; height:18px; border-radius:999px; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,.5); }
+  .link-row{ display:flex; gap:8px; margin-top:12px; }
+  .ghost-btn{ flex:1; text-align:center; background:var(--p-chrome-2); border:1px solid var(--p-line); color:var(--p-ink); border-radius:10px; padding:11px 0; font-size:12.5px; font-weight:600; cursor:pointer; min-height:44px; }
+
+  /* text sheet lines */
+  .line-item{ display:flex; align-items:center; gap:8px; background:var(--p-chrome-2); border:1px solid var(--p-line); border-radius:12px; padding:8px 10px; margin-bottom:9px; }
+  .line-item .txt{ flex:1; min-width:0; }
+  .line-item .lang{ font-family:var(--mono); font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--p-dim); }
+  .line-item .val{ font-size:14px; color:var(--p-ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .line-item .reorder{ display:flex; flex-direction:column; gap:1px; color:var(--p-dim); }
+  .mini{ width:32px; height:32px; border-radius:9px; background:transparent; border:1px solid var(--p-line); color:var(--p-dim); display:grid; place-items:center; cursor:pointer; }
+  .add-line{ width:100%; border:1px dashed var(--p-line-2); background:transparent; color:var(--p-brand); border-radius:12px; padding:12px; font-size:13px; font-weight:600; cursor:pointer; min-height:44px; }
+  .foolproof-note{ display:flex; gap:8px; align-items:flex-start; margin-top:12px; font-size:11.5px; color:var(--p-dim); line-height:1.45; }
+  .foolproof-note svg{ flex:0 0 auto; margin-top:1px; color:var(--accent); }
+
+  /* export sheet */
+  .fmt-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
+  .fmt{ background:var(--p-chrome-2); border:1px solid var(--p-line); border-radius:12px; padding:14px 8px; text-align:center; cursor:pointer; }
+  .fmt.primary{ border-color:var(--p-brand); background:var(--p-brand-soft); }
+  .fmt .ft{ font-size:15px; font-weight:700; }
+  .fmt .fs{ font-size:10px; color:var(--p-dim); margin-top:2px; }
+  .share-row{ display:flex; gap:8px; margin-top:12px; }
+
+  /* frame label under phone */
+  .frame-cap{ text-align:center; margin-top:20px; }
+  .frame-cap .k{ font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); }
+  .frame-cap .d{ font-size:13.5px; color:var(--ink-dim); margin-top:6px; max-width:30ch; margin-left:auto; margin-right:auto; }
+
+  /* ---------- sections ---------- */
+  section{ padding:66px 0; border-bottom:1px solid var(--line); }
+  .sec-head{ max-width:64ch; margin-bottom:40px; }
+  .sec-head h2{ margin-top:12px; }
+  .sec-head p{ margin-top:16px; color:var(--ink-dim); }
+
+  .cards{ display:grid; grid-template-columns:repeat(2,1fr); gap:18px; }
+  @media (max-width:760px){ .cards{ grid-template-columns:1fr; } }
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:24px; }
+  .card .n{ font-family:var(--mono); font-size:12px; color:var(--accent); letter-spacing:.06em; }
+  .card h3{ margin:12px 0 9px; }
+  .card p{ color:var(--ink-dim); font-size:15px; }
+
+  .modes{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+  @media (max-width:760px){ .modes{ grid-template-columns:1fr; } }
+  .mode{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:22px; position:relative; }
+  .mode .tag{ display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-dim); }
+  .mode .tag .d{ width:9px; height:9px; border-radius:999px; }
+  .mode h3{ margin:14px 0 8px; }
+  .mode p{ color:var(--ink-dim); font-size:14.5px; }
+  .mode ul{ margin:12px 0 0; padding-left:0; list-style:none; display:flex; flex-direction:column; gap:7px; }
+  .mode li{ font-size:13.5px; color:var(--ink-dim); padding-left:20px; position:relative; }
+  .mode li::before{ content:""; position:absolute; left:2px; top:9px; width:6px; height:6px; border-radius:999px; background:var(--accent-dim); }
+
+  .frames-row{ display:flex; gap:44px; justify-content:center; flex-wrap:wrap; margin-top:8px; }
+  .frames-row .phone{ transform:scale(.92); transform-origin:top center; }
+
+  table.decisions{ width:100%; border-collapse:collapse; font-size:14.5px; }
+  .decisions-wrap{ overflow-x:auto; }
+  table.decisions th, table.decisions td{ text-align:left; padding:15px 16px; border-bottom:1px solid var(--line); vertical-align:top; }
+  table.decisions th{ font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint); font-weight:500; }
+  table.decisions td:first-child{ color:var(--ink); font-weight:560; width:34%; }
+  table.decisions td:last-child{ color:var(--ink-dim); }
+  table.decisions tr:last-child td{ border-bottom:none; }
+
+  .map{ display:grid; grid-template-columns:1fr 1fr; gap:0 26px; }
+  @media (max-width:760px){ .map{ grid-template-columns:1fr; } }
+  .map .col h3{ font-size:14px; font-family:var(--mono); letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint); font-weight:500; padding:0 0 12px; border-bottom:1px solid var(--line); margin-bottom:6px; }
+  .map .row{ display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); font-size:14px; }
+  .map .row .a{ color:var(--ink); flex:0 0 42%; }
+  .map .row .b{ color:var(--ink-dim); }
+  .map .row .b em{ color:var(--accent); font-style:normal; }
+
+  footer{ padding:48px 0 72px; color:var(--ink-faint); font-size:13px; }
+  footer .fl{ font-family:var(--mono); letter-spacing:.04em; }
+
+  .desk{ background:var(--panel); border:1px solid var(--line); border-radius:16px; overflow:hidden; }
+  .desk-top{ height:38px; display:flex; align-items:center; gap:7px; padding:0 14px; border-bottom:1px solid var(--line); }
+  .desk-top i{ width:11px; height:11px; border-radius:999px; background:var(--panel-2); display:block; }
+  .desk-body{ display:grid; grid-template-columns:1fr 300px; min-height:280px; }
+  .desk-canvas{ background:radial-gradient(120% 90% at 50% 10%, #10151f, #0b0e14); display:grid; place-items:center; padding:26px; }
+  .desk-canvas .paper{ margin:0; width:100%; max-width:420px; }
+  .desk-rail{ border-left:1px solid var(--line); background:var(--p-sheet); padding:16px; display:flex; flex-direction:column; gap:14px; }
+  .desk-rail .rk{ font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--p-dim); }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; animation:none !important; }
+  }
+  :focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:6px; }
+</style>
+
+<!-- reusable SVG symbols for the alignment diagram -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="align-diagram" viewBox="0 0 340 210">
+      <!-- arcs -->
+      <g fill="none" stroke-width="3" stroke-linecap="round">
+        <path d="M62 73 C 62 104, 50 104, 50 135"  stroke="#6366F1"/>
+        <path d="M108 73 C 108 104, 105 104, 105 135" stroke="#14B8A6"/>
+        <path d="M170 73 C 170 104, 174 104, 174 135" stroke="#F59E0B"/>
+        <path d="M229 73 C 229 104, 236 104, 236 135" stroke="#F43F5E"/>
+        <path d="M275 73 C 275 104, 287 104, 287 135" stroke="#8B5CF6"/>
+      </g>
+      <!-- top row (English) -->
+      <g font-family="system-ui,-apple-system,Segoe UI,Roboto,sans-serif" font-size="15" font-weight="600" fill="#1c1d22" text-anchor="middle">
+        <rect x="41"  y="43" width="42" height="30" rx="8" fill="#fff" stroke="#e4e0d6"/><text x="62"  y="63">She</text>
+        <rect x="93"  y="43" width="30" height="30" rx="8" fill="#fff" stroke="#e4e0d6"/><text x="108" y="63">is</text>
+        <rect x="133" y="43" width="74" height="30" rx="8" fill="#fff" stroke="#e4e0d6"/><text x="170" y="63">reading</text>
+        <rect x="217" y="43" width="24" height="30" rx="8" fill="#fff" stroke="#e4e0d6"/><text x="229" y="63">a</text>
+        <rect x="251" y="43" width="48" height="30" rx="8" fill="#fff" stroke="#e4e0d6"/><text x="275" y="63">book</text>
+      </g>
+      <!-- bottom row (Spanish) -->
+      <g font-family="system-ui,-apple-system,Segoe UI,Roboto,sans-serif" font-size="15" font-weight="600" fill="#1c1d22" text-anchor="middle">
+        <rect x="27"  y="135" width="46" height="30" rx="8" fill="#fff" stroke="#e4e0d6"/><text x="50"  y="155">Ella</text>
+        <rect x="83"  y="135" width="44" height="30" rx="8" fill="#fff" stroke="#e4e0d6"/><text x="105" y="155">está</text>
+        <rect x="137" y="135" width="74" height="30" rx="8" fill="#fff" stroke="#e4e0d6"/><text x="174" y="155">leyendo</text>
+        <rect x="221" y="135" width="30" height="30" rx="8" fill="#fff" stroke="#e4e0d6"/><text x="236" y="155">un</text>
+        <rect x="261" y="135" width="52" height="30" rx="8" fill="#fff" stroke="#e4e0d6"/><text x="287" y="155">libro</text>
+      </g>
+    </symbol>
+
+    <!-- teaching state: "reading" pinned, guide arc dangling, matches dimmed -->
+    <symbol id="align-teaching" viewBox="0 0 340 210">
+      <path d="M170 73 C 170 108, 176 118, 178 132" fill="none" stroke="#F59E0B" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 7"/>
+      <g font-family="system-ui,-apple-system,Segoe UI,Roboto,sans-serif" font-size="15" font-weight="600" fill="#1c1d22" text-anchor="middle">
+        <rect x="41"  y="43" width="42" height="30" rx="8" fill="#fff" stroke="#e4e0d6"/><text x="62"  y="63" fill="#b7b2a6">She</text>
+        <rect x="93"  y="43" width="30" height="30" rx="8" fill="#fff" stroke="#e4e0d6"/><text x="108" y="63" fill="#b7b2a6">is</text>
+        <rect x="133" y="43" width="74" height="30" rx="8" fill="#FFF6E6" stroke="#F59E0B" stroke-width="2"/><text x="170" y="63">reading</text>
+        <rect x="217" y="43" width="24" height="30" rx="8" fill="#fff" stroke="#e4e0d6"/><text x="229" y="63" fill="#b7b2a6">a</text>
+        <rect x="251" y="43" width="48" height="30" rx="8" fill="#fff" stroke="#e4e0d6"/><text x="275" y="63" fill="#b7b2a6">book</text>
+      </g>
+      <g font-family="system-ui,-apple-system,Segoe UI,Roboto,sans-serif" font-size="15" font-weight="600" text-anchor="middle">
+        <rect x="27"  y="135" width="46" height="30" rx="8" fill="#fff" stroke="#e4e0d6"/><text x="50"  y="155" fill="#c8c3b6">Ella</text>
+        <rect x="83"  y="135" width="44" height="30" rx="8" fill="#fff" stroke="#e4e0d6"/><text x="105" y="155" fill="#c8c3b6">está</text>
+        <rect x="137" y="135" width="74" height="30" rx="8" fill="#fff" stroke="#F59E0B" stroke-dasharray="4 3"/><text x="174" y="155" fill="#1c1d22">leyendo</text>
+        <rect x="221" y="135" width="30" height="30" rx="8" fill="#fff" stroke="#e4e0d6"/><text x="236" y="155" fill="#c8c3b6">un</text>
+        <rect x="261" y="135" width="52" height="30" rx="8" fill="#fff" stroke="#e4e0d6"/><text x="287" y="155" fill="#c8c3b6">libro</text>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="brandline">
+      <svg class="brandmark" viewBox="0 0 30 20" fill="none" aria-hidden="true">
+        <circle cx="5" cy="5" r="2.4" fill="none" stroke-width="1.6"/>
+        <circle cx="25" cy="15" r="2.4" fill="none" stroke-width="1.6"/>
+        <path d="M5 7.4 C 5 15, 25 5, 25 12.6" stroke-width="1.6"/>
+      </svg>
+      <span class="brandword">Word Aligner · UI rework</span>
+    </div>
+    <div class="hero-grid">
+      <div>
+        <p class="eyebrow">Mobile-first concept</p>
+        <h1>The diagram is the work. The tool should <span>get out of its way.</span></h1>
+        <p class="lead">A redesign for phones, where most people already use Word Aligner. Type two lines, connect words with a tap, and the result looks finished before you touch a single setting. The controls that used to confuse people are still here, just folded away until you want them.</p>
+        <div class="meta-row">
+          <span><b>Surface</b> phone, 375px up</span>
+          <span><b>Model</b> canvas + 3 modes</span>
+          <span><b>State</b> interactive mock</span>
+        </div>
+      </div>
+      <div class="phone-stage">
+        <!-- INTERACTIVE PHONE -->
+        <div class="phone" id="hero-phone">
+          <div class="screen">
+            <div class="statusbar">
+              <span>9:41</span>
+              <span class="dots" aria-hidden="true">
+                <svg width="17" height="11" viewBox="0 0 17 11"><rect x="0" y="6" width="3" height="5" rx="1" fill="currentColor"/><rect x="4.5" y="4" width="3" height="7" rx="1" fill="currentColor"/><rect x="9" y="2" width="3" height="9" rx="1" fill="currentColor"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="currentColor"/></svg>
+                <svg width="22" height="11" viewBox="0 0 22 11"><rect x="0.5" y="0.5" width="18" height="10" rx="2.5" fill="none" stroke="currentColor"/><rect x="2" y="2" width="13" height="7" rx="1" fill="currentColor"/><rect x="20" y="3.5" width="1.6" height="4" rx="1" fill="currentColor"/></svg>
+              </span>
+            </div>
+
+            <div class="appbar">
+              <div class="left">
+                <svg class="mk" viewBox="0 0 30 20" fill="none" aria-hidden="true">
+                  <circle cx="5" cy="5" r="2.4" fill="none" stroke-width="1.6"/>
+                  <circle cx="25" cy="15" r="2.4" fill="none" stroke-width="1.6"/>
+                  <line x1="6.6" y1="6.4" x2="23.4" y2="13.6" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+                <span class="name">Word Aligner</span>
+              </div>
+              <div class="right">
+                <button class="iconbtn" title="Theme" aria-label="Toggle theme">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/></svg>
+                </button>
+                <button class="exportbtn" id="btn-export">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3M8 7l4-4 4 4M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg>
+                  Export
+                </button>
+              </div>
+            </div>
+
+            <div class="canvas">
+              <div class="canvas-hint-top" id="connect-banner" hidden>
+                <div class="connect-banner">
+                  <span>Now tap the word below that means</span>
+                  <span class="chip">reading</span>
+                  <span class="x" id="cancel-pin" role="button" aria-label="Cancel">✕</span>
+                </div>
+              </div>
+              <div class="paper">
+                <svg viewBox="0 0 340 210" role="img" aria-label="She is reading a book, aligned to Ella está leyendo un libro"><use href="#align-diagram"/></svg>
+                <div class="cap">English → Spanish</div>
+              </div>
+              <div class="zoomhint" aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10" cy="10" r="7"/><path d="M15 15l5 5M10 7v6M7 10h6"/></svg>
+                Pinch to zoom
+              </div>
+
+              <!-- SHEETS -->
+              <div class="sheet" id="sheet-text">
+                <div class="sheet-grip"></div>
+                <div class="sheet-head">
+                  <div><div class="sheet-title">Your text</div><div class="sheet-sub">Each line becomes a row in the diagram</div></div>
+                </div>
+                <div class="sheet-body">
+                  <div class="line-item">
+                    <div class="reorder"><span class="lang">EN</span></div>
+                    <div class="txt"><div class="lang">Line 1</div><div class="val">She is reading a book</div></div>
+                    <button class="mini" aria-label="Edit line">Aa</button>
+                    <button class="mini" aria-label="More">⋯</button>
+                  </div>
+                  <div class="line-item">
+                    <div class="reorder"><span class="lang">ES</span></div>
+                    <div class="txt"><div class="lang">Line 2</div><div class="val">Ella está leyendo un libro</div></div>
+                    <button class="mini" aria-label="Edit line">Aa</button>
+                    <button class="mini" aria-label="More">⋯</button>
+                  </div>
+                  <button class="add-line">+  Add line</button>
+                  <div class="foolproof-note">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+                    <span>Long lines shrink to fit on one row automatically. You never get a wrapped, broken diagram.</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="sheet" id="sheet-style">
+                <div class="sheet-grip"></div>
+                <div class="sheet-head">
+                  <div><div class="sheet-title">Style</div><div class="sheet-sub">Every choice here looks good on its own</div></div>
+                </div>
+                <div class="sheet-body">
+                  <div class="field-group-label">Theme</div>
+                  <div class="swatch-row">
+                    <div class="swatch sel"><span class="sw-thumb"><svg viewBox="0 0 66 48" width="66" height="48"><rect width="66" height="48" fill="#F7F5EF"/><path d="M14 16 C14 30 24 18 24 32" stroke="#6366F1" stroke-width="2.4" fill="none"/><path d="M34 16 C34 30 44 18 44 32" stroke="#F59E0B" stroke-width="2.4" fill="none"/><circle cx="14" cy="16" r="2.4" fill="#6366F1"/><circle cx="44" cy="32" r="2.4" fill="#F59E0B"/></svg></span><div class="sw-name">Classic</div></div>
+                    <div class="swatch"><span class="sw-thumb"><svg viewBox="0 0 66 48" width="66" height="48"><rect width="66" height="48" fill="#0b1020"/><path d="M14 16 C14 30 24 18 24 32" stroke="#22d3ee" stroke-width="3" fill="none"/><path d="M34 16 C34 30 44 18 44 32" stroke="#a78bfa" stroke-width="3" fill="none"/></svg></span><div class="sw-name">Aurora</div></div>
+                    <div class="swatch"><span class="sw-thumb"><svg viewBox="0 0 66 48" width="66" height="48"><rect width="66" height="48" fill="#faf6ee"/><path d="M12 16 h20 M12 32 h24" stroke="#c0392b" stroke-width="2" fill="none"/><path d="M12 16 L34 32" stroke="#2c3e50" stroke-width="2"/></svg></span><div class="sw-name">Atlas</div></div>
+                    <div class="swatch"><span class="sw-thumb"><svg viewBox="0 0 66 48" width="66" height="48"><rect width="66" height="48" fill="#111"/><rect x="10" y="12" width="18" height="9" fill="#e11d48"/><rect x="34" y="27" width="18" height="9" fill="#3b82f6"/></svg></span><div class="sw-name">Bauhaus</div></div>
+                    <div class="swatch"><span class="sw-thumb"><svg viewBox="0 0 66 48" width="66" height="48"><rect width="66" height="48" fill="#fbeee6"/><path d="M14 15 C24 40 42 8 52 33" stroke="#d97706" stroke-width="2.6" fill="none"/></svg></span><div class="sw-name">Nouveau</div></div>
+                  </div>
+
+                  <div class="field-group-label">Palette</div>
+                  <div class="dot-row">
+                    <span class="pdot sel" style="background:conic-gradient(#6366F1,#14B8A6,#F59E0B,#F43F5E,#8B5CF6,#6366F1)"></span>
+                    <span class="pdot" style="background:conic-gradient(#ef4444,#f97316,#eab308,#22c55e,#3b82f6,#ef4444)"></span>
+                    <span class="pdot" style="background:conic-gradient(#0ea5e9,#38bdf8,#7dd3fc,#0ea5e9)"></span>
+                    <span class="pdot" style="background:conic-gradient(#db2777,#f472b6,#c084fc,#db2777)"></span>
+                    <span class="pdot" style="background:conic-gradient(#1e293b,#475569,#94a3b8,#1e293b)"></span>
+                  </div>
+
+                  <div class="field-group-label">Background</div>
+                  <div class="seg"><button class="on">Light</button><button>Dark</button></div>
+                  <div class="field-group-label">Threads</div>
+                  <div class="seg"><button>Straight</button><button class="on">Curved</button></div>
+
+                  <div class="disclosure" id="finetune">
+                    <button aria-expanded="false" id="finetune-btn">
+                      <span>Fine-tune</span>
+                      <span class="chev">›</span>
+                    </button>
+                    <div class="inner">
+                      <p class="fine-note">Rarely needed. The defaults above already produce a clean diagram.</p>
+                      <div class="slider"><div class="lab"><span>Thread thickness</span><span>3&nbsp;px</span></div><div class="track"><div class="fill" style="width:38%"></div><div class="knob" style="left:38%"></div></div></div>
+                      <div class="slider"><div class="lab"><span>Opacity</span><span>90%</span></div><div class="track"><div class="fill" style="width:90%"></div><div class="knob" style="left:90%"></div></div></div>
+                      <div class="slider"><div class="lab"><span>Word spacing</span><span>6&nbsp;px</span></div><div class="track"><div class="fill" style="width:30%"></div><div class="knob" style="left:30%"></div></div></div>
+                      <div class="link-row">
+                        <button class="ghost-btn">Tokenization…</button>
+                        <button class="ghost-btn">Fonts…</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="sheet" id="sheet-export">
+                <div class="sheet-grip"></div>
+                <div class="sheet-head">
+                  <div><div class="sheet-title">Export & share</div><div class="sheet-sub">Matches the preview exactly</div></div>
+                </div>
+                <div class="sheet-body">
+                  <div class="fmt-grid">
+                    <div class="fmt primary"><div class="ft">PNG</div><div class="fs">image</div></div>
+                    <div class="fmt"><div class="ft">SVG</div><div class="fs">vector</div></div>
+                    <div class="fmt"><div class="ft">PDF</div><div class="fs">print</div></div>
+                  </div>
+                  <div class="field-group-label">Resolution</div>
+                  <div class="seg"><button>2×</button><button class="on">3×</button><button>4×</button><button>6×</button></div>
+                  <div class="share-row">
+                    <button class="ghost-btn">Copy link</button>
+                    <button class="ghost-btn">Share…</button>
+                    <button class="ghost-btn">QR</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tabbar" role="tablist" aria-label="Editor modes">
+              <button class="tab" role="tab" data-mode="text" aria-selected="false">
+                <span class="tab-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>
+                Text
+              </button>
+              <button class="tab" role="tab" data-mode="link" aria-selected="true">
+                <span class="tab-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12a3 3 0 0 1 3-3h3a3 3 0 0 1 0 6h-1"/><path d="M15 12a3 3 0 0 1-3 3H9a3 3 0 0 1 0-6h1"/></svg></span>
+                Link
+              </button>
+              <button class="tab" role="tab" data-mode="style" aria-selected="false">
+                <span class="tab-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="9" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="9" r="1.4" fill="currentColor" stroke="none"/><circle cx="9.5" cy="14.5" r="1.4" fill="currentColor" stroke="none"/></svg></span>
+                Style
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="problem">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Why rework it</p>
+      <h2>On a phone today, the tool is buried in a page</h2>
+      <p>Word Aligner works, and the recent auto-fit and pinch-zoom already fixed the worst of the output. What is left is the shape of the screen. The editor sits inside a long marketing scroll, so the controls that change the diagram live far below the diagram itself.</p>
+    </div>
+    <div class="cards">
+      <div class="card">
+        <span class="n">01</span>
+        <h3>Controls are stranded at the bottom</h3>
+        <p>Settings, style, and export stack below the preview and the examples. To change a color you scroll past the whole diagram, then scroll back to check the result. On a phone that is a lot of thumb travel for one small change.</p>
+      </div>
+      <div class="card">
+        <span class="n">02</span>
+        <h3>Four icon-only tabs, no labels</h3>
+        <p>Style, Colors, Tokens, and Fonts sit behind four unlabeled icons. People do not know which one holds the setting they want, so the fine-tuning reads as intimidating rather than optional.</p>
+      </div>
+      <div class="card">
+        <span class="n">03</span>
+        <h3>The core gesture is unguided</h3>
+        <p>Connecting words is tap-then-tap, which is good. But nothing on screen teaches it, the word targets are small, and removing a thread means hitting a thin line. First-timers guess.</p>
+      </div>
+      <div class="card">
+        <span class="n">04</span>
+        <h3>No single home for the work</h3>
+        <p>Editor, preview, settings, export, and share are five separate blocks in a column. There is no one place that says "this is where you make the picture."</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="shape">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">The new shape</p>
+      <h2>One canvas, three modes, everything in thumb reach</h2>
+      <p>The diagram fills the screen and stays put. A bottom bar holds the three things you actually do, and each opens a sheet that slides up over the lower canvas so you always see the effect of a change. Export is the one primary action, kept in the top bar.</p>
+    </div>
+    <div class="modes">
+      <div class="mode">
+        <span class="tag"><span class="d" style="background:#6366F1"></span>Mode 1</span>
+        <h3>Text</h3>
+        <p>Write or paste the two lines. Comfortable full-width fields, reorder by arrows, mark right-to-left, add a line.</p>
+        <ul>
+          <li>Starts with a real example, never a blank canvas</li>
+          <li>Auto-fit note explains why long text still looks right</li>
+          <li>Per-line font and size tucked behind an "Aa" button</li>
+        </ul>
+      </div>
+      <div class="mode">
+        <span class="tag"><span class="d" style="background:#14B8A6"></span>Mode 2 · default</span>
+        <h3>Link</h3>
+        <p>The canvas is live. Tap a word, then tap its match on the next line. A banner echoes the pinned word so the next step is obvious.</p>
+        <ul>
+          <li>Tap a thread to get a real delete button, not a hairline</li>
+          <li>Pinch to zoom for small text, shown by a hint pill</li>
+          <li>Word targets padded for fingers</li>
+        </ul>
+      </div>
+      <div class="mode">
+        <span class="tag"><span class="d" style="background:#F59E0B"></span>Mode 3</span>
+        <h3>Style</h3>
+        <p>Theme, palette, light or dark, straight or curved. Only choices that always look good. The confusing controls sit behind one "Fine-tune" row.</p>
+        <ul>
+          <li>Twelve themes as swatches, one tap to restyle</li>
+          <li>Fine-tune holds thickness, spacing, tokens, fonts</li>
+          <li>Most people never open it, and that is the point</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="frames-row">
+      <div>
+        <div class="phone">
+          <div class="screen">
+            <div class="statusbar"><span>9:41</span><span class="dots"><svg width="17" height="11" viewBox="0 0 17 11"><rect x="9" y="2" width="3" height="9" rx="1" fill="currentColor"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="currentColor"/></svg></span></div>
+            <div class="appbar"><div class="left"><span class="name">Word Aligner</span></div><div class="right"><button class="exportbtn">Export</button></div></div>
+            <div class="canvas">
+              <div class="canvas-hint-top"><div class="connect-banner"><span>Now tap the word below that means</span><span class="chip">reading</span><span class="x">✕</span></div></div>
+              <div class="paper"><svg viewBox="0 0 340 210" role="img" aria-label="Connecting the word reading"><use href="#align-teaching"/></svg><div class="cap">English → Spanish</div></div>
+            </div>
+            <div class="tabbar"><button class="tab">Text</button><button class="tab" aria-selected="true" style="color:var(--p-brand)">Link</button><button class="tab">Style</button></div>
+          </div>
+        </div>
+        <div class="frame-cap"><div class="k">Link · mid-gesture</div><div class="d">The pinned word is echoed; the next tap has one clear target.</div></div>
+      </div>
+
+      <div>
+        <div class="phone">
+          <div class="screen">
+            <div class="statusbar"><span>9:41</span><span class="dots"><svg width="17" height="11" viewBox="0 0 17 11"><rect x="9" y="2" width="3" height="9" rx="1" fill="currentColor"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="currentColor"/></svg></span></div>
+            <div class="appbar"><div class="left"><span class="name">Word Aligner</span></div><div class="right"><button class="exportbtn">Export</button></div></div>
+            <div class="canvas" style="position:relative">
+              <div class="paper" style="opacity:.4"><svg viewBox="0 0 340 210" aria-hidden="true"><use href="#align-diagram"/></svg></div>
+              <div class="sheet open" style="position:absolute; max-height:78%">
+                <div class="sheet-grip"></div>
+                <div class="sheet-head"><div><div class="sheet-title">Style</div><div class="sheet-sub">Fine-tune expanded</div></div></div>
+                <div class="sheet-body">
+                  <div class="field-group-label">Background</div>
+                  <div class="seg"><button class="on">Light</button><button>Dark</button></div>
+                  <div class="disclosure exp">
+                    <button aria-expanded="true"><span>Fine-tune</span><span class="chev">›</span></button>
+                    <div class="inner">
+                      <p class="fine-note">Rarely needed. The defaults already produce a clean diagram.</p>
+                      <div class="slider"><div class="lab"><span>Thread thickness</span><span>3&nbsp;px</span></div><div class="track"><div class="fill" style="width:38%"></div><div class="knob" style="left:38%"></div></div></div>
+                      <div class="slider"><div class="lab"><span>Opacity</span><span>90%</span></div><div class="track"><div class="fill" style="width:90%"></div><div class="knob" style="left:90%"></div></div></div>
+                      <div class="link-row"><button class="ghost-btn">Tokenization…</button><button class="ghost-btn">Fonts…</button></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="tabbar"><button class="tab">Text</button><button class="tab">Link</button><button class="tab" aria-selected="true" style="color:var(--p-brand)">Style</button></div>
+          </div>
+        </div>
+        <div class="frame-cap"><div class="k">Style · fine-tune</div><div class="d">Progressive disclosure keeps the intimidating controls one tap away, not in your face.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="foolproof">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Protection from a careless run</p>
+      <h2>A good result even when the user does not read anything</h2>
+      <p>The goal you set: someone types junk without understanding the tool and still gets something worth sharing. That is a design property, not a hope. It comes from what the interface refuses to let go wrong.</p>
+    </div>
+    <div class="cards">
+      <div class="card">
+        <span class="n">Default</span>
+        <h3>It is never empty or blank</h3>
+        <p>The canvas opens on a real, connected example. The first thing a new user sees is a finished diagram, so they copy the pattern instead of facing an empty box.</p>
+      </div>
+      <div class="card">
+        <span class="n">Fit</span>
+        <h3>Bad input still lays out well</h3>
+        <p>Auto-fit shrinks any line to a single row. A 200-character paste does not wrap, overflow, or break the threads. It just gets smaller and stays readable.</p>
+      </div>
+      <div class="card">
+        <span class="n">Safe surface</span>
+        <h3>The easy controls cannot look wrong</h3>
+        <p>Style, palette, background, and thread shape are the only always-visible choices. Every combination is curated to look designed. The controls that can make a mess are behind Fine-tune.</p>
+      </div>
+      <div class="card">
+        <span class="n">Targets</span>
+        <h3>Fingers, not pixels</h3>
+        <p>Words carry padded hit areas, threads delete through a popover, and every button clears 44px. Fewer mis-taps means fewer accidental, ugly edits to undo.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="decisions">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Decisions and why</p>
+      <h2>What changed, and the reasoning behind it</h2>
+    </div>
+    <div class="decisions-wrap">
+      <table class="decisions">
+        <thead><tr><th>Decision</th><th>Reasoning</th></tr></thead>
+        <tbody>
+          <tr><td>Canvas-first app shell, not a marketing scroll</td><td>The diagram is the product. On a phone it should own the screen, with the SEO and marketing content kept on separate routes below or off the editor entirely.</td></tr>
+          <tr><td>Three labeled modes in a bottom bar: Text, Link, Style</td><td>Three verbs match what people do. A bottom bar is the natural thumb zone and the labels remove the guesswork of four unnamed icon tabs.</td></tr>
+          <tr><td>Link is the default mode</td><td>Connecting words is the core loop and the part people find least obvious. Landing there, with a teaching banner, puts the main gesture front and center.</td></tr>
+          <tr><td>Controls open as sheets over the lower canvas</td><td>You see the change while you make it. No scrolling away from the diagram to reach a slider and back to check it.</td></tr>
+          <tr><td>Export is the single primary action, kept in the top bar</td><td>One clear call to action per screen. Export is the outcome, so it stays visible and distinct from the three editing modes.</td></tr>
+          <tr><td>Fine-tuning folded behind one disclosure</td><td>Thickness, opacity, spacing, tokenization, and fonts matter to a few users and confuse the rest. Progressive disclosure serves both without a mode of their own.</td></tr>
+          <tr><td>Start on a real example</td><td>An empty editor invites bad first attempts. A working diagram is a template people edit toward, which raises the floor on output quality.</td></tr>
+          <tr><td>Bigger link and delete targets</td><td>Touch accuracy drives error rate. Padded words and a thread popover cut accidental edits, which is most of what makes a diagram look careless.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="mapping">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Nothing is lost</p>
+      <h2>Where every current control moves</h2>
+      <p>The redesign relocates features, it does not drop them. Each capability that exists today has a clear home in the new shape.</p>
+    </div>
+    <div class="map">
+      <div class="col">
+        <h3>Today</h3>
+        <div class="row"><span class="a">Line editor cards</span><span class="b">→ <em>Text</em> sheet</span></div>
+        <div class="row"><span class="a">Style picker popover</span><span class="b">→ <em>Style</em> sheet, top row</span></div>
+        <div class="row"><span class="a">Colors tab</span><span class="b">→ <em>Style</em> sheet, palette</span></div>
+        <div class="row"><span class="a">Appearance sliders</span><span class="b">→ <em>Fine-tune</em> disclosure</span></div>
+        <div class="row"><span class="a">Tokens & Fonts tabs</span><span class="b">→ <em>Fine-tune</em> links</span></div>
+        <div class="row"><span class="a">Export card + Share row</span><span class="b">→ <em>Export</em> sheet</span></div>
+        <div class="row"><span class="a">Per-line settings sheet</span><span class="b">→ line "Aa" button</span></div>
+        <div class="row"><span class="a">Fullscreen preview</span><span class="b">→ the canvas is already full-bleed</span></div>
+      </div>
+      <div class="col">
+        <h3>Kept as-is</h3>
+        <div class="row"><span class="a">Tap-tap to connect</span><span class="b">same logic, clearer affordance</span></div>
+        <div class="row"><span class="a">Auto-fit</span><span class="b">on by default, now explained</span></div>
+        <div class="row"><span class="a">Pinch-zoom and pan</span><span class="b">unchanged, with the hint pill</span></div>
+        <div class="row"><span class="a">Tap a thread to delete</span><span class="b">now via a popover target</span></div>
+        <div class="row"><span class="a">Share URL state</span><span class="b">unchanged serialization</span></div>
+        <div class="row"><span class="a">Export parity</span><span class="b">export still matches preview</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="desktop">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Scaling up</p>
+      <h2>On desktop, the sheets become a rail</h2>
+      <p>The same model widens cleanly. The canvas takes the center, and the three modes dock as a persistent right rail instead of sliding sheets. Nothing is relearned moving between phone and desktop.</p>
+    </div>
+    <div class="desk">
+      <div class="desk-top"><i></i><i></i><i></i></div>
+      <div class="desk-body">
+        <div class="desk-canvas">
+          <div class="paper"><svg viewBox="0 0 340 210" role="img" aria-label="Alignment diagram on desktop"><use href="#align-diagram"/></svg><div class="cap">English → Spanish</div></div>
+        </div>
+        <div class="desk-rail">
+          <div class="rk">Text</div>
+          <div class="line-item" style="margin:0"><div class="txt"><div class="lang">EN</div><div class="val">She is reading a book</div></div></div>
+          <div class="rk">Style</div>
+          <div class="seg"><button class="on">Light</button><button>Dark</button></div>
+          <div class="dot-row"><span class="pdot sel" style="background:conic-gradient(#6366F1,#14B8A6,#F59E0B,#F43F5E,#8B5CF6,#6366F1)"></span><span class="pdot" style="background:conic-gradient(#ef4444,#f97316,#eab308,#22c55e,#3b82f6,#ef4444)"></span><span class="pdot" style="background:conic-gradient(#0ea5e9,#38bdf8,#7dd3fc,#0ea5e9)"></span></div>
+          <div class="rk">Export</div>
+          <div class="fmt-grid"><div class="fmt primary"><div class="ft">PNG</div></div><div class="fmt"><div class="ft">SVG</div></div><div class="fmt"><div class="ft">PDF</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="fl">Word Aligner · mobile-first UI rework · interactive concept mock</p>
+    <p style="margin-top:8px; max-width:60ch;">Try the phone at the top: tap Text, Link, or Style, open Fine-tune, or hit Export. This is a static mock of proposed structure, not the live app.</p>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var phone = document.getElementById('hero-phone');
+    if(!phone) return;
+    var tabs = phone.querySelectorAll('.tab[data-mode]');
+    var sheets = {
+      text: phone.querySelector('#sheet-text'),
+      style: phone.querySelector('#sheet-style'),
+      export: phone.querySelector('#sheet-export')
+    };
+    var banner = phone.querySelector('#connect-banner');
+
+    function closeAll(){ Object.keys(sheets).forEach(function(k){ sheets[k].classList.remove('open'); }); }
+    function selectTab(mode){
+      tabs.forEach(function(t){ t.setAttribute('aria-selected', String(t.dataset.mode === mode)); });
+    }
+    function setMode(mode){
+      closeAll();
+      banner.hidden = (mode !== 'link');
+      if(mode === 'text'){ sheets.text.classList.add('open'); selectTab('text'); }
+      else if(mode === 'style'){ sheets.style.classList.add('open'); selectTab('style'); }
+      else { selectTab('link'); } // link = bare canvas
+    }
+
+    tabs.forEach(function(t){
+      t.addEventListener('click', function(){ setMode(t.dataset.mode); });
+    });
+
+    var exportBtn = phone.querySelector('#btn-export');
+    exportBtn.addEventListener('click', function(){
+      var isOpen = sheets.export.classList.contains('open');
+      closeAll();
+      if(!isOpen){ sheets.export.classList.add('open'); banner.hidden = true; }
+    });
+
+    var cancel = phone.querySelector('#cancel-pin');
+    if(cancel){ cancel.addEventListener('click', function(){ banner.hidden = true; }); }
+
+    var ft = phone.querySelector('#finetune');
+    var ftBtn = phone.querySelector('#finetune-btn');
+    if(ftBtn){
+      ftBtn.addEventListener('click', function(){
+        var exp = ft.classList.toggle('exp');
+        ftBtn.setAttribute('aria-expanded', String(exp));
+      });
+    }
+
+    // default state: Link, banner visible
+    setMode('link');
+  })();
+</script>
+</body>
+</html>
