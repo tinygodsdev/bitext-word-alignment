@@ -73,11 +73,20 @@
 		function onMove() {
 			position();
 		}
+		// Clicking empty space (not a word, not this popover) drops the selection.
+		function onPointerDown(e: PointerEvent) {
+			const target = e.target as Element | null;
+			if (!target) return;
+			if (target.closest('[data-token-id]') || target.closest('[data-group-color-popover]')) return;
+			selectionStore.clear();
+		}
 		window.addEventListener('scroll', onMove, true);
 		window.addEventListener('resize', onMove);
+		window.addEventListener('pointerdown', onPointerDown, true);
 		return () => {
 			window.removeEventListener('scroll', onMove, true);
 			window.removeEventListener('resize', onMove);
+			window.removeEventListener('pointerdown', onPointerDown, true);
 		};
 	});
 </script>
@@ -87,6 +96,7 @@
 		bind:this={tipEl}
 		role="dialog"
 		aria-label="Group color"
+		data-group-color-popover
 		style:top="{top}px"
 		style:left="{left}px"
 		style:visibility={ready ? 'visible' : 'hidden'}
@@ -108,11 +118,24 @@
 		{#if canReset}
 			<button
 				type="button"
-				class="ml-0.5 inline-flex h-6 shrink-0 items-center rounded-full border border-gray-300 px-2 text-xs font-medium text-gray-600 hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary-500 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+				class="ml-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary-500 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
 				title="Reset to automatic color"
+				aria-label="Reset to automatic color"
 				onclick={() => selectionStore.resetColorForSelection()}
 			>
-				Auto
+				<svg
+					class="h-3.5 w-3.5"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					aria-hidden="true"
+				>
+					<path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+					<path d="M3 3v5h5" />
+				</svg>
 			</button>
 		{/if}
 	</div>
