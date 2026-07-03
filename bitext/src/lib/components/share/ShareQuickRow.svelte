@@ -89,15 +89,13 @@
 			</a>
 		</div>
 	{/if}
-	<div class="flex flex-nowrap items-center gap-2 overflow-x-auto pb-0.5">
-		<div class="flex shrink-0 items-center gap-2">
-			<CopyLinkButton />
-			<Button color="light" size="sm" class="shrink-0" onclick={() => shareRef?.open()}>
-				More options
-			</Button>
-		</div>
+	<div class="flex flex-wrap items-center gap-2">
+		<CopyLinkButton />
+		<Button color="light" size="sm" class="shrink-0 px-2.5!" onclick={() => shareRef?.open()}>
+			More
+		</Button>
 		{#if canWebShare}
-			<Button color="light" size="sm" class="ml-auto shrink-0" onclick={webShare}>Share…</Button>
+			<Button color="light" size="sm" class="shrink-0 px-2.5!" onclick={webShare}>Share…</Button>
 		{/if}
 	</div>
 </Card>
