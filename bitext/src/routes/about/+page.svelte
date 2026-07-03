@@ -114,7 +114,7 @@
 		},
 		{
 			src: '/screenshots/settings-tab-2-colors.png',
-			alt: 'Settings Colors tab: toggle to match token colors to links, choice between coloring token text or backgrounds, and pastel, vivid, and academic palette buttons with swatches.',
+			alt: 'Settings Colors tab: toggle to match token colors to links, choice between coloring token text or backgrounds, and pastel and vivid palette buttons with swatches.',
 			caption: 'Colors — palettes and how link colors apply to tokens.'
 		},
 		{

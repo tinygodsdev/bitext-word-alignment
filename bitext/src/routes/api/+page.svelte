@@ -324,8 +324,7 @@
 				<tr>
 					<td class={tdClass}>palette</td>
 					<td class={tdTypeClass}
-						><span class={codeClass}>pastel</span> <span class={codeClass}>vivid</span>
-						<span class={codeClass}>academic</span></td
+						><span class={codeClass}>pastel</span> <span class={codeClass}>vivid</span></td
 					>
 					<td class={tdTypeClass}>pastel</td>
 					<td class={tdDescClass}>Color palette for connection lines and token tints.</td>

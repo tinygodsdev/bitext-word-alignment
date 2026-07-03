@@ -45,7 +45,7 @@ function fitTokens(tokens: Token[], budget: number): { tokens: Token[]; truncate
  * Assign a vivid-palette color to each connected component of links.
  *
  * We intentionally ignore the user's saved palette and their own colors on links:
- * the OG preview must stay readable on a dark background (pastels wash out, academic
+ * the OG preview must stay readable on a dark background (pastels wash out, muted
  * greys vanish) and a user who painted everything black should still see a colorful
  * card. Components are iterated in link-array order so the mapping is deterministic
  * for a given `?data=` payload.

@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { resolve } from '$app/paths';
 	import { Button } from 'flowbite-svelte';
 	import {
 		ChevronDownOutline,
+		CloseOutline,
+		ExpandOutline,
 		EyeOutline,
 		EyeSlashOutline,
 		FolderOpenOutline,
@@ -35,6 +38,20 @@
 				? 'Style'
 				: 'Export & share'
 	);
+
+	let previewExpand = $state(false);
+	function openFullscreenPreview() {
+		previewExpand = true;
+		queueMicrotask(() => layoutExportStore.requestRemeasure());
+	}
+	function closeFullscreenPreview() {
+		previewExpand = false;
+		queueMicrotask(() => layoutExportStore.requestRemeasure());
+	}
+
+	/** Shared geometry so fullscreen toolbar buttons match despite UA `button` defaults. */
+	const fullscreenPreviewToolbarBtn =
+		'box-border m-0 appearance-none inline-flex h-8 min-h-8 max-h-8 shrink-0 items-center justify-center whitespace-nowrap rounded-none border border-solid px-3 py-0 text-sm font-medium leading-none shadow-sm backdrop-blur-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 dark:focus-visible:outline-primary-400';
 
 	// Load a share payload from the URL (client-side; bad input falls back to defaults).
 	let hydrated = $state(false);
@@ -71,11 +88,23 @@
 		}, 400);
 	});
 
+	$effect(() => {
+		if (!browser || !previewExpand) return;
+		function onKey(e: KeyboardEvent) {
+			if (e.key === 'Escape') closeFullscreenPreview();
+		}
+		window.addEventListener('keydown', onKey);
+		return () => window.removeEventListener('keydown', onKey);
+	});
+
 	let loadExampleEl = $state<HTMLDetailsElement | null>(null);
 	function pickExample(kind: ExampleId) {
 		projectStore.loadExample(kind);
 		if (loadExampleEl) loadExampleEl.open = false;
 	}
+
+	const navLink =
+		'text-sm font-medium text-gray-600 underline decoration-gray-400/50 underline-offset-2 hover:text-gray-900 hover:decoration-gray-500/60 dark:text-gray-400 dark:decoration-gray-500/50 dark:hover:text-gray-100 dark:hover:decoration-gray-400/60';
 
 	const themeBtn =
 		'inline-flex h-8 w-8 items-center justify-center border-0 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500';
@@ -94,13 +123,13 @@
 </svelte:head>
 
 <div class="flex h-dvh flex-col overflow-hidden bg-app-shell dark:bg-gray-900">
-	<!-- Top bar -->
+	<!-- Top bar: brand + site nav -->
 	<header
-		class="flex h-12 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-3 dark:border-gray-700 dark:bg-gray-900"
+		class="flex h-12 shrink-0 items-center justify-between gap-3 border-b border-gray-200 bg-white px-3 dark:border-gray-700 dark:bg-gray-900"
 	>
 		<a
 			href="/"
-			class="flex items-center gap-2 text-gray-900 dark:text-white"
+			class="flex shrink-0 items-center gap-2 text-gray-900 dark:text-white"
 			title="Word Aligner home"
 		>
 			<svg class="h-4 w-6" viewBox="0 0 30 20" fill="none" aria-hidden="true">
@@ -118,67 +147,20 @@
 			</svg>
 			<span class="font-heading text-sm font-semibold">Word Aligner</span>
 		</a>
-		<div
-			class="inline-flex overflow-hidden rounded-none border border-gray-300 dark:border-gray-600"
-			role="group"
-			aria-label="Theme"
-		>
-			<button
-				type="button"
-				class={siteTheme === 'light' ? themeActive : themeIdle}
-				aria-pressed={siteTheme === 'light'}
-				title="Light theme"
-				onclick={() => settingsStore.patch({ theme: 'light' })}
-			>
-				<span class="sr-only">Light</span>
-				<svg
-					class="h-4 w-4"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="1.5"
-					aria-hidden="true"
-					><path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"
-					/></svg
-				>
-			</button>
-			<button
-				type="button"
-				class="{siteTheme === 'dark'
-					? themeActive
-					: themeIdle} border-l border-gray-300 dark:border-gray-600"
-				aria-pressed={siteTheme === 'dark'}
-				title="Dark theme"
-				onclick={() => settingsStore.patch({ theme: 'dark' })}
-			>
-				<span class="sr-only">Dark</span>
-				<svg
-					class="h-4 w-4"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="1.5"
-					aria-hidden="true"
-					><path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						d="M21.752 15.002A9.718 9.718 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"
-					/></svg
-				>
-			</button>
-		</div>
+		<nav class="flex shrink-0 items-center gap-3" aria-label="Site">
+			<a href={resolve('/examples')} class={navLink}>Examples</a>
+			<a href={resolve('/guide')} class={navLink}>Guides</a>
+			<a href={resolve('/about')} class={navLink}>About</a>
+		</nav>
 	</header>
 
 	<!-- Body: canvas + (wide) rail -->
 	<div class="flex min-h-0 flex-1">
 		<!-- Canvas column -->
 		<main class="relative flex min-h-0 flex-1 flex-col">
-			<!-- Canvas toolbar -->
+			<!-- Panel above the editor: example loader + view controls + theme -->
 			<div
-				class="flex shrink-0 items-center gap-2 border-b border-gray-200 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900"
+				class="flex shrink-0 flex-wrap items-center gap-2 border-b border-gray-200 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900"
 			>
 				<details bind:this={loadExampleEl} class="group relative shrink-0">
 					<summary class={exampleBtn} title="Load example">
@@ -212,7 +194,7 @@
 					</div>
 				</details>
 
-				<div class="flex flex-1 items-center justify-end gap-2">
+				<div class="flex flex-1 flex-wrap items-center justify-end gap-2">
 					<Button
 						color="light"
 						size="sm"
@@ -247,13 +229,75 @@
 						<TrashBinOutline class="h-4 w-4 shrink-0" aria-hidden="true" />
 						<span class="sr-only md:not-sr-only md:ml-1 md:inline">Clear links</span>
 					</Button>
+					<Button
+						color="light"
+						size="sm"
+						class="shrink-0 px-2!"
+						title="Expand preview to fullscreen"
+						onclick={openFullscreenPreview}
+					>
+						<ExpandOutline class="h-4 w-4 shrink-0" aria-hidden="true" />
+						<span class="sr-only md:not-sr-only md:ml-1 md:inline">Expand</span>
+					</Button>
+					<div
+						class="inline-flex shrink-0 overflow-hidden rounded-none border border-gray-300 dark:border-gray-600"
+						role="group"
+						aria-label="Theme"
+					>
+						<button
+							type="button"
+							class={siteTheme === 'light' ? themeActive : themeIdle}
+							aria-pressed={siteTheme === 'light'}
+							title="Light theme"
+							onclick={() => settingsStore.patch({ theme: 'light' })}
+						>
+							<span class="sr-only">Light theme</span>
+							<svg
+								class="h-4 w-4"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.5"
+								aria-hidden="true"
+								><path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"
+								/></svg
+							>
+						</button>
+						<button
+							type="button"
+							class="{siteTheme === 'dark'
+								? themeActive
+								: themeIdle} border-l border-gray-300 dark:border-gray-600"
+							aria-pressed={siteTheme === 'dark'}
+							title="Dark theme"
+							onclick={() => settingsStore.patch({ theme: 'dark' })}
+						>
+							<span class="sr-only">Dark theme</span>
+							<svg
+								class="h-4 w-4"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.5"
+								aria-hidden="true"
+								><path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									d="M21.752 15.002A9.718 9.718 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"
+								/></svg
+							>
+						</button>
+					</div>
 				</div>
 			</div>
 
 			<!-- Canvas scroll area -->
 			<div class="min-h-0 flex-1 overflow-auto">
 				<div class="p-3 sm:p-4">
-					<AlignmentPreview instancePrefix="editor" writesExportLayout={true} />
+					<AlignmentPreview instancePrefix="editor" writesExportLayout={!previewExpand} />
 				</div>
 			</div>
 
@@ -315,6 +359,55 @@
 		</div>
 	{/if}
 </div>
+
+{#if previewExpand}
+	<div class="fixed inset-0 z-40" role="dialog" aria-modal="true" aria-label="Fullscreen preview">
+		<button
+			type="button"
+			class="absolute inset-0 cursor-default bg-black/70 backdrop-blur-sm"
+			aria-label="Close fullscreen preview"
+			onclick={closeFullscreenPreview}
+		></button>
+		<div class="pointer-events-none relative z-10 box-border pb-3 pt-12 md:pb-4 md:pt-14">
+			<div
+				class="pointer-events-auto absolute right-3 top-3 z-10 flex flex-wrap items-center justify-end gap-2"
+			>
+				<button
+					type="button"
+					class="{fullscreenPreviewToolbarBtn} px-2! md:px-3! border-gray-300 bg-white text-gray-900 hover:bg-gray-100 dark:border-gray-500 dark:bg-gray-200 dark:text-gray-900 dark:hover:bg-gray-300"
+					aria-pressed={previewHideChrome}
+					onclick={() => {
+						settingsStore.patch({ previewHideChrome: !previewHideChrome });
+						layoutExportStore.requestRemeasureAfterLayout();
+					}}
+				>
+					{#if previewHideChrome}
+						<EyeOutline class="h-4 w-4 shrink-0 md:hidden" aria-hidden="true" />
+					{:else}
+						<EyeSlashOutline class="h-4 w-4 shrink-0 md:hidden" aria-hidden="true" />
+					{/if}
+					<span class="sr-only md:not-sr-only md:inline">
+						{previewHideChrome ? 'Show controls' : 'Hide controls'}
+					</span>
+				</button>
+				<button
+					type="button"
+					class="{fullscreenPreviewToolbarBtn} px-2! md:px-3! border-gray-600 bg-gray-900/90 text-white hover:bg-gray-800 dark:bg-gray-950/90"
+					title="Close fullscreen preview"
+					onclick={closeFullscreenPreview}
+				>
+					<CloseOutline class="h-4 w-4 shrink-0 md:hidden" aria-hidden="true" />
+					<span class="sr-only md:not-sr-only md:inline">Close</span>
+				</button>
+			</div>
+			<div
+				class="pointer-events-auto max-h-[calc(100dvh-3.75rem)] w-full overflow-y-auto overscroll-contain md:max-h-[calc(100dvh-4.5rem)]"
+			>
+				<AlignmentPreview instancePrefix="editor-fs" writesExportLayout={previewExpand} />
+			</div>
+		</div>
+	</div>
+{/if}
 
 <LineEditModal />
 <LineSettingsSheet />

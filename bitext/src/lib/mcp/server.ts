@@ -106,7 +106,7 @@ const TOOL_INPUT_SCHEMA = {
 			properties: {
 				palette: {
 					type: 'string',
-					enum: ['pastel', 'vivid', 'academic'],
+					enum: ['pastel', 'vivid'],
 					description: 'Connection color palette. Default pastel.'
 				},
 				lineStyle: {

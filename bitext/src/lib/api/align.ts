@@ -39,7 +39,7 @@ export interface LineInput {
 /** Global visual settings overrides. All fields optional; unset fields inherit defaults. */
 export interface SettingsInput {
 	/** Color palette for connection lines. */
-	palette?: 'pastel' | 'vivid' | 'academic';
+	palette?: 'pastel' | 'vivid';
 	/** Connection line shape. */
 	lineStyle?: 'straight' | 'curved';
 	/** Connection line thickness (1–8). */
