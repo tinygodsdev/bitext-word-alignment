@@ -22,6 +22,7 @@
 	import EditorPanels from '$lib/components/editor-shell/EditorPanels.svelte';
 	import JsonLd from '$lib/components/seo/JsonLd.svelte';
 	import SeoDrawer from '$lib/components/seo/SeoDrawer.svelte';
+	import CanvasPartnerStrip from '$lib/components/partners/CanvasPartnerStrip.svelte';
 	import { editorShellStore } from '$lib/state/editorShell.svelte.js';
 	import { viewportStore } from '$lib/state/viewport.svelte.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
@@ -48,6 +49,7 @@
 	);
 
 	let seoOpen = $state(false);
+	let canvasScrollEl = $state<HTMLElement | null>(null);
 
 	let previewExpand = $state(false);
 	function openFullscreenPreview() {
@@ -269,11 +271,14 @@
 			</div>
 
 			<!-- Canvas scroll area -->
-			<div class="min-h-0 flex-1 overflow-auto">
+			<div bind:this={canvasScrollEl} class="min-h-0 flex-1 overflow-auto">
 				<div class="p-3 sm:p-4">
 					<AlignmentPreview instancePrefix="editor" writesExportLayout={!previewExpand} />
 				</div>
 			</div>
+
+			<!-- Partner offers fill the space under a short diagram; auto-collapse when it grows. -->
+			<CanvasPartnerStrip partnerIds={data.homePartnerOrder} scrollEl={canvasScrollEl} />
 
 			<!-- Narrow: sheet over the canvas (above the pinned bottom bar) -->
 			{#if viewportStore.isNarrow && editorShellStore.sheetOpen}
