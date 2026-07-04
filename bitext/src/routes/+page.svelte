@@ -10,6 +10,7 @@
 		EyeOutline,
 		EyeSlashOutline,
 		FolderOpenOutline,
+		InfoCircleOutline,
 		TrashBinOutline
 	} from 'flowbite-svelte-icons';
 	import AlignmentPreview from '$lib/components/preview/AlignmentPreview.svelte';
@@ -20,6 +21,7 @@
 	import EditorTabBar from '$lib/components/editor-shell/EditorTabBar.svelte';
 	import EditorPanels from '$lib/components/editor-shell/EditorPanels.svelte';
 	import JsonLd from '$lib/components/seo/JsonLd.svelte';
+	import SeoDrawer from '$lib/components/seo/SeoDrawer.svelte';
 	import { editorShellStore } from '$lib/state/editorShell.svelte.js';
 	import { viewportStore } from '$lib/state/viewport.svelte.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
@@ -44,6 +46,8 @@
 				? 'Style'
 				: 'Export & share'
 	);
+
+	let seoOpen = $state(false);
 
 	let previewExpand = $state(false);
 	function openFullscreenPreview() {
@@ -160,6 +164,8 @@
 <JsonLd />
 
 <div class="flex h-[calc(100dvh-3.5rem)] flex-col overflow-hidden bg-app-shell dark:bg-gray-900">
+	<!-- Page heading for search engines and screen readers; the About panel carries the body copy. -->
+	<h1 class="sr-only">Word-by-word translation visualizer</h1>
 	<!-- Body: canvas + (wide) rail -->
 	<div class="flex min-h-0 flex-1">
 		<!-- Canvas column -->
@@ -199,6 +205,19 @@
 						{/each}
 					</div>
 				</details>
+
+				<Button
+					color="light"
+					size="sm"
+					class="shrink-0 px-2!"
+					title="About Word Aligner — what it does and how to use it"
+					aria-haspopup="dialog"
+					aria-expanded={seoOpen}
+					onclick={() => (seoOpen = true)}
+				>
+					<InfoCircleOutline class="h-4 w-4 shrink-0" aria-hidden="true" />
+					<span class="sr-only sm:not-sr-only sm:ml-1 sm:inline">About</span>
+				</Button>
 
 				<div class="flex flex-1 flex-wrap items-center justify-end gap-2">
 					<StylePicker />
@@ -409,3 +428,4 @@
 <LineEditModal />
 <LineSettingsSheet />
 <GroupColorPopover />
+<SeoDrawer bind:open={seoOpen} />
