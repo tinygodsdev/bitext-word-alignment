@@ -2,6 +2,7 @@
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import { ALIGNER_DISPLAY_NAME } from '$lib/brand.js';
+	import PageHero from '$lib/components/layout/PageHero.svelte';
 	import SiteFooter from '$lib/components/layout/SiteFooter.svelte';
 	import ExampleSections from '$lib/components/examples/ExampleSections.svelte';
 	import PartnerBannerById from '$lib/components/partners/PartnerBannerById.svelte';
@@ -74,23 +75,22 @@
 <main
 	class="mx-auto w-full max-w-3xl min-w-0 px-4 pt-4 pb-16 leading-relaxed text-gray-700 sm:px-6 md:pt-6 md:pb-20 dark:text-gray-300"
 >
-	<header class="mb-8 border-b border-gray-200 pb-6 dark:border-gray-700">
-		<nav class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-			<a href={resolve('/')} class={linkClass}>← {ALIGNER_DISPLAY_NAME}</a>
-			<span class="text-gray-400 dark:text-gray-500" aria-hidden="true">·</span>
-			<a href={resolve('/examples')} class={linkClass}>Examples</a>
-		</nav>
-		<h1 class="font-heading mt-4 text-2xl font-semibold text-gray-900 sm:text-3xl dark:text-white">
-			{entry.title}
-		</h1>
-		<p class="mt-3 max-w-prose text-base text-gray-600 dark:text-gray-400">
+	<PageHero
+		eyebrow="Example"
+		title={entry.title}
+		crumbs={[
+			{ label: `← ${ALIGNER_DISPLAY_NAME}`, href: resolve('/') },
+			{ label: 'Examples', href: resolve('/examples') }
+		]}
+	>
+		{#snippet lede()}
 			{entry.description}
-		</p>
-	</header>
+		{/snippet}
+	</PageHero>
 
 	<figure class="m-0 mb-8">
 		<div
-			class="overflow-hidden rounded-md border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/40"
+			class="overflow-hidden border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/40"
 		>
 			<img
 				src={previewImageUrl}
@@ -143,13 +143,13 @@
 			</h2>
 			<ul class="m-0 mt-5 grid list-none grid-cols-1 gap-5 p-0 sm:grid-cols-2">
 				{#each data.related as rel (rel.slug)}
-					<li>
-						<article
-							class="flex h-full flex-col overflow-hidden rounded-md border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800/40"
+					<li class="h-full">
+						<a
+							href={resolve(`/examples/${rel.slug}`)}
+							class="group flex h-full flex-col overflow-hidden border border-gray-200 bg-white no-underline transition-all duration-200 hover:-translate-y-0.5 hover:border-primary-400 dark:border-gray-700 dark:bg-gray-800/40 dark:hover:border-primary-500/60"
 						>
-							<a
-								href={resolve(`/examples/${rel.slug}`)}
-								class="block overflow-hidden border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/40"
+							<div
+								class="overflow-hidden border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/40"
 							>
 								<img
 									src={rel.previewImageUrl}
@@ -158,18 +158,15 @@
 									height={540}
 									loading="lazy"
 									decoding="async"
-									class="w-full bg-white object-contain object-center dark:bg-gray-900/40"
+									class="w-full bg-white object-contain object-center transition-transform duration-300 group-hover:scale-[1.03] dark:bg-gray-900/40"
 								/>
-							</a>
-							<h3 class="m-0 p-4 text-base leading-snug font-semibold">
-								<a
-									href={resolve(`/examples/${rel.slug}`)}
-									class="text-gray-900 no-underline hover:underline dark:text-white"
-								>
-									{rel.title}
-								</a>
+							</div>
+							<h3
+								class="font-heading m-0 p-4 text-base leading-snug font-semibold text-gray-900 dark:text-white"
+							>
+								{rel.title}
 							</h3>
-						</article>
+						</a>
 					</li>
 				{/each}
 			</ul>

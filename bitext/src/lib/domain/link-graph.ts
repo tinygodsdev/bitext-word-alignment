@@ -83,5 +83,27 @@ export function connectedConnectionComponents(connections: Connection[]): Set<st
 	return out;
 }
 
+/**
+ * Recolor unpinned groups by cycling `palette` in component order; pinned groups keep their color.
+ * Pure — returns a new array. Used when the palette or style preset changes.
+ */
+export function recolorUnpinnedComponents(
+	connections: Connection[],
+	palette: readonly string[]
+): Connection[] {
+	const colorById: Record<string, string> = {};
+	let autoIndex = 0;
+	for (const component of connectedConnectionComponents(connections)) {
+		const anyPinned = connections.some((c) => component.has(c.id) && c.pinned);
+		if (anyPinned) continue;
+		const color = palette[autoIndex % palette.length]!;
+		autoIndex += 1;
+		component.forEach((id) => {
+			colorById[id] = color;
+		});
+	}
+	return connections.map((c) => (colorById[c.id] ? { ...c, color: colorById[c.id] } : c));
+}
+
 /** @deprecated */
 export const connectedLinkComponents = connectedConnectionComponents;

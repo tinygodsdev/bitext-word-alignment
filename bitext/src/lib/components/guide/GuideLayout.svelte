@@ -3,11 +3,11 @@
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import { ALIGNER_DISPLAY_NAME } from '$lib/brand.js';
+	import PageHero from '$lib/components/layout/PageHero.svelte';
 	import SiteFooter from '$lib/components/layout/SiteFooter.svelte';
 	import StructuredData from '$lib/components/seo/StructuredData.svelte';
 	import { SITE_NAME } from '$lib/seo/metadata.js';
 	import { breadcrumbList, type Crumb } from '$lib/seo/structured-data.js';
-	import { GUIDE_LINK } from '$lib/guide/ui.js';
 
 	type TocItem = { id: string; label: string };
 
@@ -16,6 +16,7 @@
 		description,
 		path,
 		title,
+		eyebrow = 'Glossing guide',
 		lede,
 		crumbs = [],
 		extraSchema = [],
@@ -26,12 +27,19 @@
 		description: string;
 		path: string;
 		title: string;
+		eyebrow?: string;
 		lede?: Snippet;
 		crumbs?: Crumb[];
 		extraSchema?: object[];
 		toc?: TocItem[];
 		children: Snippet;
 	} = $props();
+
+	const navCrumbs = [
+		{ label: `← ${ALIGNER_DISPLAY_NAME}`, href: resolve('/') },
+		{ label: 'Guides', href: resolve('/guide') },
+		{ label: 'Examples', href: resolve('/examples') }
+	];
 
 	const canonical = $derived(page.url.origin + page.url.pathname);
 	const ogImage = $derived(`${page.url.origin}/api/og`);
@@ -75,36 +83,24 @@
 <main
 	class="mx-auto w-full max-w-3xl min-w-0 px-4 pt-4 pb-16 leading-relaxed text-gray-700 sm:px-6 md:pt-6 md:pb-20 dark:text-gray-300"
 >
-	<header class="mb-8 border-b border-gray-200 pb-6 dark:border-gray-700">
-		<nav class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-			<a href={resolve('/')} class={GUIDE_LINK}>← {ALIGNER_DISPLAY_NAME}</a>
-			<span class="text-gray-400 dark:text-gray-500" aria-hidden="true">·</span>
-			<a href={resolve('/guide')} class={GUIDE_LINK}>Guides</a>
-			<span class="text-gray-400 dark:text-gray-500" aria-hidden="true">·</span>
-			<a href={resolve('/examples')} class={GUIDE_LINK}>Examples</a>
-		</nav>
-		<h1 class="font-heading mt-4 text-2xl font-semibold text-gray-900 sm:text-3xl dark:text-white">
-			{title}
-		</h1>
-		{#if lede}
-			<div class="mt-3 max-w-prose text-base text-gray-600 dark:text-gray-400">
-				{@render lede()}
-			</div>
-		{/if}
-	</header>
+	<PageHero {eyebrow} {title} crumbs={navCrumbs} {lede} />
 
 	{#if toc.length > 0}
 		<nav
-			class="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm dark:border-gray-700 dark:bg-gray-800/60"
+			class="border border-gray-200 bg-white/60 px-4 py-3 text-sm dark:border-gray-700 dark:bg-gray-800/50"
 			aria-label="On this page"
 		>
-			<p class="m-0 font-medium text-gray-900 dark:text-white">On this page</p>
-			<ul class="mt-2 flex list-none flex-wrap gap-x-4 gap-y-1 p-0">
+			<p
+				class="font-heading m-0 text-xs font-semibold tracking-[0.14em] text-gray-500 uppercase dark:text-gray-400"
+			>
+				On this page
+			</p>
+			<ul class="mt-3 flex list-none flex-wrap gap-x-2 gap-y-2 p-0">
 				{#each toc as item (item.id)}
 					<li>
 						<a
 							href={`#${item.id}`}
-							class="text-gray-700 underline decoration-gray-400/40 underline-offset-2 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+							class="inline-flex border border-gray-200 bg-gray-50 px-3 py-1 text-gray-600 no-underline transition-colors hover:border-primary-400 hover:bg-primary-50 hover:text-primary-700 dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-300 dark:hover:border-primary-500/60 dark:hover:bg-primary-950/40 dark:hover:text-primary-300"
 							>{item.label}</a
 						>
 					</li>

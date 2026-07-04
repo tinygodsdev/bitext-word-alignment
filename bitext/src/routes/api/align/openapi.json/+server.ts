@@ -169,7 +169,7 @@ export const GET: RequestHandler = ({ url }) => {
 					properties: {
 						palette: {
 							type: 'string',
-							enum: ['pastel', 'vivid', 'academic'],
+							enum: ['pastel', 'vivid'],
 							description: 'Color palette for connection lines. Default: pastel.'
 						},
 						lineStyle: {

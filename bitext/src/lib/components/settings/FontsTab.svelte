@@ -49,10 +49,7 @@
 
 <div class="grid grid-cols-12 gap-4">
 	<div class="col-span-12">
-		<h3 class="font-heading text-sm font-semibold text-gray-900 dark:text-white">
-			Custom fonts library
-		</h3>
-		<p class="mt-1 text-base text-gray-600 dark:text-gray-400">
+		<p class="text-xs text-gray-500 dark:text-gray-400">
 			Upload font files once; they are stored in your browser. In the editor, set each line to
 			<strong>Custom</strong> and pick the family name here.
 		</p>

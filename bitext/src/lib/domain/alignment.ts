@@ -8,6 +8,8 @@ export interface Connection {
 	upperTokenId: TokenId;
 	lowerTokenId: TokenId;
 	color?: string;
+	/** When true, this group keeps its color through palette/style changes until reset. */
+	pinned?: boolean;
 }
 
 let connectionCounter = 0;

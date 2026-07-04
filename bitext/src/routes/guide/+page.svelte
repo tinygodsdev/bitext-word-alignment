@@ -14,6 +14,7 @@
 <GuideLayout
 	path={PATH}
 	title={TITLE}
+	eyebrow="Interlinear glossing"
 	seoTitle={SEO_TITLE}
 	description={DESCRIPTION}
 	crumbs={[
@@ -28,35 +29,71 @@
 	{/snippet}
 
 	<ul class="m-0 mt-2 grid list-none grid-cols-1 gap-5 p-0 sm:grid-cols-2">
-		{#each GUIDES as guide (guide.path)}
-			<li>
-				<article
-					class="flex h-full flex-col rounded-md border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800/40"
+		{#each GUIDES as guide, i (guide.path)}
+			<li class="h-full">
+				<a
+					href={guide.path}
+					class="group relative flex h-full flex-col overflow-hidden border border-gray-200 bg-white p-5 no-underline transition-all duration-200 hover:-translate-y-0.5 hover:border-primary-400 dark:border-gray-700 dark:bg-gray-800/40 dark:hover:border-primary-500/60"
 				>
-					<h2 class="font-heading m-0 text-lg leading-snug font-semibold">
-						<a href={guide.path} class="text-gray-900 no-underline hover:underline dark:text-white">
-							{guide.title}
-						</a>
+					<span
+						class="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-linear-to-r from-primary-500 to-secondary-500 transition-transform duration-200 group-hover:scale-x-100"
+						aria-hidden="true"
+					></span>
+					<h2
+						class="font-heading m-0 flex items-start justify-between gap-3 text-lg leading-snug font-semibold text-gray-900 dark:text-white"
+					>
+						<span>{guide.title}</span>
+						<svg
+							class="mt-1 h-4 w-4 shrink-0 text-gray-300 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-primary-600 dark:text-gray-600 dark:group-hover:text-primary-400"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							aria-hidden="true"
+						>
+							<path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
+						</svg>
 					</h2>
+					{#if i === 0}
+						<span
+							class="mt-2 inline-flex w-fit items-center bg-primary-50 px-2 py-0.5 text-xs font-medium tracking-wide text-primary-700 dark:bg-primary-950/50 dark:text-primary-300"
+							>Start here</span
+						>
+					{/if}
 					<p class="mt-2 mb-0 flex-1 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
 						{guide.blurb}
 					</p>
-				</article>
+				</a>
 			</li>
 		{/each}
-		<li>
-			<article
-				class="flex h-full flex-col rounded-md border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800/40"
+		<li class="h-full">
+			<a
+				href="/skill"
+				class="group relative flex h-full flex-col overflow-hidden border border-gray-200 bg-white p-5 no-underline transition-all duration-200 hover:-translate-y-0.5 hover:border-primary-400 dark:border-gray-700 dark:bg-gray-800/40 dark:hover:border-primary-500/60"
 			>
-				<h2 class="font-heading m-0 text-lg leading-snug font-semibold">
-					<a href="/skill" class="text-gray-900 no-underline hover:underline dark:text-white">
-						Agent skill for Claude and ChatGPT
-					</a>
+				<span
+					class="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-linear-to-r from-primary-500 to-secondary-500 transition-transform duration-200 group-hover:scale-x-100"
+					aria-hidden="true"
+				></span>
+				<h2
+					class="font-heading m-0 flex items-start justify-between gap-3 text-lg leading-snug font-semibold text-gray-900 dark:text-white"
+				>
+					<span>Agent skill for Claude and ChatGPT</span>
+					<svg
+						class="mt-1 h-4 w-4 shrink-0 text-gray-300 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-primary-600 dark:text-gray-600 dark:group-hover:text-primary-400"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						aria-hidden="true"
+					>
+						<path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
+					</svg>
 				</h2>
 				<p class="mt-2 mb-0 flex-1 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
 					Let your AI assistant build these diagrams from a plain request, on the same open API.
 				</p>
-			</article>
+			</a>
 		</li>
 	</ul>
 </GuideLayout>

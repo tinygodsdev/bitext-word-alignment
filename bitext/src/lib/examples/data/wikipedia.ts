@@ -62,9 +62,9 @@ export const WIKIPEDIA_EXAMPLES: ExampleEntry[] = [
 				['src-0', 'tr-0'],
 				['src-0', 'tr-1'],
 				['src-2', 'tr-2'],
-				['src-3', 'tr-3'],
-				['src-4', 'tr-4'],
-				['src-5', 'tr-5']
+				['src-2', 'tr-3'],
+				['src-3', 'tr-4'],
+				['src-4', 'tr-5']
 			]
 		};
 	})(),
@@ -91,7 +91,7 @@ export const WIKIPEDIA_EXAMPLES: ExampleEntry[] = [
 				['src-1', 'tr-3'],
 				['src-2', 'tr-4'],
 				['src-3', 'tr-5'],
-				['src-4', 'tr-6'],
+				['src-4', 'tr-7'],
 				['src-5', 'tr-8']
 			]
 		};
@@ -117,7 +117,7 @@ export const WIKIPEDIA_EXAMPLES: ExampleEntry[] = [
 				['src-0', 'tr-0'],
 				['src-1', 'tr-1'],
 				['src-2', 'tr-2'],
-				['src-3', 'tr-6'],
+				['src-3', 'tr-7'],
 				['src-4', 'tr-6'],
 				['src-5', 'tr-3'],
 				['src-5', 'tr-4']

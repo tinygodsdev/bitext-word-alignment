@@ -4,7 +4,7 @@ import {
 	removeConnection,
 	type Connection
 } from '$lib/domain/alignment.js';
-import { connectedConnectionComponents, connectedConnectionIds } from '$lib/domain/link-graph.js';
+import { connectedConnectionIds, recolorUnpinnedComponents } from '$lib/domain/link-graph.js';
 import {
 	filterConnectionsByAdjacency,
 	canonicalPair,
@@ -14,7 +14,7 @@ import {
 	adjacentLineKeys,
 	isStackedAdjacentPair
 } from '$lib/domain/lines-helpers.js';
-import { PALETTES, type PaletteName } from '$lib/domain/palettes.js';
+import { PALETTES, pickUnusedPaletteColor, type PaletteName } from '$lib/domain/palettes.js';
 import { tokenizeOptionsFromVisualSettings, type Token } from '$lib/domain/tokens.js';
 import {
 	clampLineGapPx,
@@ -240,7 +240,13 @@ class ProjectStore {
 		layoutExportStore.requestRemeasureAfterLayout();
 	}
 
-	addConnection(upperTokenId: string, lowerTokenId: string, palette: PaletteName) {
+	/** `pinnedColor` (from a group color pick) forces the new group's color and pins it. */
+	addConnection(
+		upperTokenId: string,
+		lowerTokenId: string,
+		palette: PaletteName,
+		pinnedColor?: string
+	) {
 		const opts = this.currentTokenizeOptions();
 		const tokenToLine = lineOrderTokenIds(this.lines, opts);
 		const lineIds = this.lines.map((l) => l.id);
@@ -249,27 +255,76 @@ class ProjectStore {
 		const ll = tokenToLine.get(lowerTokenId);
 		if (lu == null || ll == null) return;
 		if (!adj.has(`${lu}\0${ll}`)) return;
-		const color = pendingAlignmentColor(this.connections, [upperTokenId], [lowerTokenId], palette);
 		const seedTokens = new Set<string>([upperTokenId, lowerTokenId]);
+		// Inherit a pinned color when either endpoint's existing group is pinned.
+		const componentBefore = connectedConnectionIds(this.connections, seedTokens);
+		const inheritedPinned = this.connections.find(
+			(c) => componentBefore.has(c.id) && c.pinned && c.color
+		);
+		let color: string;
+		let pinned: boolean;
+		if (pinnedColor) {
+			color = pinnedColor;
+			pinned = true;
+		} else if (inheritedPinned?.color) {
+			color = inheritedPinned.color;
+			pinned = true;
+		} else {
+			color = pendingAlignmentColor(this.connections, [upperTokenId], [lowerTokenId], palette);
+			pinned = false;
+		}
 		const merged = addAtomicConnections(this.connections, [{ upperTokenId, lowerTokenId }], color);
 		const componentAfter = connectedConnectionIds(merged, seedTokens);
-		this.connections = merged.map((c) => (componentAfter.has(c.id) ? { ...c, color } : c));
+		this.connections = merged.map((c) => (componentAfter.has(c.id) ? { ...c, color, pinned } : c));
+	}
+
+	/** Pin a group (component containing `tokenId`) to a color; it survives palette/style changes. */
+	pinGroupColor(tokenId: string, color: string) {
+		const component = connectedConnectionIds(this.connections, [tokenId]);
+		if (component.size === 0) return;
+		this.connections = this.connections.map((c) =>
+			component.has(c.id) ? { ...c, color, pinned: true } : c
+		);
+	}
+
+	/** Unpin a group and recolor it with the next unused palette color (auto behavior). */
+	unpinGroupColor(tokenId: string, palette: PaletteName) {
+		const component = connectedConnectionIds(this.connections, [tokenId]);
+		if (component.size === 0) return;
+		const otherColors = new Set(
+			this.connections
+				.filter((c) => !component.has(c.id))
+				.map((c) => c.color)
+				.filter((c): c is string => Boolean(c))
+		);
+		const color = pickUnusedPaletteColor(palette, otherColors, this.connections.length);
+		this.connections = this.connections.map((c) =>
+			component.has(c.id) ? { ...c, color, pinned: false } : c
+		);
+	}
+
+	/** True when `tokenId` is part of at least one connection. */
+	hasGroup(tokenId: string): boolean {
+		return this.connections.some((c) => c.upperTokenId === tokenId || c.lowerTokenId === tokenId);
+	}
+
+	/** True when `tokenId` belongs to a pinned group. */
+	isGroupPinned(tokenId: string): boolean {
+		const component = connectedConnectionIds(this.connections, [tokenId]);
+		if (component.size === 0) return false;
+		return this.connections.some((c) => component.has(c.id) && c.pinned);
+	}
+
+	/** The color of the group containing `tokenId`, if any. */
+	groupColor(tokenId: string): string | null {
+		const c = this.connections.find(
+			(x) => x.upperTokenId === tokenId || x.lowerTokenId === tokenId
+		);
+		return c?.color ?? null;
 	}
 
 	recolorAllConnections(palette: PaletteName) {
-		const pool = PALETTES[palette];
-		const components = connectedConnectionComponents(this.connections);
-		const colorById: Record<string, string> = {};
-		components.forEach((component, i) => {
-			const color = pool[i % pool.length]!;
-			component.forEach((id) => {
-				colorById[id] = color;
-			});
-		});
-		this.connections = this.connections.map((c) => ({
-			...c,
-			color: colorById[c.id] ?? pool[0]!
-		}));
+		this.connections = recolorUnpinnedComponents(this.connections, PALETTES[palette]);
 	}
 
 	removeConnectionById(connectionId: string) {
@@ -278,13 +333,6 @@ class ProjectStore {
 
 	clearAllConnections() {
 		this.connections = [];
-	}
-
-	updateConnectionColor(connectionId: string, color: string) {
-		const c = this.connections.find((x) => x.id === connectionId);
-		if (!c) return;
-		const component = connectedConnectionIds(this.connections, [c.upperTokenId, c.lowerTokenId]);
-		this.connections = this.connections.map((x) => (component.has(x.id) ? { ...x, color } : x));
 	}
 
 	getSnapshot(): ProjectSnapshotV2 {

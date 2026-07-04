@@ -240,7 +240,7 @@ const STYLES: Record<StyleId, VisualStyle> = {
 			tintBaseHex: '#f3efdb'
 		},
 		connector: { cap: 'round', mode: 'ribbon', taper: true, ribbonScale: 5, lineColor: '#515e30' },
-		defaultFont: 'Spectral',
+		defaultFont: 'Amarante',
 		palette: 'nouveau',
 		frameClass: 'aligner-frame-nouveau'
 	},

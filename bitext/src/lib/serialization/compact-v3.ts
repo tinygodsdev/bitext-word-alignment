@@ -2,6 +2,7 @@ import { createConnectionId, type Connection } from '$lib/domain/alignment.js';
 import { tokenize, tokenizeOptionsFromVisualSettings } from '$lib/domain/tokens.js';
 import {
 	SCHEMA_VERSION,
+	LEGACY_TOKEN_SPLIT_CHARS,
 	clampLineGapPx,
 	clampWordGapPx,
 	DEFAULT_WORD_GAP_PX,
@@ -78,8 +79,9 @@ function settingsToCompact(rounded: VisualSettingsV2): CompactSettings3 | undefi
 }
 
 function compactToVisualSettings(s: CompactSettings3 | undefined): VisualSettingsV2 {
-	if (!s) return defaultVisualSettingsV2();
-	const raw: Record<string, unknown> = {};
+	// v3 predates the default-separator change; a missing `sp` meant the old `.-|` default.
+	if (!s) return { ...defaultVisualSettingsV2(), tokenSplitChars: LEGACY_TOKEN_SPLIT_CHARS };
+	const raw: Record<string, unknown> = { tokenSplitChars: LEGACY_TOKEN_SPLIT_CHARS };
 	if (s.lt !== undefined) raw.lineThickness = Number(s.lt);
 	if (s.lo !== undefined) raw.lineOpacity = Number(s.lo);
 	if (s.ls !== undefined) raw.lineStyle = Number(s.ls) === 0 ? 'straight' : 'curved';

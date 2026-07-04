@@ -1,4 +1,4 @@
-/** Jump to Settings → Tokens from elsewhere (line editor hint icon). */
+/** Jump to Text → Word splitting from elsewhere (line editor hint icon). */
 class SettingsNavStore {
 	tokensFocusGeneration = $state(0);
 

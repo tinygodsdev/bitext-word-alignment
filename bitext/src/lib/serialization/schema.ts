@@ -42,7 +42,13 @@ export const MAX_TEXT_SIZE_PX = 64;
 export const DEFAULT_WORD_GAP_PX = 14;
 export const MIN_WORD_GAP_PX = 0;
 export const MAX_WORD_GAP_PX = 56;
-export const DEFAULT_TOKEN_SPLIT_CHARS = '.-|';
+export const DEFAULT_TOKEN_SPLIT_CHARS = '|';
+/**
+ * Default separators in effect for compact v2/v3 payloads. Dot and hyphen used to split by
+ * default; they were dropped because users did not expect them to. Legacy decoders pin this so
+ * old share links keep their original tokenization (see compact-v3 / compact-v2).
+ */
+export const LEGACY_TOKEN_SPLIT_CHARS = '.-|';
 /** Default join character for new projects; omits from compact when equal. */
 export const DEFAULT_TOKEN_MERGE_CHAR = '+';
 
@@ -483,7 +489,8 @@ export function normalizeProjectConnections(raw: unknown): Connection[] {
 				id: o.id,
 				upperTokenId: upper,
 				lowerTokenId: lower,
-				color: typeof o.color === 'string' ? o.color : undefined
+				color: typeof o.color === 'string' ? o.color : undefined,
+				...(o.pinned === true ? { pinned: true } : {})
 			});
 			continue;
 		}

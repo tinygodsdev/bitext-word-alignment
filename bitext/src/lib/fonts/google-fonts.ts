@@ -18,7 +18,8 @@ export const GOOGLE_FONT_OPTIONS: { family: string; label: string }[] = [
 	{ family: 'Libre+Baskerville', label: 'Libre Baskerville' },
 	{ family: 'Spectral', label: 'Spectral' },
 	{ family: 'Sora', label: 'Sora' },
-	{ family: 'Poiret+One', label: 'Poiret One' }
+	{ family: 'Poiret+One', label: 'Poiret One' },
+	{ family: 'Amarante', label: 'Amarante' }
 ];
 
 export function googleFontStylesheetUrl(familyCss: string): string {

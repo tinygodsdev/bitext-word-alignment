@@ -73,7 +73,7 @@ describe('visual settings migration (v1 wire normalizer)', () => {
 	});
 });
 
-describe('compact v3 encode/decode (current share format)', () => {
+describe('compact v4 encode/decode (current share format)', () => {
 	it('round-trip: defaults via migrate shape', () => {
 		const s = migrate({});
 		const decoded = decodeState(encodeState(s));
@@ -311,5 +311,70 @@ describe('compact v3 encode/decode (current share format)', () => {
 
 	it('reject wrong compact wire version', () => {
 		expect(() => fromCompactWireV2({ v: 99 } as never)).toThrow();
+	});
+});
+
+describe('compact v4: pinned group color', () => {
+	function baseWithConnection(pinned: boolean, color: string): AppStateV2 {
+		const base = migrate({});
+		return {
+			...base,
+			project: {
+				...base.project,
+				connections: [
+					{
+						id: 'c1',
+						upperTokenId: 's-0',
+						lowerTokenId: 't-0',
+						color,
+						...(pinned ? { pinned: true } : {})
+					}
+				]
+			}
+		};
+	}
+
+	it('round-trips a pinned connection with its color', () => {
+		const s = baseWithConnection(true, '#123456');
+		const decoded = decodeState(encodeState(s));
+		const c = decoded.project.connections[0]!;
+		expect(c.color).toBe('#123456');
+		expect(c.pinned).toBe(true);
+	});
+
+	it('an unpinned connection stays unpinned through a round-trip', () => {
+		const s = baseWithConnection(false, '#123456');
+		const decoded = decodeState(encodeState(s));
+		expect(decoded.project.connections[0]!.pinned).toBeUndefined();
+	});
+});
+
+describe('default separators: dot and hyphen no longer split', () => {
+	it('a fresh project keeps "U.S.A" as a single token', () => {
+		const base = migrate({});
+		const s: AppStateV2 = {
+			...base,
+			project: {
+				...base.project,
+				lines: base.project.lines.map((l, i) => (i === 0 ? { ...l, rawText: 'U.S.A foo-bar' } : l))
+			}
+		};
+		expect(s.settings.tokenSplitChars).toBe('|');
+		// Round-trips without the dot/hyphen splitting the words apart.
+		const decoded = decodeState(encodeState(s));
+		expect(decoded.project.lines[0]!.rawText).toBe('U.S.A foo-bar');
+		expect(decoded.settings.tokenSplitChars).toBe('|');
+	});
+
+	it('a legacy v3 share link keeps its original "." splitting', () => {
+		// v3 predates the change; a missing `sp` must decode to the old `.-|` default so the
+		// connection on the dot-split token (s-1 = "S") survives instead of being pruned.
+		const v3 = JSON.stringify({
+			v: 3,
+			p: { ln: 's\tU.S.A\tInter\t0\t\t36\t14|t\tESSE\tInter\t0\t\t36\t14', cn: 's-1,t-0' }
+		});
+		const decoded = decodeState(deflateBase64url(v3));
+		expect(decoded.settings.tokenSplitChars).toBe('.-|');
+		expect(decoded.project.connections).toHaveLength(1);
 	});
 });

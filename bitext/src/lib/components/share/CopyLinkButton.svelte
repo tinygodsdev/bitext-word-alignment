@@ -28,8 +28,8 @@
 <Button
 	color="primary"
 	size="sm"
-	class="inline-flex min-w-[12.5rem] shrink-0 justify-center"
+	class="inline-flex min-w-[5.5rem] shrink-0 justify-center px-2.5!"
 	onclick={copy}
 >
-	{copied ? 'Copied!' : 'Copy share link'}
+	{copied ? 'Copied!' : 'Copy link'}
 </Button>
