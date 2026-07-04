@@ -293,7 +293,7 @@
 			{#if selectionStore.adjacencyHint}
 				Only <strong>adjacent</strong> lines can be linked — choose a word directly above or below.
 			{:else}
-				Click a word on an <strong>adjacent</strong> line to create the link.
+				Click on <strong>adjacent</strong> line to link.
 			{/if}
 		</p>
 	{/if}
@@ -422,6 +422,7 @@
 			{writesExportLayout}
 			{thicknessScale}
 			zoom={zoom.z}
+			showPins={!readonly && !hideChrome}
 		/>
 	</div>
 </div>

@@ -9,7 +9,7 @@
 		tokenLineId
 	} from '$lib/domain/lines-helpers.js';
 	import { linkEndpoints, linkPathD, ribbonPathD } from '$lib/domain/link-geometry.js';
-	import { connectorColor, getStyle } from '$lib/domain/styles.js';
+	import { connectorColor, getStyle, readableTextOn } from '$lib/domain/styles.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { linkHover } from '$lib/state/linkHover.svelte.js';
@@ -21,7 +21,8 @@
 		connections,
 		writesExportLayout = true,
 		thicknessScale = 1,
-		zoom = 1
+		zoom = 1,
+		showPins = false
 	}: {
 		rootEl: HTMLElement | null;
 		connections: Connection[];
@@ -31,6 +32,8 @@
 		thicknessScale?: number;
 		/** Visual pan/zoom scale of the wrapper; measurements are divided by it to stay in layout space. */
 		zoom?: number;
+		/** Editing affordance only: mark pinned-color groups. Never part of the export. */
+		showPins?: boolean;
 	} = $props();
 
 	let displayTokenLayout = $state<Record<string, TokenLayout>>({});
@@ -234,6 +237,22 @@
 							stroke-width={dot.ring ? 1.5 : undefined}
 							opacity={pathOpacity}
 						/>
+					{/if}
+					{#if showPins && conn.pinned}
+						{@const mx = (pts.x1 + pts.x2) / 2}
+						{@const my = (pts.y1 + pts.y2) / 2}
+						{@const fg = readableTextOn(col)}
+						<!-- Lock badge marks a group whose color is pinned. Editor-only; never exported. -->
+						<g transform="translate({mx} {my})" opacity={activeForPending ? 1 : PENDING_DIM_FACTOR}>
+							<circle r="7.5" fill={col} stroke={fg} stroke-width="0.75" />
+							<rect x="-3" y="-0.4" width="6" height="4.6" rx="1" fill={fg} />
+							<path
+								d="M -1.9 -0.4 V -1.7 a 1.9 1.9 0 0 1 3.8 0 V -0.4"
+								fill="none"
+								stroke={fg}
+								stroke-width="1"
+							/>
+						</g>
 					{/if}
 				{/if}
 			{/if}

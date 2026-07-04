@@ -22,10 +22,10 @@ export const PALETTES: Record<PaletteName, readonly string[]> = {
 	jewel: ['#9c3b2e', '#2f5d8a', '#3f7a4f', '#9a7b2e', '#6b4d8a', '#2f8a8a', '#a85d3c', '#54616e'],
 	ink: ['#2a2622', '#55504a', '#3a4a52', '#6a4a3a', '#454a3a', '#7a6a5a', '#3a3a4a', '#5a4a4a'],
 	cyan: ['#cfe0ff', '#7ec8ff', '#a5f3ff', '#ffd27e', '#b9a5ff', '#7affd0', '#ff9ecf', '#dfe8f5'],
-	// Art-deco golds and jades (reads on the dark emerald canvas).
-	deco: ['#e9be57', '#9fd6ad', '#e8c98a', '#7fae86', '#d4b46a', '#bfe3c6', '#caa14e', '#a6cfae'],
+	// Art-deco jewels and gold (reads on the dark emerald canvas).
+	deco: ['#e9be57', '#5cc2a4', '#2f9fbf', '#e8825c', '#d1566e', '#8f7ad0', '#6f9fe0', '#b7cf63'],
 	// Muted art-nouveau botanicals.
-	nouveau: ['#7f463e', '#496f3b', '#8a7a3a', '#6b4d6a', '#9a6b3c', '#4f6b5a', '#a15c4c', '#5f6e3a'],
+	nouveau: ['#7f463e', '#55793f', '#9a7d34', '#6b4d6a', '#b06a3c', '#4f6b5a', '#a7566a', '#4a6b8a'],
 	// Risograph spot inks.
 	riso: ['#df2321', '#006ac0', '#00a95c', '#ffb600', '#ff48b0', '#00b7c3', '#f15060', '#5a4fcf'],
 	// Vivid rainbow so a set of links spans the spectrum.
