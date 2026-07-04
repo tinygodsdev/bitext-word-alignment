@@ -64,7 +64,44 @@
 			lessons, posts, or conlang notes.
 		</p>
 
+		<figure class="mt-4 mb-0">
+			<div
+				class="flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-md border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800"
+			>
+				<img
+					src="/examples/action.gif"
+					alt="Animated demo: creating word links between “Hello world” and its French translation"
+					loading="lazy"
+					decoding="async"
+					class="h-full w-full object-contain"
+					style:clip-path="inset(10% 0 10% 0)"
+				/>
+			</div>
+			<figcaption class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+				Linking words between two sentences
+			</figcaption>
+		</figure>
+
 		<SeoIntro />
+
+		<figure class="my-6">
+			<div
+				class="flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-md border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800"
+			>
+				<img
+					src="/examples/conlang_gloss.png"
+					alt="Conlang example with a custom script font, interlinear glosses, and an English translation"
+					loading="lazy"
+					decoding="async"
+					class="h-full w-full object-contain"
+					style:clip-path="inset(10% 0 10% 0)"
+				/>
+			</div>
+			<figcaption class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+				Conlang with a custom font and interlinear glosses
+			</figcaption>
+		</figure>
+
 		<SeoSections />
 
 		<p class="mt-8 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
