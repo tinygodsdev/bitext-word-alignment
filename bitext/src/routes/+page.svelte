@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { page } from '$app/state';
+	import { resolve } from '$app/paths';
 	import { Button } from 'flowbite-svelte';
 	import {
 		ChevronDownOutline,
@@ -19,10 +20,6 @@
 	import EditorTabBar from '$lib/components/editor-shell/EditorTabBar.svelte';
 	import EditorPanels from '$lib/components/editor-shell/EditorPanels.svelte';
 	import JsonLd from '$lib/components/seo/JsonLd.svelte';
-	import SeoIntro from '$lib/components/seo/SeoIntro.svelte';
-	import SeoSections from '$lib/components/seo/SeoSections.svelte';
-	import SiteFooter from '$lib/components/layout/SiteFooter.svelte';
-	import PartnerBannerById from '$lib/components/partners/PartnerBannerById.svelte';
 	import { editorShellStore } from '$lib/state/editorShell.svelte.js';
 	import { viewportStore } from '$lib/state/viewport.svelte.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
@@ -33,7 +30,7 @@
 	import { SCHEMA_VERSION, type AppStateV2 } from '$lib/serialization/schema.js';
 	import { editorExamples, type ExampleId } from '$lib/state/examples.js';
 	import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, SITE_NAME } from '$lib/seo/metadata.js';
-	import { TALLY_FORM_ID } from '$lib/brand.js';
+	import { SITE_AUTHOR_URL, TALLY_FORM_ID } from '$lib/brand.js';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -47,15 +44,6 @@
 				? 'Style'
 				: 'Export & share'
 	);
-
-	const authorSite = 'https://danipolani.github.io/en/';
-	const toolsPage = 'https://danipolani.github.io/en/blog/tools/';
-	const seoLink =
-		'font-medium text-primary-700 underline decoration-primary-700/40 underline-offset-2 hover:text-primary-800 hover:decoration-primary-800 dark:text-primary-400 dark:decoration-primary-400/50 dark:hover:text-primary-300';
-
-	function scrollToContent() {
-		document.getElementById('home-content')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-	}
 
 	let previewExpand = $state(false);
 	function openFullscreenPreview() {
@@ -136,6 +124,12 @@
 		if (loadExampleEl) loadExampleEl.open = false;
 	}
 
+	const footerLink =
+		'font-medium text-gray-700 underline decoration-gray-400/50 underline-offset-2 hover:text-gray-900 dark:text-gray-300 dark:decoration-gray-500/50 dark:hover:text-gray-100';
+	const footerSep = 'text-gray-300 dark:text-gray-600';
+	const footerFeedback =
+		'inline cursor-pointer border-0 bg-transparent p-0 font-medium text-primary-700 underline decoration-primary-700/40 underline-offset-2 hover:text-primary-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:text-primary-400 dark:hover:text-primary-300';
+
 	const exampleBtn =
 		'inline-flex list-none cursor-pointer items-center gap-1 rounded-none border border-gray-300 bg-white px-2 py-1.5 text-sm font-medium text-gray-800 shadow-sm marker:hidden outline-none hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-primary-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700/80 [&::-webkit-details-marker]:hidden';
 	const exampleItem =
@@ -165,9 +159,7 @@
 
 <JsonLd />
 
-<div
-	class="relative flex h-[calc(100dvh-3.5rem)] flex-col overflow-hidden bg-app-shell dark:bg-gray-900"
->
+<div class="flex h-[calc(100dvh-3.5rem)] flex-col overflow-hidden bg-app-shell dark:bg-gray-900">
 	<!-- Body: canvas + (wide) rail -->
 	<div class="flex min-h-0 flex-1">
 		<!-- Canvas column -->
@@ -320,112 +312,39 @@
 		<div class="shrink-0 border-t border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
 			<EditorTabBar variant="bottom" />
 		</div>
-	{/if}
-
-	<!-- Hint that guides, examples and more sit below the editor. Scrolls away with the hero. -->
-	<button
-		type="button"
-		class="absolute bottom-16 left-1/2 z-20 inline-flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-gray-300 bg-white/90 px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm backdrop-blur-sm transition-colors hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 md:bottom-4 dark:border-gray-600 dark:bg-gray-800/90 dark:text-gray-200 dark:hover:bg-gray-800"
-		onclick={scrollToContent}
-	>
-		<span class="hidden sm:inline">Guides &amp; examples</span>
-		<span class="sm:hidden">More</span>
-		<ChevronDownOutline class="h-4 w-4 shrink-0" aria-hidden="true" />
-	</button>
-</div>
-
-<!-- Below the fold: intro, examples, guides/SEO copy, partner banners, footer. -->
-<section
-	id="home-content"
-	class="scroll-mt-14 border-t border-gray-200 px-4 pb-8 pt-10 sm:px-6 md:pb-12 lg:px-10 dark:border-gray-700"
-	aria-label="About Word Aligner"
->
-	<h1
-		class="font-heading mb-6 min-w-0 text-2xl font-semibold leading-tight tracking-tight text-gray-900 sm:text-3xl dark:text-white"
-	>
-		Word-by-word translation visualizer
-	</h1>
-
-	<div class="grid grid-cols-12 gap-6 lg:gap-8">
-		<div class="col-span-12 lg:col-span-8">
-			<section class="mb-8" aria-labelledby="examples-heading">
-				<h2 id="examples-heading" class="font-heading mb-4 text-lg font-semibold">Examples</h2>
-				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-					<figure class="m-0">
-						<div
-							class="flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-md border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800"
-						>
-							<img
-								src="/examples/action.gif"
-								alt="Animated demo: creating word links between “Hello world” and its French translation"
-								loading="lazy"
-								decoding="async"
-								class="h-full w-full object-contain"
-								style:clip-path="inset(10% 0 10% 0)"
-							/>
-						</div>
-						<figcaption class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-							Linking words between two sentences
-						</figcaption>
-					</figure>
-					<figure class="m-0">
-						<div
-							class="flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-md border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800"
-						>
-							<img
-								src="/examples/conlang_gloss.png"
-								alt="Conlang example with a custom script font, interlinear glosses, and an English translation"
-								loading="lazy"
-								decoding="async"
-								class="h-full w-full object-contain"
-								style:clip-path="inset(10% 0 10% 0)"
-							/>
-						</div>
-						<figcaption class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-							Conlang with a custom font and interlinear glosses
-						</figcaption>
-					</figure>
-				</div>
-			</section>
-
-			<div class="mb-8 min-w-0 max-w-3xl">
-				<p
-					class="mt-0 max-w-prose text-base leading-relaxed text-gray-600 lg:text-[1.05rem] dark:text-gray-400"
-				>
-					See exactly which word matches which across stacked lines. Add rows for glosses or IPA if
-					you need them, click a word then its match on the line above or below, and export or share
-					the diagram, great for lessons, posts, or conlang notes.
-				</p>
-				<p class="mt-4 max-w-prose text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-					Created by
-					<a href={authorSite} class={seoLink} target="_blank" rel="noopener noreferrer">Dani</a>.
-					See other
-					<a href={toolsPage} class={seoLink} target="_blank" rel="noopener noreferrer">tools</a> for
-					linguistics and conlanging.
-				</p>
-			</div>
-
-			<div class="mb-8">
-				<SeoIntro />
-				<SeoSections />
-			</div>
-		</div>
-
-		<div class="col-span-12 min-w-0 lg:col-span-4">
-			<div class="min-w-0">
-				{#key data.homePartnerOrder[0]}
-					<PartnerBannerById partnerId={data.homePartnerOrder[0]} />
-				{/key}
-			</div>
-			<div class="mt-6 min-w-0">
-				{#key data.homePartnerOrder[1]}
-					<PartnerBannerById partnerId={data.homePartnerOrder[1]} />
-				{/key}
-			</div>
-			<p class="mt-4 text-center">
+	{:else}
+		<!-- Wide: single-line footer (credit + full menu) -->
+		<footer
+			class="flex shrink-0 items-center justify-between gap-4 border-t border-gray-200 bg-white px-4 py-2 text-xs text-gray-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
+		>
+			<p class="m-0 min-w-0 truncate">
+				Created by
+				<a href={SITE_AUTHOR_URL} class={footerLink} target="_blank" rel="noopener noreferrer"
+					>Dani</a
+				>. See other
+				<a
+					href="https://danipolani.github.io/en/blog/tools/"
+					class={footerLink}
+					target="_blank"
+					rel="noopener noreferrer">tools</a
+				> for linguistics and conlanging.
+			</p>
+			<nav class="flex shrink-0 items-center gap-x-2 whitespace-nowrap" aria-label="Footer">
+				<a href={resolve('/examples')} class={footerLink}>Examples</a>
+				<span class={footerSep} aria-hidden="true">·</span>
+				<a href={resolve('/guide')} class={footerLink}>Guides</a>
+				<span class={footerSep} aria-hidden="true">·</span>
+				<a href={resolve('/api')} class={footerLink}>API</a>
+				<span class={footerSep} aria-hidden="true">·</span>
+				<a href={resolve('/skill')} class={footerLink}>Agent skill</a>
+				<span class={footerSep} aria-hidden="true">·</span>
+				<a href={resolve('/privacy')} class={footerLink}>Privacy policy</a>
+				<span class={footerSep} aria-hidden="true">·</span>
+				<a href={resolve('/terms')} class={footerLink}>Terms of use</a>
+				<span class={footerSep} aria-hidden="true">·</span>
 				<button
 					type="button"
-					class="inline cursor-pointer border-0 bg-transparent p-0 text-sm text-gray-500 underline decoration-gray-400/50 underline-offset-2 transition-colors hover:text-gray-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:text-gray-400 dark:decoration-gray-500/50 dark:hover:text-gray-200 dark:focus-visible:outline-primary-500"
+					class={footerFeedback}
 					data-tally-open={TALLY_FORM_ID}
 					data-tally-auto-close="0"
 					data-tally-hide-title="1"
@@ -433,12 +352,10 @@
 				>
 					Send feedback
 				</button>
-			</p>
-		</div>
-	</div>
-
-	<SiteFooter />
-</section>
+			</nav>
+		</footer>
+	{/if}
+</div>
 
 {#if previewExpand}
 	<div class="fixed inset-0 z-40" role="dialog" aria-modal="true" aria-label="Fullscreen preview">
