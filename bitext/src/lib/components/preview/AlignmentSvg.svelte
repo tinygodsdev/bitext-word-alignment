@@ -52,23 +52,31 @@
 	const pinnedBadges = $derived.by(() => {
 		const pend = selectionStore.pending;
 		const selectedComponent = pend ? connectedConnectionIds(connections, [pend.tokenId]) : null;
-		const out: { cx: number; y: number; color: string }[] = [];
+		const out: { cx: number; y: number; color: string; tokenId: string; lineId: string }[] = [];
 		for (const component of connectedConnectionComponents(connections)) {
 			const groupConns = connections.filter((c) => component.has(c.id));
 			if (!groupConns.some((c) => c.pinned)) continue;
 			if (selectedComponent && groupConns.some((c) => selectedComponent.has(c.id))) continue;
 			const color = groupConns.find((c) => c.color)?.color ?? '#94a3b8';
-			let best: { cx: number; y: number; li: number; x: number } | null = null;
+			let best: { cx: number; y: number; li: number; x: number; tid: string } | null = null;
 			for (const tid of groupConns.flatMap((c) => [c.upperTokenId, c.lowerTokenId])) {
 				const layout = displayTokenLayout[tid];
 				if (!layout) continue;
 				const li = lineOrder.indexOf(tokenLineId(tid));
 				if (li < 0) continue;
 				if (!best || li < best.li || (li === best.li && layout.x < best.x)) {
-					best = { cx: layout.cx, y: layout.y - 12, li, x: layout.x };
+					best = { cx: layout.cx, y: layout.y - 12, li, x: layout.x, tid };
 				}
 			}
-			if (best) out.push({ cx: best.cx, y: best.y, color });
+			if (best) {
+				out.push({
+					cx: best.cx,
+					y: best.y,
+					color,
+					tokenId: best.tid,
+					lineId: tokenLineId(best.tid)
+				});
+			}
 		}
 		return out;
 	});
@@ -270,21 +278,6 @@
 				{/if}
 			{/if}
 		{/each}
-		{#if showPins}
-			<!-- Palette badge above a pinned group: its color is fixed. Editor-only, never exported. -->
-			{#each pinnedBadges as badge (badge.cx + ':' + badge.y)}
-				{@const col = connectorColor(style, badge.color)}
-				{@const fg = readableTextOn(col)}
-				<g transform="translate({badge.cx} {badge.y})">
-					<circle r="8.5" fill={col} stroke={fg} stroke-width="0.75" />
-					<ellipse cx="0" cy="0.3" rx="5" ry="4" fill={fg} />
-					<circle cx="2.5" cy="2.1" r="1.05" fill={col} />
-					<circle cx="-2.5" cy="-0.5" r="0.9" fill={col} />
-					<circle cx="-0.4" cy="-1.9" r="0.9" fill={col} />
-					<circle cx="1.7" cy="-1.3" r="0.9" fill={col} />
-				</g>
-			{/each}
-		{/if}
 	</g>
 </svg>
 
@@ -328,3 +321,36 @@
 		{/if}
 	{/each}
 </svg>
+
+{#if showPins}
+	<!-- Palette badges for pinned groups. Top layer so they stay clickable under any style
+	     (e.g. Bauhaus drops the connector layer below the words). Never part of the export. -->
+	<svg class="preview-badge-layer">
+		{#each pinnedBadges as badge (badge.tokenId)}
+			{@const col = badge.color}
+			{@const fg = readableTextOn(col)}
+			<g
+				class="pin-badge"
+				data-pin-badge
+				transform="translate({badge.cx} {badge.y})"
+				role="button"
+				tabindex="0"
+				aria-label="Edit pinned group color"
+				onclick={() => selectionStore.selectToken(badge.lineId, badge.tokenId)}
+				onkeydown={(e) => {
+					if (e.key === 'Enter' || e.key === ' ') {
+						e.preventDefault();
+						selectionStore.selectToken(badge.lineId, badge.tokenId);
+					}
+				}}
+			>
+				<circle r="8.5" fill={col} stroke={fg} stroke-width="0.75" />
+				<ellipse cx="0" cy="0.3" rx="5" ry="4" fill={fg} />
+				<circle cx="2.5" cy="2.1" r="1.05" fill={col} />
+				<circle cx="-2.5" cy="-0.5" r="0.9" fill={col} />
+				<circle cx="-0.4" cy="-1.9" r="0.9" fill={col} />
+				<circle cx="1.7" cy="-1.3" r="0.9" fill={col} />
+			</g>
+		{/each}
+	</svg>
+{/if}

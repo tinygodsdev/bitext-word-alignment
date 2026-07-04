@@ -45,6 +45,13 @@ class SelectionStore {
 		this.clear();
 	}
 
+	/** Select a token directly (e.g. clicking a group's pinned-color badge) to open its color popover. */
+	selectToken(lineId: string, tokenId: string) {
+		this.pending = { lineId, tokenId };
+		this.adjacencyHint = false;
+		this.pendingColor = null;
+	}
+
 	/** Choose a palette color for the current selection without dropping it. */
 	setColorForSelection(color: string) {
 		const cur = this.pending;

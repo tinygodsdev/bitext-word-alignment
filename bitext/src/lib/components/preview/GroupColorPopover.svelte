@@ -51,11 +51,26 @@
 		const t = tipEl.getBoundingClientRect();
 		const vw = window.innerWidth;
 		const vh = window.innerHeight;
-		let topPx = a.top - t.height - MARGIN;
-		// Drop below the word when there is no room above.
-		if (topPx < MARGIN && a.bottom + t.height + MARGIN <= vh) topPx = a.bottom + MARGIN;
-		let l = a.left + a.width / 2 - t.width / 2;
-		l = Math.min(Math.max(l, MARGIN), vw - t.width - MARGIN);
+
+		// Place beside the word, vertically centered on it. Keeping the popover within the word's
+		// own row height means it never covers a word on the line above or below (the link targets).
+		const rightLeft = a.right + MARGIN;
+		const leftLeft = a.left - t.width - MARGIN;
+		let l: number;
+		if (rightLeft + t.width + MARGIN <= vw) {
+			l = rightLeft;
+		} else if (leftLeft >= MARGIN) {
+			l = leftLeft;
+		} else {
+			// Neither side fits (very narrow screen): clamp horizontally, sit just above the word.
+			l = Math.min(Math.max(a.left + a.width / 2 - t.width / 2, MARGIN), vw - t.width - MARGIN);
+			top = Math.max(a.top - t.height - MARGIN, MARGIN);
+			left = l;
+			ready = true;
+			return;
+		}
+		let topPx = a.top + a.height / 2 - t.height / 2;
+		topPx = Math.min(Math.max(topPx, MARGIN), vh - t.height - MARGIN);
 		top = topPx;
 		left = l;
 		ready = true;
@@ -77,7 +92,12 @@
 		function onPointerDown(e: PointerEvent) {
 			const target = e.target as Element | null;
 			if (!target) return;
-			if (target.closest('[data-token-id]') || target.closest('[data-group-color-popover]')) return;
+			if (
+				target.closest('[data-token-id]') ||
+				target.closest('[data-group-color-popover]') ||
+				target.closest('[data-pin-badge]')
+			)
+				return;
 			selectionStore.clear();
 		}
 		window.addEventListener('scroll', onMove, true);
