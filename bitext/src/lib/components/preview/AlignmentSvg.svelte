@@ -9,6 +9,7 @@
 		tokenLineId
 	} from '$lib/domain/lines-helpers.js';
 	import { linkEndpoints, linkPathD, ribbonPathD } from '$lib/domain/link-geometry.js';
+	import { connectedConnectionComponents, connectedConnectionIds } from '$lib/domain/link-graph.js';
 	import { connectorColor, getStyle, readableTextOn } from '$lib/domain/styles.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
@@ -43,6 +44,34 @@
 
 	/** Opacity multiplier for connectors not usable while picking the second token (0 = hidden is wrong; use low alpha). */
 	const PENDING_DIM_FACTOR = 0.22;
+
+	/**
+	 * A palette badge sits above the top token of every pinned group so it is clear the color is
+	 * fixed. The currently selected group is skipped — the color popover already covers it there.
+	 */
+	const pinnedBadges = $derived.by(() => {
+		const pend = selectionStore.pending;
+		const selectedComponent = pend ? connectedConnectionIds(connections, [pend.tokenId]) : null;
+		const out: { cx: number; y: number; color: string }[] = [];
+		for (const component of connectedConnectionComponents(connections)) {
+			const groupConns = connections.filter((c) => component.has(c.id));
+			if (!groupConns.some((c) => c.pinned)) continue;
+			if (selectedComponent && groupConns.some((c) => selectedComponent.has(c.id))) continue;
+			const color = groupConns.find((c) => c.color)?.color ?? '#94a3b8';
+			let best: { cx: number; y: number; li: number; x: number } | null = null;
+			for (const tid of groupConns.flatMap((c) => [c.upperTokenId, c.lowerTokenId])) {
+				const layout = displayTokenLayout[tid];
+				if (!layout) continue;
+				const li = lineOrder.indexOf(tokenLineId(tid));
+				if (li < 0) continue;
+				if (!best || li < best.li || (li === best.li && layout.x < best.x)) {
+					best = { cx: layout.cx, y: layout.y - 12, li, x: layout.x };
+				}
+			}
+			if (best) out.push({ cx: best.cx, y: best.y, color });
+		}
+		return out;
+	});
 
 	function shouldDrawPath(conn: Connection): boolean {
 		const lineOrder = projectStore.lines.map((l) => l.id);
@@ -238,25 +267,24 @@
 							opacity={pathOpacity}
 						/>
 					{/if}
-					{#if showPins && conn.pinned}
-						{@const mx = (pts.x1 + pts.x2) / 2}
-						{@const my = (pts.y1 + pts.y2) / 2}
-						{@const fg = readableTextOn(col)}
-						<!-- Lock badge marks a group whose color is pinned. Editor-only; never exported. -->
-						<g transform="translate({mx} {my})" opacity={activeForPending ? 1 : PENDING_DIM_FACTOR}>
-							<circle r="7.5" fill={col} stroke={fg} stroke-width="0.75" />
-							<rect x="-3" y="-0.4" width="6" height="4.6" rx="1" fill={fg} />
-							<path
-								d="M -1.9 -0.4 V -1.7 a 1.9 1.9 0 0 1 3.8 0 V -0.4"
-								fill="none"
-								stroke={fg}
-								stroke-width="1"
-							/>
-						</g>
-					{/if}
 				{/if}
 			{/if}
 		{/each}
+		{#if showPins}
+			<!-- Palette badge above a pinned group: its color is fixed. Editor-only, never exported. -->
+			{#each pinnedBadges as badge (badge.cx + ':' + badge.y)}
+				{@const col = connectorColor(style, badge.color)}
+				{@const fg = readableTextOn(col)}
+				<g transform="translate({badge.cx} {badge.y})">
+					<circle r="8.5" fill={col} stroke={fg} stroke-width="0.75" />
+					<ellipse cx="0" cy="0.3" rx="5" ry="4" fill={fg} />
+					<circle cx="2.5" cy="2.1" r="1.05" fill={col} />
+					<circle cx="-2.5" cy="-0.5" r="0.9" fill={col} />
+					<circle cx="-0.4" cy="-1.9" r="0.9" fill={col} />
+					<circle cx="1.7" cy="-1.3" r="0.9" fill={col} />
+				</g>
+			{/each}
+		{/if}
 	</g>
 </svg>
 
