@@ -4,7 +4,7 @@ import {
 	removeConnection,
 	type Connection
 } from '$lib/domain/alignment.js';
-import { connectedConnectionComponents, connectedConnectionIds } from '$lib/domain/link-graph.js';
+import { connectedConnectionIds, recolorUnpinnedComponents } from '$lib/domain/link-graph.js';
 import {
 	filterConnectionsByAdjacency,
 	canonicalPair,
@@ -324,23 +324,7 @@ class ProjectStore {
 	}
 
 	recolorAllConnections(palette: PaletteName) {
-		const pool = PALETTES[palette];
-		const components = connectedConnectionComponents(this.connections);
-		const colorById: Record<string, string> = {};
-		let autoIndex = 0;
-		for (const component of components) {
-			// Pinned groups keep their color; only auto groups cycle the palette.
-			const anyPinned = this.connections.some((c) => component.has(c.id) && c.pinned);
-			if (anyPinned) continue;
-			const color = pool[autoIndex % pool.length]!;
-			autoIndex += 1;
-			component.forEach((id) => {
-				colorById[id] = color;
-			});
-		}
-		this.connections = this.connections.map((c) =>
-			colorById[c.id] ? { ...c, color: colorById[c.id] } : c
-		);
+		this.connections = recolorUnpinnedComponents(this.connections, PALETTES[palette]);
 	}
 
 	removeConnectionById(connectionId: string) {
@@ -349,13 +333,6 @@ class ProjectStore {
 
 	clearAllConnections() {
 		this.connections = [];
-	}
-
-	updateConnectionColor(connectionId: string, color: string) {
-		const c = this.connections.find((x) => x.id === connectionId);
-		if (!c) return;
-		const component = connectedConnectionIds(this.connections, [c.upperTokenId, c.lowerTokenId]);
-		this.connections = this.connections.map((x) => (component.has(x.id) ? { ...x, color } : x));
 	}
 
 	getSnapshot(): ProjectSnapshotV2 {

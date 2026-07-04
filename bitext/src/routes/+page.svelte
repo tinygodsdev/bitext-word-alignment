@@ -212,13 +212,13 @@
 					color="light"
 					size="sm"
 					class="shrink-0 px-2!"
-					title="About Word Aligner — what it does and how to use it"
+					title="How it works — what Word Aligner does and how to use it"
 					aria-haspopup="dialog"
 					aria-expanded={seoOpen}
 					onclick={() => (seoOpen = true)}
 				>
 					<InfoCircleOutline class="h-4 w-4 shrink-0" aria-hidden="true" />
-					<span class="sr-only sm:not-sr-only sm:ml-1 sm:inline">About</span>
+					<span class="sr-only sm:not-sr-only sm:ml-1 sm:inline">How it works</span>
 				</Button>
 
 				<div class="flex flex-1 flex-wrap items-center justify-end gap-2">

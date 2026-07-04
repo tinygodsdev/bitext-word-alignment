@@ -28,7 +28,7 @@
 	<button
 		type="button"
 		class="fixed inset-x-0 bottom-0 top-14 z-40 cursor-default bg-black/40 backdrop-blur-[1px]"
-		aria-label="Close about panel"
+		aria-label="Close panel"
 		onclick={() => (open = false)}
 	></button>
 {/if}
@@ -37,7 +37,7 @@
 	class="fixed bottom-0 left-0 top-14 z-50 flex w-[min(32rem,92vw)] flex-col border-r border-gray-200 bg-white shadow-xl transition-transform duration-200 dark:border-gray-700 dark:bg-gray-900 {open
 		? 'translate-x-0'
 		: '-translate-x-full'}"
-	aria-label="About Word Aligner"
+	aria-label="How Word Aligner works"
 	aria-hidden={!open}
 	inert={!open}
 >
@@ -45,12 +45,12 @@
 		class="flex shrink-0 items-center justify-between border-b border-gray-200 px-5 py-3 dark:border-gray-700"
 	>
 		<h2 class="font-heading text-base font-semibold text-gray-900 dark:text-white">
-			About Word Aligner
+			How Word Aligner works
 		</h2>
 		<button
 			type="button"
 			class="inline-flex h-8 w-8 items-center justify-center rounded-none border-0 bg-transparent text-gray-500 hover:text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:text-gray-400 dark:hover:text-gray-100"
-			aria-label="Close about panel"
+			aria-label="Close panel"
 			onclick={() => (open = false)}
 		>
 			<CloseOutline class="h-5 w-5 shrink-0" aria-hidden="true" />

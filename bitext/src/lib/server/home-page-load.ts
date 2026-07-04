@@ -4,7 +4,7 @@ import { findGalleryBySlug } from '$lib/examples/catalog.js';
 import { findExample } from '$lib/state/examples.js';
 import { decodeState } from '$lib/serialization/decode.js';
 
-/** Shared load for the editor home (`/`) and the legacy landing page (`/legacy`). */
+/** Load for the editor home (`/`): decoded `?data=` / `?example=` state plus partner rotation. */
 export function loadHomePage(url: URL) {
 	const data = url.searchParams.get('data');
 	const exampleParam = url.searchParams.get('example');
