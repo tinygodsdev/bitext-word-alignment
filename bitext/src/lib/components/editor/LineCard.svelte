@@ -16,10 +16,24 @@
 	} = $props();
 
 	const isDragging = $derived(lineDrag.draggingId === line.id);
-	// Show the drop line on the row the pointer is over, but not on the row being dragged itself.
-	const showDropLine = $derived(
+	const draggingIndex = $derived(
+		lineDrag.draggingId ? projectStore.lines.findIndex((l) => l.id === lineDrag.draggingId) : -1
+	);
+	const isDropTarget = $derived(
 		lineDrag.draggingId != null && lineDrag.draggingId !== line.id && lineDrag.overIndex === index
 	);
+	// A drop line above / below this row, hidden for the two gaps that would leave the row in place.
+	const showDropBefore = $derived(
+		isDropTarget && lineDrag.overPos === 'before' && index !== draggingIndex + 1
+	);
+	const showDropAfter = $derived(
+		isDropTarget && lineDrag.overPos === 'after' && index !== draggingIndex - 1
+	);
+
+	function dropPosition(e: DragEvent): 'before' | 'after' {
+		const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+		return e.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
+	}
 
 	function onDragStart(e: DragEvent) {
 		e.dataTransfer?.setData('text/plain', line.id);
@@ -30,15 +44,23 @@
 	function onDragOver(e: DragEvent) {
 		e.preventDefault();
 		if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
-		if (lineDrag.draggingId && lineDrag.draggingId !== line.id) lineDrag.over(index);
+		if (lineDrag.draggingId && lineDrag.draggingId !== line.id) {
+			lineDrag.over(index, dropPosition(e));
+		}
 	}
 
 	function onDrop(e: DragEvent) {
 		e.preventDefault();
 		const draggedId = e.dataTransfer?.getData('text/plain');
+		const pos = dropPosition(e);
 		lineDrag.end();
 		if (!draggedId || draggedId === line.id) return;
-		projectStore.moveLineToIndex(draggedId, index);
+		const dragIndex = projectStore.lines.findIndex((l) => l.id === draggedId);
+		if (dragIndex < 0) return;
+		// Position in the full list where it should land, then adjust for its own removal.
+		const insertBefore = pos === 'before' ? index : index + 1;
+		const restIndex = insertBefore > dragIndex ? insertBefore - 1 : insertBefore;
+		projectStore.moveLineToIndex(draggedId, restIndex);
 	}
 
 	function toggleLineDir() {
@@ -74,9 +96,15 @@
 	role="group"
 	aria-label="Line {index + 1}"
 >
-	{#if showDropLine}
+	{#if showDropBefore}
 		<span
 			class="pointer-events-none absolute -top-[3px] right-0 left-0 h-0.5 rounded bg-primary-500 dark:bg-primary-400"
+			aria-hidden="true"
+		></span>
+	{/if}
+	{#if showDropAfter}
+		<span
+			class="pointer-events-none absolute -bottom-[3px] right-0 left-0 h-0.5 rounded bg-primary-500 dark:bg-primary-400"
 			aria-hidden="true"
 		></span>
 	{/if}

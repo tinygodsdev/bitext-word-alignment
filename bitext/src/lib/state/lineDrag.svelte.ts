@@ -2,15 +2,18 @@
 class LineDragStore {
 	/** Id of the row currently being dragged (null when idle). */
 	draggingId = $state<string | null>(null);
-	/** Index of the row the pointer is over — where the dragged row would land. */
+	/** Index of the row the pointer is over. */
 	overIndex = $state<number | null>(null);
+	/** Whether the drop lands above or below that row (chosen by pointer position within it). */
+	overPos = $state<'before' | 'after'>('before');
 
 	start(id: string) {
 		this.draggingId = id;
 	}
 
-	over(index: number) {
+	over(index: number, pos: 'before' | 'after') {
 		this.overIndex = index;
+		this.overPos = pos;
 	}
 
 	end() {
