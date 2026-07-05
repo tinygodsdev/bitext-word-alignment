@@ -214,6 +214,13 @@ export function buildStandaloneSvgString(args: {
 		: 0;
 	const cardInnerW = cardW - 2 * cardPad;
 	const cardInnerH = cardH - 2 * cardPad;
+	// Credit is pinned to the card bottom (not floating under a centered diagram);
+	// reserve a band for it so the diagram fills the space above.
+	const cardCreditPx = frame
+		? Math.max(13, Math.min(30, Math.round(Math.min(cardW, cardH) * 0.02)))
+		: 0;
+	const cardCreditBand = frame && includeAttributionFooter ? Math.round(cardCreditPx * 2.6) : 0;
+	const cardDiagramInnerH = cardInnerH - cardCreditBand;
 
 	// For a preset, spread the line rows to fill the frame before cropping.
 	const tokenLayout = frame
@@ -221,7 +228,7 @@ export function buildStandaloneSvgString(args: {
 				tokenLayoutIn,
 				lines.map((l) => l.tokens.map((t) => t.id)),
 				cardInnerW,
-				cardInnerH
+				cardDiagramInnerH
 			)
 		: tokenLayoutIn;
 
@@ -262,9 +269,11 @@ export function buildStandaloneSvgString(args: {
 	const cropX = minX - PAD;
 	const cropY = minY - PAD;
 	const cropW = maxX - minX + PAD * 2;
-	const bottomBand = includeAttributionFooter
-		? CREDIT_GAP_TOP + CREDIT_TEXT + CREDIT_GAP_BOTTOM + frameInnerInset
-		: PAD;
+	// For a preset the credit is pinned to the card bottom, so the crop stays tight.
+	const bottomBand =
+		includeAttributionFooter && !frame
+			? CREDIT_GAP_TOP + CREDIT_TEXT + CREDIT_GAP_BOTTOM + frameInnerInset
+			: PAD;
 	const cropH = maxY - minY + PAD + bottomBand;
 	const attributionY = maxY + CREDIT_GAP_TOP + CREDIT_TEXT / 2;
 
@@ -447,9 +456,16 @@ export function buildStandaloneSvgString(args: {
 		: italicCredit
 			? ' font-style="italic"'
 			: '';
-	const attribution = includeAttributionFooter
-		? `<text fill="${escapeXml(resolvedTextColor)}" opacity="0.6" font-family="${escapeXml(ATTRIBUTION_FONT)}" font-size="${Math.round(12 * creditScale * 100) / 100}"${creditExtra} text-anchor="middle" dominant-baseline="central" transform="translate(${contentCx},${attributionY})">${escapeXml(creditText)}</text>`
-		: '';
+	const attribution =
+		includeAttributionFooter && !frame
+			? `<text fill="${escapeXml(resolvedTextColor)}" opacity="0.6" font-family="${escapeXml(ATTRIBUTION_FONT)}" font-size="${Math.round(12 * creditScale * 100) / 100}"${creditExtra} text-anchor="middle" dominant-baseline="central" transform="translate(${contentCx},${attributionY})">${escapeXml(creditText)}</text>`
+			: '';
+
+	// Preset: credit pinned near the card's bottom edge, inside any frame border.
+	const cardCredit =
+		frame && includeAttributionFooter
+			? `<text fill="${escapeXml(resolvedTextColor)}" opacity="0.55" font-family="${escapeXml(ATTRIBUTION_FONT)}" font-size="${cardCreditPx}"${creditExtra} text-anchor="middle" dominant-baseline="central" transform="translate(${cardW / 2},${cardH - cardPad - frameInnerInset})">${escapeXml(creditText)}</text>`
+			: '';
 
 	/** Inset from the full export rectangle (including footer band) — same on right and bottom. */
 	const CORNER_INSET = 8;
@@ -476,11 +492,12 @@ export function buildStandaloneSvgString(args: {
 	}
 
 	// Preset: card background + decorative frame fill the whole canvas; the
-	// (respaced) diagram is scaled to fill the inner area and centered.
+	// (respaced) diagram is scaled to fill the area above the credit band and
+	// centered there, with the credit pinned at the bottom.
 	const num = (n: number) => Math.round(n * 1000) / 1000;
-	const fitScale = num(Math.min(cardInnerW / cropW, cardInnerH / cropH));
-	const tx = num((cardW - cropW * fitScale) / 2 - cropX * fitScale);
-	const ty = num((cardH - cropH * fitScale) / 2 - cropY * fitScale);
-	const diagram = `${body}${cornerQr}${attribution}`;
-	return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${cardW}" height="${cardH}" viewBox="0 0 ${cardW} ${cardH}">${fontDefs}${bgRect}${frameSvg}<g transform="translate(${tx} ${ty}) scale(${fitScale})">${diagram}</g></svg>`;
+	const fitScale = num(Math.min(cardInnerW / cropW, cardDiagramInnerH / cropH));
+	const tx = num(cardPad + (cardInnerW - cropW * fitScale) / 2 - cropX * fitScale);
+	const ty = num(cardPad + (cardDiagramInnerH - cropH * fitScale) / 2 - cropY * fitScale);
+	const diagram = `${body}${cornerQr}`;
+	return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${cardW}" height="${cardH}" viewBox="0 0 ${cardW} ${cardH}">${fontDefs}${bgRect}${frameSvg}<g transform="translate(${tx} ${ty}) scale(${fitScale})">${diagram}</g>${cardCredit}</svg>`;
 }
