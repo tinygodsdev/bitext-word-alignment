@@ -30,37 +30,80 @@
 		isDropTarget && lineDrag.overPos === 'after' && index !== draggingIndex - 1
 	);
 
-	function dropPosition(e: DragEvent): 'before' | 'after' {
-		const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-		return e.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
+	// Pointer-based drag so reordering works with both mouse and touch (native
+	// HTML5 drag-and-drop never fires on phones).
+	const DRAG_THRESHOLD_PX = 5;
+	let pointerId: number | null = null;
+	let armed = false;
+	let dragging = false;
+	let startX = 0;
+	let startY = 0;
+
+	function resetPointer() {
+		pointerId = null;
+		armed = false;
+		dragging = false;
 	}
 
-	function onDragStart(e: DragEvent) {
-		e.dataTransfer?.setData('text/plain', line.id);
-		e.dataTransfer!.effectAllowed = 'move';
-		lineDrag.start(line.id);
+	function rowUnderPoint(x: number, y: number): HTMLElement | null {
+		const el = document.elementFromPoint(x, y) as HTMLElement | null;
+		return el?.closest<HTMLElement>('[data-line-row]') ?? null;
 	}
 
-	function onDragOver(e: DragEvent) {
-		e.preventDefault();
-		if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
-		if (lineDrag.draggingId && lineDrag.draggingId !== line.id) {
-			lineDrag.over(index, dropPosition(e));
+	function onHandlePointerDown(e: PointerEvent) {
+		if (armed || dragging) return;
+		if (e.pointerType === 'mouse' && e.button !== 0) return;
+		(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+		pointerId = e.pointerId;
+		startX = e.clientX;
+		startY = e.clientY;
+		armed = true;
+	}
+
+	function onHandlePointerMove(e: PointerEvent) {
+		if (e.pointerId !== pointerId) return;
+		if (armed && !dragging) {
+			if (Math.hypot(e.clientX - startX, e.clientY - startY) < DRAG_THRESHOLD_PX) return;
+			dragging = true;
+			lineDrag.start(line.id);
 		}
+		if (!dragging) return;
+		e.preventDefault();
+		const row = rowUnderPoint(e.clientX, e.clientY);
+		if (!row) return;
+		const targetIndex = Number(row.dataset.lineIndex);
+		if (Number.isNaN(targetIndex)) return;
+		const rect = row.getBoundingClientRect();
+		const pos: 'before' | 'after' = e.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
+		lineDrag.over(targetIndex, pos);
 	}
 
-	function onDrop(e: DragEvent) {
-		e.preventDefault();
-		const draggedId = e.dataTransfer?.getData('text/plain');
-		const pos = dropPosition(e);
+	function onHandlePointerUp(e: PointerEvent) {
+		if (e.pointerId !== pointerId) return;
+		(e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+		const wasDragging = dragging;
+		const targetIndex = lineDrag.overIndex;
+		const pos = lineDrag.overPos;
+		resetPointer();
+		if (!wasDragging) return;
 		lineDrag.end();
-		if (!draggedId || draggedId === line.id) return;
-		const dragIndex = projectStore.lines.findIndex((l) => l.id === draggedId);
+		dropOnto(targetIndex, pos);
+	}
+
+	function onHandlePointerCancel(e: PointerEvent) {
+		if (e.pointerId !== pointerId) return;
+		resetPointer();
+		lineDrag.end();
+	}
+
+	function dropOnto(targetIndex: number | null, pos: 'before' | 'after') {
+		if (targetIndex == null) return;
+		const dragIndex = projectStore.lines.findIndex((l) => l.id === line.id);
 		if (dragIndex < 0) return;
 		// Position in the full list where it should land, then adjust for its own removal.
-		const insertBefore = pos === 'before' ? index : index + 1;
+		const insertBefore = pos === 'before' ? targetIndex : targetIndex + 1;
 		const restIndex = insertBefore > dragIndex ? insertBefore - 1 : insertBefore;
-		projectStore.moveLineToIndex(draggedId, restIndex);
+		projectStore.moveLineToIndex(line.id, restIndex);
 	}
 
 	function toggleLineDir() {
@@ -91,8 +134,8 @@
 	class="relative mb-1.5 flex w-full flex-nowrap items-center gap-x-2 transition-opacity {isDragging
 		? 'opacity-40'
 		: ''}"
-	ondragover={onDragOver}
-	ondrop={onDrop}
+	data-line-row
+	data-line-index={index}
 	role="group"
 	aria-label="Line {index + 1}"
 >
@@ -111,10 +154,11 @@
 	<div class="flex shrink-0 items-center gap-1.5">
 		<button
 			type="button"
-			class="cursor-grab select-none border-0 bg-transparent p-0.5 text-gray-400 active:cursor-grabbing dark:text-gray-500"
-			draggable="true"
-			ondragstart={onDragStart}
-			ondragend={() => lineDrag.end()}
+			class="flex h-9 w-7 shrink-0 cursor-grab touch-none items-center justify-center border-0 bg-transparent p-0 text-gray-400 select-none active:cursor-grabbing dark:text-gray-500"
+			onpointerdown={onHandlePointerDown}
+			onpointermove={onHandlePointerMove}
+			onpointerup={onHandlePointerUp}
+			onpointercancel={onHandlePointerCancel}
 			title="Drag to reorder"
 			aria-label="Drag to reorder line">⠿</button
 		>

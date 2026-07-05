@@ -10,6 +10,7 @@
 		type VisualSettingsV2
 	} from '$lib/serialization/schema.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
+	import { exportBaseName, firstNonEmptyText } from '$lib/export/filename.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { getShareUrl } from '$lib/share/url.js';
 	import { shareUrlToQrDataUrl } from '$lib/share/qr.js';
@@ -89,7 +90,7 @@
 		if (!qrSrc) return;
 		const a = document.createElement('a');
 		a.href = qrSrc;
-		a.download = 'alignment-share-qr.png';
+		a.download = `${exportBaseName(firstNonEmptyText(projectStore.lines))}-share-qr.png`;
 		a.click();
 	}
 
