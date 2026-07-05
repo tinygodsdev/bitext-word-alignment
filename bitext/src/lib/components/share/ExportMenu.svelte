@@ -38,7 +38,7 @@
 	}
 
 	const hintAspect =
-		'Auto fits the canvas to your diagram, as before. A preset exports a fixed size for a platform (the diagram is centered and scaled to fit). PNG and PDF for a preset export at the exact pixel size shown.';
+		'Auto fits the canvas to your diagram, as before. A preset exports a fixed size for a platform: the diagram is scaled and spread to fill the card, on the theme background. PNG and PDF for a preset export at the exact pixel size shown.';
 
 	// Export canvas: 'auto' (dynamic, current behaviour) or a fixed social preset.
 	let selectedAspect = $state<'auto' | string>('auto');
@@ -314,7 +314,7 @@
 					>{activePreset.width} × {activePreset.height} px</span
 				><br />
 				{activePreset.note}.<br />
-				The diagram is centered and scaled to fit; PNG and PDF export at this exact size.
+				The diagram fills the card; PNG and PDF export at this exact size.
 			</p>
 		</div>
 	{/if}

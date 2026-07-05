@@ -67,6 +67,79 @@ function shouldRenderConnectionPath(
 	return showConnectorsForPair(pairControls, pair.upperLineId, pair.lowerLineId);
 }
 
+/**
+ * Redistribute the vertical spacing between line rows so the diagram fills a
+ * target frame, instead of being fit-and-letterboxed. Rows keep their glyph
+ * geometry; only the gaps between them grow (connectors, derived from token
+ * boxes, follow). Growth is capped so extreme aspect mismatches (e.g. two lines
+ * into a 9:16 story) enlarge and center rather than stretch to the edges.
+ * Returns the layout unchanged when there is nothing sensible to redistribute.
+ */
+export function refitLayoutToFill(
+	layout: Record<string, TokenLayout>,
+	lineGroups: string[][],
+	innerW: number,
+	innerH: number,
+	capMult = 2.5
+): Record<string, TokenLayout> {
+	const rows = lineGroups
+		.map((ids) => {
+			let top = Infinity;
+			let bot = -Infinity;
+			let has = false;
+			for (const id of ids) {
+				const b = layout[id];
+				if (!b) continue;
+				has = true;
+				if (b.y < top) top = b.y;
+				if (b.y + b.h > bot) bot = b.y + b.h;
+			}
+			return has ? { ids, top, bot, h: bot - top } : null;
+		})
+		.filter((r): r is { ids: string[]; top: number; bot: number; h: number } => r !== null)
+		.sort((a, b) => a.top - b.top);
+	if (rows.length < 2 || innerW <= 0 || innerH <= 0) return layout;
+
+	let xMin = Infinity;
+	let xMax = -Infinity;
+	for (const id in layout) {
+		const b = layout[id];
+		if (b.x < xMin) xMin = b.x;
+		if (b.x + b.w > xMax) xMax = b.x + b.w;
+	}
+	const contentW = xMax - xMin;
+	const rowHeights = rows.reduce((s, r) => s + r.h, 0);
+	const contentH = rows[rows.length - 1].bot - rows[0].top;
+	const currentGap = contentH - rowHeights;
+	if (contentW <= 0) return layout;
+
+	// Scale that fills the frame width. If that already overflows the height, the
+	// content is taller than the frame — let the outer fit-by-height handle it.
+	const fillWidthScale = innerW / contentW;
+	if (contentH * fillWidthScale > innerH) return layout;
+
+	const desiredGap = innerH / fillWidthScale - rowHeights;
+	const cappedGap = Math.max(currentGap, Math.min(desiredGap, capMult * rowHeights));
+	if (cappedGap <= currentGap + 0.5) return layout;
+
+	const gapEach = cappedGap / (rows.length - 1);
+	const deltas: Record<string, number> = {};
+	let cursor = rows[0].top;
+	for (const r of rows) {
+		const delta = cursor - r.top;
+		for (const id of r.ids) deltas[id] = delta;
+		cursor += r.h + gapEach;
+	}
+
+	const out: Record<string, TokenLayout> = {};
+	for (const id in layout) {
+		const b = layout[id];
+		const d = deltas[id];
+		out[id] = d ? { ...b, y: b.y + d, cy: b.cy + d } : b;
+	}
+	return out;
+}
+
 export function buildStandaloneSvgString(args: {
 	width: number;
 	height: number;
@@ -97,8 +170,9 @@ export function buildStandaloneSvgString(args: {
 	/** PNG data URL for optional corner QR (site only). ExportMenu leaves this unset for now. */
 	siteQrPngDataUri?: string;
 	/**
-	 * Fit the cropped diagram into a fixed canvas (social-media aspect presets),
-	 * centered with padding. When omitted the canvas tracks the content as before.
+	 * Export onto a fixed canvas (social-media aspect presets): the style
+	 * background + frame cover the whole card and the diagram is spread/scaled to
+	 * fill it. When omitted the canvas tracks the content as before.
 	 */
 	frame?: { width: number; height: number; padding?: number; background?: string };
 }): string {
@@ -116,7 +190,7 @@ export function buildStandaloneSvgString(args: {
 		contentScale = 1,
 		lineOrder,
 		lines,
-		tokenLayout,
+		tokenLayout: tokenLayoutIn,
 		connections,
 		pairControls,
 		includeAttributionFooter = true,
@@ -131,6 +205,25 @@ export function buildStandaloneSvgString(args: {
 	const isClassic = visualStyle.id === 'classic';
 	const resolvedTextColor = isClassic ? defaultTextColor : visualStyle.canvas.textColor;
 	const tintBase = isClassic ? backgroundColor : visualStyle.canvas.tintBaseHex;
+
+	// Fixed-canvas (social preset) geometry: card size, padding and inner area.
+	const cardW = frame ? Math.max(1, frame.width) : 0;
+	const cardH = frame ? Math.max(1, frame.height) : 0;
+	const cardPad = frame
+		? Math.max(0, Math.min(frame.padding ?? 0, Math.min(cardW, cardH) / 2 - 1))
+		: 0;
+	const cardInnerW = cardW - 2 * cardPad;
+	const cardInnerH = cardH - 2 * cardPad;
+
+	// For a preset, spread the line rows to fill the frame before cropping.
+	const tokenLayout = frame
+		? refitLayoutToFill(
+				tokenLayoutIn,
+				lines.map((l) => l.tokens.map((t) => t.id)),
+				cardInnerW,
+				cardInnerH
+			)
+		: tokenLayoutIn;
 
 	// Innermost frame border inset so the attribution can sit inside the frame (matching the preview).
 	const frameInnerInset =
@@ -175,9 +268,14 @@ export function buildStandaloneSvgString(args: {
 	const cropH = maxY - minY + PAD + bottomBand;
 	const attributionY = maxY + CREDIT_GAP_TOP + CREDIT_TEXT / 2;
 
-	const exportBg = styleExportBackground(visualStyle, cropX, cropY, cropW, cropH);
-	// Frame wraps the whole (cropped) canvas so the credit stays inside it.
-	const frameSvg = styleExportFrame(visualStyle, cropX, cropY, cropW, cropH);
+	// For a preset the style background + decorative frame cover the whole card;
+	// otherwise they wrap the cropped canvas so the credit stays inside the frame.
+	const bgX = frame ? 0 : cropX;
+	const bgY = frame ? 0 : cropY;
+	const bgW = frame ? cardW : cropW;
+	const bgH = frame ? cardH : cropH;
+	const exportBg = styleExportBackground(visualStyle, bgX, bgY, bgW, bgH);
+	const frameSvg = styleExportFrame(visualStyle, bgX, bgY, bgW, bgH);
 
 	const styleChunks: string[] = [];
 	if (embedFontCss && embedFontCss.length > 0) styleChunks.push(embedFontCss);
@@ -336,7 +434,7 @@ export function buildStandaloneSvgString(args: {
 
 	const bgRect = exportBg
 		? exportBg.rect
-		: `<rect x="${cropX}" y="${cropY}" width="${cropW}" height="${cropH}" fill="${escapeXml(backgroundColor)}"/>`;
+		: `<rect x="${bgX}" y="${bgY}" width="${bgW}" height="${bgH}" fill="${escapeXml(frame?.background ?? backgroundColor)}"/>`;
 
 	// Match the preview's per-style credit treatment (uppercase Bauhaus, italic serif styles).
 	const isBauhausCredit = visualStyle.id === 'bauhaus';
@@ -372,20 +470,17 @@ export function buildStandaloneSvgString(args: {
 		? `${paths.join('')}${tokenRects.join('')}${texts.join('')}`
 		: `${tokenRects.join('')}${paths.join('')}${texts.join('')}`;
 
-	const content = `${bgRect}${frameSvg}${body}${cornerQr}${attribution}`;
-
 	if (!frame) {
+		const content = `${bgRect}${frameSvg}${body}${cornerQr}${attribution}`;
 		return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${cropW}" height="${cropH}" viewBox="${cropX} ${cropY} ${cropW} ${cropH}">${fontDefs}${content}</svg>`;
 	}
 
-	// Fit the cropped diagram into the fixed canvas, centered with padding.
+	// Preset: card background + decorative frame fill the whole canvas; the
+	// (respaced) diagram is scaled to fill the inner area and centered.
 	const num = (n: number) => Math.round(n * 1000) / 1000;
-	const fw = Math.max(1, frame.width);
-	const fh = Math.max(1, frame.height);
-	const pad = Math.max(0, Math.min(frame.padding ?? 0, Math.min(fw, fh) / 2 - 1));
-	const fitScale = num(Math.min((fw - 2 * pad) / cropW, (fh - 2 * pad) / cropH));
-	const tx = num((fw - cropW * fitScale) / 2 - cropX * fitScale);
-	const ty = num((fh - cropH * fitScale) / 2 - cropY * fitScale);
-	const frameBg = frame.background ?? backgroundColor;
-	return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${fw}" height="${fh}" viewBox="0 0 ${fw} ${fh}">${fontDefs}<rect x="0" y="0" width="${fw}" height="${fh}" fill="${escapeXml(frameBg)}"/><g transform="translate(${tx} ${ty}) scale(${fitScale})">${content}</g></svg>`;
+	const fitScale = num(Math.min(cardInnerW / cropW, cardInnerH / cropH));
+	const tx = num((cardW - cropW * fitScale) / 2 - cropX * fitScale);
+	const ty = num((cardH - cropH * fitScale) / 2 - cropY * fitScale);
+	const diagram = `${body}${cornerQr}${attribution}`;
+	return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${cardW}" height="${cardH}" viewBox="0 0 ${cardW} ${cardH}">${fontDefs}${bgRect}${frameSvg}<g transform="translate(${tx} ${ty}) scale(${fitScale})">${diagram}</g></svg>`;
 }
