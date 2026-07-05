@@ -6,12 +6,8 @@
 	import { buildStandaloneSvgString } from '$lib/export/svg.js';
 	import { svgStringToPngBlob, downloadBlob } from '$lib/export/png.js';
 	import { exportBaseName, firstNonEmptyText } from '$lib/export/filename.js';
-	import {
-		ASPECT_PRESETS,
-		presetPadding,
-		findAspectPreset,
-		type AspectPreset
-	} from '$lib/export/aspect-presets.js';
+	import { ASPECT_PRESETS, presetPadding, findAspectPreset } from '$lib/export/aspect-presets.js';
+	import AspectSelect, { type AspectOption } from './AspectSelect.svelte';
 	import { svgStringToPdfBlob } from '$lib/export/pdf.js';
 	import { wrapSvgInHtml } from '$lib/export/html.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
@@ -57,21 +53,16 @@
 		};
 	}
 
-	/** Tiny proportional glyph (max 18px) so the chip shows the shape at a glance. */
-	function aspectShape(p: AspectPreset): { w: number; h: number } {
-		const r = p.width / p.height;
-		const max = 18;
-		return r >= 1
-			? { w: max, h: Math.max(4, Math.round(max / r)) }
-			: { w: Math.max(4, Math.round(max * r)), h: max };
-	}
-
-	const chipBase =
-		'inline-flex cursor-pointer items-center gap-1.5 border px-2 py-1 text-xs font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary-500';
-	const chipSelected =
-		'border-primary-500 bg-primary-50 text-primary-800 dark:border-primary-400 dark:bg-primary-950/40 dark:text-primary-200';
-	const chipIdle =
-		'border-gray-300 bg-white text-gray-700 hover:border-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:border-gray-500';
+	const aspectOptions: AspectOption[] = [
+		{ id: 'auto', label: 'Auto', ratio: 'fits diagram', dashed: true },
+		...ASPECT_PRESETS.map((p) => ({
+			id: p.id,
+			label: p.label,
+			ratio: p.ratio,
+			width: p.width,
+			height: p.height
+		}))
+	];
 
 	async function flushPreviewLayout() {
 		if (!browser) return;
@@ -196,15 +187,16 @@
 		downloadBlob(exportName('html'), new Blob([html], { type: 'text/html;charset=utf-8' }));
 	}
 
-	// Live mini-preview of how the diagram sits inside the selected preset frame.
+	// Live mini-preview of the export — the framed card for a preset, or the
+	// content-sized diagram for Auto.
 	let previewUrl = $state<string | null>(null);
 	$effect(() => {
-		const preset = activePreset;
-		if (!browser || !preset) {
+		if (!browser) {
 			previewUrl = null;
 			return;
 		}
-		// Track the inputs that change the framed layout.
+		// Track the inputs that change the layout.
+		void selectedAspect;
 		void projectStore.lines;
 		void projectStore.connections;
 		void projectStore.pairControls;
@@ -214,15 +206,7 @@
 		void layoutExportStore.tokenLayout;
 		const t = setTimeout(() => {
 			try {
-				const svg = buildSvg({
-					includeAttributionFooter: true,
-					frame: {
-						width: preset.width,
-						height: preset.height,
-						padding: presetPadding(preset),
-						background: exportBackgroundColor()
-					}
-				});
+				const svg = buildSvg({ includeAttributionFooter: true, frame: activeFrame() });
 				previewUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 			} catch {
 				previewUrl = null;
@@ -265,59 +249,35 @@
 		<Label class="mb-0 text-sm text-gray-600 dark:text-gray-400">Canvas</Label>
 		<SettingsFieldHint text={hintAspect} />
 	</div>
-	<div class="flex flex-wrap gap-1.5">
-		<button
-			type="button"
-			class="{chipBase} {selectedAspect === 'auto' ? chipSelected : chipIdle}"
-			aria-pressed={selectedAspect === 'auto'}
-			title="Fit the canvas to the diagram (default)"
-			onclick={() => (selectedAspect = 'auto')}
-		>
-			<span class="h-4.5 w-4.5 border border-dashed border-current opacity-70"></span>
-			Auto
-		</button>
-		{#each ASPECT_PRESETS as p (p.id)}
-			{@const sh = aspectShape(p)}
-			<button
-				type="button"
-				class="{chipBase} {selectedAspect === p.id ? chipSelected : chipIdle}"
-				aria-pressed={selectedAspect === p.id}
-				title={`${p.width} × ${p.height} px · ${p.note}`}
-				onclick={() => (selectedAspect = p.id)}
-			>
-				<span class="inline-flex h-4.5 w-4.5 items-center justify-center">
-					<span class="border border-current" style="width:{sh.w}px;height:{sh.h}px"></span>
-				</span>
-				{p.label}
-				<span class="text-gray-400 dark:text-gray-500">{p.ratio}</span>
-			</button>
-		{/each}
-	</div>
+	<AspectSelect bind:value={selectedAspect} options={aspectOptions} />
 
-	{#if activePreset}
-		<div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start">
-			<div
-				class="flex max-w-55 items-center justify-center border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-900/40"
-			>
-				{#if previewUrl}
-					<img
-						src={previewUrl}
-						alt={`Preview of the ${activePreset.label} export`}
-						class="max-h-56 w-auto max-w-full"
-					/>
-				{:else}
-					<div class="flex h-24 w-24 items-center justify-center text-xs text-gray-400">…</div>
-				{/if}
-			</div>
-			<p class="text-xs leading-relaxed text-gray-600 dark:text-gray-400">
+	<div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start">
+		<div
+			class="flex max-w-55 items-center justify-center border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-900/40"
+		>
+			{#if previewUrl}
+				<img
+					src={previewUrl}
+					alt={`Preview of the ${activePreset ? activePreset.label : 'Auto'} export`}
+					class="max-h-56 w-auto max-w-full"
+				/>
+			{:else}
+				<div class="flex h-24 w-24 items-center justify-center text-xs text-gray-400">…</div>
+			{/if}
+		</div>
+		<p class="text-xs leading-relaxed text-gray-600 dark:text-gray-400">
+			{#if activePreset}
 				<span class="font-medium text-gray-800 dark:text-gray-200"
 					>{activePreset.width} × {activePreset.height} px</span
 				><br />
 				{activePreset.note}.<br />
 				The diagram fills the card; PNG and PDF export at this exact size.
-			</p>
-		</div>
-	{/if}
+			{:else}
+				<span class="font-medium text-gray-800 dark:text-gray-200">Fits your diagram</span><br />
+				The canvas tracks the content, as on screen. PNG and PDF use the scale below.
+			{/if}
+		</p>
+	</div>
 </div>
 
 {#if !activePreset}
