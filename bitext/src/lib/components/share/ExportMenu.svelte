@@ -6,6 +6,12 @@
 	import { buildStandaloneSvgString } from '$lib/export/svg.js';
 	import { svgStringToPngBlob, downloadBlob } from '$lib/export/png.js';
 	import { exportBaseName, firstNonEmptyText } from '$lib/export/filename.js';
+	import {
+		ASPECT_PRESETS,
+		presetPadding,
+		findAspectPreset,
+		type AspectPreset
+	} from '$lib/export/aspect-presets.js';
 	import { svgStringToPdfBlob } from '$lib/export/pdf.js';
 	import { wrapSvgInHtml } from '$lib/export/html.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
@@ -31,6 +37,42 @@
 		return (RASTER_SCALE_OPTIONS as readonly number[]).includes(n);
 	}
 
+	const hintAspect =
+		'Auto fits the canvas to your diagram, as before. A preset exports a fixed size for a platform (the diagram is centered and scaled to fit). PNG and PDF for a preset export at the exact pixel size shown.';
+
+	// Export canvas: 'auto' (dynamic, current behaviour) or a fixed social preset.
+	let selectedAspect = $state<'auto' | string>('auto');
+	const activePreset = $derived(
+		selectedAspect === 'auto' ? undefined : findAspectPreset(selectedAspect)
+	);
+
+	function activeFrame() {
+		const p = activePreset;
+		if (!p) return undefined;
+		return {
+			width: p.width,
+			height: p.height,
+			padding: presetPadding(p),
+			background: exportBackgroundColor()
+		};
+	}
+
+	/** Tiny proportional glyph (max 18px) so the chip shows the shape at a glance. */
+	function aspectShape(p: AspectPreset): { w: number; h: number } {
+		const r = p.width / p.height;
+		const max = 18;
+		return r >= 1
+			? { w: max, h: Math.max(4, Math.round(max / r)) }
+			: { w: Math.max(4, Math.round(max * r)), h: max };
+	}
+
+	const chipBase =
+		'inline-flex cursor-pointer items-center gap-1.5 border px-2 py-1 text-xs font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary-500';
+	const chipSelected =
+		'border-primary-500 bg-primary-50 text-primary-800 dark:border-primary-400 dark:bg-primary-950/40 dark:text-primary-200';
+	const chipIdle =
+		'border-gray-300 bg-white text-gray-700 hover:border-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:border-gray-500';
+
 	async function flushPreviewLayout() {
 		if (!browser) return;
 		layoutExportStore.requestRemeasure();
@@ -51,9 +93,11 @@
 		return '#ffffff';
 	}
 
-	/** File base name seeded from the first non-empty line, e.g. `al-hello-world`. */
+	/** File name seeded from the first non-empty line, plus the preset id, e.g. `al-hello-world-square.png`. */
 	function exportName(ext: string): string {
-		return `${exportBaseName(firstNonEmptyText(projectStore.lines))}.${ext}`;
+		const base = exportBaseName(firstNonEmptyText(projectStore.lines));
+		const suffix = activePreset ? `-${activePreset.id}` : '';
+		return `${base}${suffix}.${ext}`;
 	}
 
 	/** Lines with the active style's default font applied (so exports embed it like the preview). */
@@ -70,6 +114,7 @@
 		embedFontCss?: string;
 		includeImports?: boolean;
 		siteQrPngDataUri?: string;
+		frame?: { width: number; height: number; padding?: number; background?: string };
 	}): string {
 		const lay = layoutExportStore;
 		const s = settingsStore.settings;
@@ -104,13 +149,14 @@
 			includeAttributionFooter: opts.includeAttributionFooter,
 			embedFontCdataImports: imports.length ? imports : undefined,
 			embedFontCss: opts.embedFontCss,
-			siteQrPngDataUri: opts.siteQrPngDataUri
+			siteQrPngDataUri: opts.siteQrPngDataUri,
+			frame: opts.frame
 		});
 	}
 
 	async function downloadSvg() {
 		await flushPreviewLayout();
-		const rawSvg = buildSvg({ includeAttributionFooter: true });
+		const rawSvg = buildSvg({ includeAttributionFooter: true, frame: activeFrame() });
 		const svg = await convertCustomFontTextToPaths(rawSvg, projectStore.lines);
 		downloadBlob(exportName('svg'), new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
 	}
@@ -118,31 +164,72 @@
 	async function buildRasterSvg(): Promise<string> {
 		await ensureVisualizationCustomFontsFromLines(projectStore.lines);
 		const embedFontCss = await buildInlinedFontCssFromLines(exportStyledLines());
-		const svg = buildSvg({ includeAttributionFooter: true, embedFontCss, includeImports: false });
+		const svg = buildSvg({
+			includeAttributionFooter: true,
+			embedFontCss,
+			includeImports: false,
+			frame: activeFrame()
+		});
 		return await convertCustomFontTextToPaths(svg, projectStore.lines);
 	}
 
 	async function downloadPng() {
 		await flushPreviewLayout();
 		const svg = await buildRasterSvg();
-		const blob = await svgStringToPngBlob(svg, rasterExportScale);
+		// A preset is already sized in pixels; render 1:1. Auto uses the chosen scale.
+		const blob = await svgStringToPngBlob(svg, activePreset ? 1 : rasterExportScale);
 		downloadBlob(exportName('png'), blob);
 	}
 
 	async function downloadPdf() {
 		await flushPreviewLayout();
 		const svg = await buildRasterSvg();
-		const blob = await svgStringToPdfBlob(svg, rasterExportScale);
+		const blob = await svgStringToPdfBlob(svg, activePreset ? 1 : rasterExportScale);
 		downloadBlob(exportName('pdf'), blob);
 	}
 
 	async function downloadHtml() {
 		await flushPreviewLayout();
-		const rawSvg = buildSvg({ includeAttributionFooter: false });
+		const rawSvg = buildSvg({ includeAttributionFooter: false, frame: activeFrame() });
 		const svg = await convertCustomFontTextToPaths(rawSvg, projectStore.lines);
 		const html = wrapSvgInHtml(svg, 'Alignment export', googleFontImportList());
 		downloadBlob(exportName('html'), new Blob([html], { type: 'text/html;charset=utf-8' }));
 	}
+
+	// Live mini-preview of how the diagram sits inside the selected preset frame.
+	let previewUrl = $state<string | null>(null);
+	$effect(() => {
+		const preset = activePreset;
+		if (!browser || !preset) {
+			previewUrl = null;
+			return;
+		}
+		// Track the inputs that change the framed layout.
+		void projectStore.lines;
+		void projectStore.connections;
+		void projectStore.pairControls;
+		void settingsStore.settings;
+		void layoutExportStore.width;
+		void layoutExportStore.height;
+		void layoutExportStore.tokenLayout;
+		const t = setTimeout(() => {
+			try {
+				const svg = buildSvg({
+					includeAttributionFooter: true,
+					frame: {
+						width: preset.width,
+						height: preset.height,
+						padding: presetPadding(preset),
+						background: exportBackgroundColor()
+					}
+				});
+				previewUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+			} catch {
+				previewUrl = null;
+			}
+		}, 120);
+		return () => clearTimeout(t);
+	});
 
 	function buildState(): AppStateV2 {
 		return {
@@ -173,25 +260,87 @@
 	}
 </script>
 
-<div class="mb-3 flex flex-wrap items-center gap-2">
-	<Label for="export-raster-scale" class="mb-0 text-sm text-gray-600 dark:text-gray-400">
-		PNG / PDF scale
-	</Label>
-	<select
-		id="export-raster-scale"
-		class="rounded-lg border border-gray-300 bg-gray-50 py-1.5 pl-2 pr-8 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
-		value={String(rasterExportScale)}
-		onchange={(e) => {
-			const n = Number((e.currentTarget as HTMLSelectElement).value);
-			if (isRasterScale(n)) rasterExportScale = n;
-		}}
-	>
-		{#each RASTER_SCALE_OPTIONS as s (s)}
-			<option value={String(s)}>{s}×</option>
+<div class="mb-3">
+	<div class="mb-1.5 flex items-center gap-2">
+		<Label class="mb-0 text-sm text-gray-600 dark:text-gray-400">Canvas</Label>
+		<SettingsFieldHint text={hintAspect} />
+	</div>
+	<div class="flex flex-wrap gap-1.5">
+		<button
+			type="button"
+			class="{chipBase} {selectedAspect === 'auto' ? chipSelected : chipIdle}"
+			aria-pressed={selectedAspect === 'auto'}
+			title="Fit the canvas to the diagram (default)"
+			onclick={() => (selectedAspect = 'auto')}
+		>
+			<span class="h-4.5 w-4.5 border border-dashed border-current opacity-70"></span>
+			Auto
+		</button>
+		{#each ASPECT_PRESETS as p (p.id)}
+			{@const sh = aspectShape(p)}
+			<button
+				type="button"
+				class="{chipBase} {selectedAspect === p.id ? chipSelected : chipIdle}"
+				aria-pressed={selectedAspect === p.id}
+				title={`${p.width} × ${p.height} px · ${p.note}`}
+				onclick={() => (selectedAspect = p.id)}
+			>
+				<span class="inline-flex h-4.5 w-4.5 items-center justify-center">
+					<span class="border border-current" style="width:{sh.w}px;height:{sh.h}px"></span>
+				</span>
+				{p.label}
+				<span class="text-gray-400 dark:text-gray-500">{p.ratio}</span>
+			</button>
 		{/each}
-	</select>
-	<SettingsFieldHint text={hintRasterScale} />
+	</div>
+
+	{#if activePreset}
+		<div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start">
+			<div
+				class="flex max-w-55 items-center justify-center border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-900/40"
+			>
+				{#if previewUrl}
+					<img
+						src={previewUrl}
+						alt={`Preview of the ${activePreset.label} export`}
+						class="max-h-56 w-auto max-w-full"
+					/>
+				{:else}
+					<div class="flex h-24 w-24 items-center justify-center text-xs text-gray-400">…</div>
+				{/if}
+			</div>
+			<p class="text-xs leading-relaxed text-gray-600 dark:text-gray-400">
+				<span class="font-medium text-gray-800 dark:text-gray-200"
+					>{activePreset.width} × {activePreset.height} px</span
+				><br />
+				{activePreset.note}.<br />
+				The diagram is centered and scaled to fit; PNG and PDF export at this exact size.
+			</p>
+		</div>
+	{/if}
 </div>
+
+{#if !activePreset}
+	<div class="mb-3 flex flex-wrap items-center gap-2">
+		<Label for="export-raster-scale" class="mb-0 text-sm text-gray-600 dark:text-gray-400">
+			PNG / PDF scale
+		</Label>
+		<select
+			id="export-raster-scale"
+			class="rounded-lg border border-gray-300 bg-gray-50 py-1.5 pl-2 pr-8 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
+			value={String(rasterExportScale)}
+			onchange={(e) => {
+				const n = Number((e.currentTarget as HTMLSelectElement).value);
+				if (isRasterScale(n)) rasterExportScale = n;
+			}}
+		>
+			{#each RASTER_SCALE_OPTIONS as s (s)}
+				<option value={String(s)}>{s}×</option>
+			{/each}
+		</select>
+		<SettingsFieldHint text={hintRasterScale} />
+	</div>
+{/if}
 
 <ButtonGroup class="flex-wrap">
 	<Button color="light" size="sm" onclick={downloadPng}>PNG</Button>

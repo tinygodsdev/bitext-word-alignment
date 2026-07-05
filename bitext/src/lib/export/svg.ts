@@ -96,6 +96,11 @@ export function buildStandaloneSvgString(args: {
 	embedFontCss?: string;
 	/** PNG data URL for optional corner QR (site only). ExportMenu leaves this unset for now. */
 	siteQrPngDataUri?: string;
+	/**
+	 * Fit the cropped diagram into a fixed canvas (social-media aspect presets),
+	 * centered with padding. When omitted the canvas tracks the content as before.
+	 */
+	frame?: { width: number; height: number; padding?: number; background?: string };
 }): string {
 	const {
 		width,
@@ -117,7 +122,8 @@ export function buildStandaloneSvgString(args: {
 		includeAttributionFooter = true,
 		embedFontCdataImports,
 		embedFontCss,
-		siteQrPngDataUri
+		siteQrPngDataUri,
+		frame
 	} = args;
 
 	const visualStyle = getStyle(style);
@@ -366,5 +372,20 @@ export function buildStandaloneSvgString(args: {
 		? `${paths.join('')}${tokenRects.join('')}${texts.join('')}`
 		: `${tokenRects.join('')}${paths.join('')}${texts.join('')}`;
 
-	return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${cropW}" height="${cropH}" viewBox="${cropX} ${cropY} ${cropW} ${cropH}">${fontDefs}${bgRect}${frameSvg}${body}${cornerQr}${attribution}</svg>`;
+	const content = `${bgRect}${frameSvg}${body}${cornerQr}${attribution}`;
+
+	if (!frame) {
+		return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${cropW}" height="${cropH}" viewBox="${cropX} ${cropY} ${cropW} ${cropH}">${fontDefs}${content}</svg>`;
+	}
+
+	// Fit the cropped diagram into the fixed canvas, centered with padding.
+	const num = (n: number) => Math.round(n * 1000) / 1000;
+	const fw = Math.max(1, frame.width);
+	const fh = Math.max(1, frame.height);
+	const pad = Math.max(0, Math.min(frame.padding ?? 0, Math.min(fw, fh) / 2 - 1));
+	const fitScale = num(Math.min((fw - 2 * pad) / cropW, (fh - 2 * pad) / cropH));
+	const tx = num((fw - cropW * fitScale) / 2 - cropX * fitScale);
+	const ty = num((fh - cropH * fitScale) / 2 - cropY * fitScale);
+	const frameBg = frame.background ?? backgroundColor;
+	return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${fw}" height="${fh}" viewBox="0 0 ${fw} ${fh}">${fontDefs}<rect x="0" y="0" width="${fw}" height="${fh}" fill="${escapeXml(frameBg)}"/><g transform="translate(${tx} ${ty}) scale(${fitScale})">${content}</g></svg>`;
 }
