@@ -280,7 +280,7 @@
 
 			<!-- Canvas scroll area -->
 			<div bind:this={canvasScrollEl} class="min-h-0 flex-1 overflow-auto">
-				<div class="p-3 sm:p-4">
+				<div class="px-0 py-3 sm:p-4">
 					<AlignmentPreview instancePrefix="editor" writesExportLayout={!previewExpand} />
 				</div>
 			</div>

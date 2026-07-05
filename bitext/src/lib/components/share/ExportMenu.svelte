@@ -5,6 +5,7 @@
 	import SettingsFieldHint from '$lib/components/settings/SettingsFieldHint.svelte';
 	import { buildStandaloneSvgString } from '$lib/export/svg.js';
 	import { svgStringToPngBlob, downloadBlob } from '$lib/export/png.js';
+	import { exportBaseName, firstNonEmptyText } from '$lib/export/filename.js';
 	import { svgStringToPdfBlob } from '$lib/export/pdf.js';
 	import { wrapSvgInHtml } from '$lib/export/html.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
@@ -48,6 +49,11 @@
 		const bg = settingsStore.settings.background;
 		if (bg === 'dark') return '#1e1e1e';
 		return '#ffffff';
+	}
+
+	/** File base name seeded from the first non-empty line, e.g. `al-hello-world`. */
+	function exportName(ext: string): string {
+		return `${exportBaseName(firstNonEmptyText(projectStore.lines))}.${ext}`;
 	}
 
 	/** Lines with the active style's default font applied (so exports embed it like the preview). */
@@ -106,7 +112,7 @@
 		await flushPreviewLayout();
 		const rawSvg = buildSvg({ includeAttributionFooter: true });
 		const svg = await convertCustomFontTextToPaths(rawSvg, projectStore.lines);
-		downloadBlob('alignment.svg', new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
+		downloadBlob(exportName('svg'), new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
 	}
 
 	async function buildRasterSvg(): Promise<string> {
@@ -120,14 +126,14 @@
 		await flushPreviewLayout();
 		const svg = await buildRasterSvg();
 		const blob = await svgStringToPngBlob(svg, rasterExportScale);
-		downloadBlob('alignment.png', blob);
+		downloadBlob(exportName('png'), blob);
 	}
 
 	async function downloadPdf() {
 		await flushPreviewLayout();
 		const svg = await buildRasterSvg();
 		const blob = await svgStringToPdfBlob(svg, rasterExportScale);
-		downloadBlob('alignment.pdf', blob);
+		downloadBlob(exportName('pdf'), blob);
 	}
 
 	async function downloadHtml() {
@@ -135,7 +141,7 @@
 		const rawSvg = buildSvg({ includeAttributionFooter: false });
 		const svg = await convertCustomFontTextToPaths(rawSvg, projectStore.lines);
 		const html = wrapSvgInHtml(svg, 'Alignment export', googleFontImportList());
-		downloadBlob('alignment.html', new Blob([html], { type: 'text/html;charset=utf-8' }));
+		downloadBlob(exportName('html'), new Blob([html], { type: 'text/html;charset=utf-8' }));
 	}
 
 	function buildState(): AppStateV2 {
@@ -154,7 +160,7 @@
 			const dataUrl = await shareUrlToQrDataUrl(url);
 			const a = document.createElement('a');
 			a.href = dataUrl;
-			a.download = 'alignment-share-qr.png';
+			a.download = `${exportBaseName(firstNonEmptyText(projectStore.lines))}-share-qr.png`;
 			a.click();
 		} catch (e: unknown) {
 			const raw = e instanceof Error ? e.message : String(e);

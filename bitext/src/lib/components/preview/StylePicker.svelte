@@ -61,7 +61,7 @@
 
 	{#if open}
 		<div
-			class="absolute right-0 z-30 mt-1 grid w-[min(20rem,80vw)] grid-cols-2 gap-2 border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-600 dark:bg-gray-800"
+			class="fixed inset-x-2 z-30 mt-1 grid max-h-[70vh] w-auto grid-cols-2 gap-2 overflow-y-auto overscroll-contain border border-gray-200 bg-white p-2 shadow-lg sm:absolute sm:inset-x-auto sm:right-0 sm:w-[min(20rem,80vw)] dark:border-gray-600 dark:bg-gray-800"
 			role="menu"
 			aria-label="Visual styles"
 		>
