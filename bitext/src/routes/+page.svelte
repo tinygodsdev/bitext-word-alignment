@@ -85,6 +85,10 @@
 	});
 
 	// Keep the URL in sync so the diagram is shareable / reload-safe.
+	// The first run is the initially loaded (or default) state: leave the URL
+	// untouched so an idle `/` stays clean. Crawlers otherwise see the page
+	// replaceState to `?data=…` on load, which reads like a redirect.
+	let urlSyncPrimed = false;
 	let urlDebounce: ReturnType<typeof setTimeout> | undefined;
 	$effect(() => {
 		if (!browser || !hydrated) return;
@@ -92,6 +96,10 @@
 		void projectStore.connections;
 		void projectStore.pairControls;
 		void settingsStore.settings;
+		if (!urlSyncPrimed) {
+			urlSyncPrimed = true;
+			return;
+		}
 		clearTimeout(urlDebounce);
 		urlDebounce = setTimeout(() => {
 			const state: AppStateV2 = {
