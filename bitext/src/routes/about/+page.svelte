@@ -19,7 +19,7 @@
 	const DESCRIPTION =
 		'Word Aligner: multi-line word alignment, interlinear glosses and IPA, RTL scripts, word-splitting rules, per-line typography, exports (PNG, SVG, PDF, HTML), and shareable URLs — for learners, teachers, and linguists.';
 
-	const DEMO_VIDEO_ID = '08grRGLk3ms';
+	const DEMO_VIDEO_ID = 'rgGEb2WaNso';
 
 	const canonical = $derived(page.url.origin + page.url.pathname);
 	const ogImage = $derived(`${page.url.origin}/api/og`);
