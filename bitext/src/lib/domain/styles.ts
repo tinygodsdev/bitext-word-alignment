@@ -63,6 +63,38 @@ export interface StyleCanvas {
 	tintBaseHex: string;
 }
 
+/**
+ * A background is a canvas selectable independently of the style. `light`/`dark` are the
+ * plain canvases (rendered via the preview-frame CSS classes); every other id reuses a
+ * style's own canvas. Picking a style resets the background to its default; the user can
+ * then override it with any entry here (e.g. Bauhaus chips on the Aurora canvas).
+ */
+export type BackgroundId =
+	| 'light'
+	| 'dark'
+	| 'aurora'
+	| 'atlas'
+	| 'synthwave'
+	| 'parchment'
+	| 'bauhaus'
+	| 'sumi'
+	| 'blueprint'
+	| 'deco'
+	| 'nouveau'
+	| 'riso'
+	| 'spectrum'
+	// A solid canvas painted in a user-chosen color; its canvas is computed, not catalogued.
+	| 'custom';
+
+export interface Background {
+	id: BackgroundId;
+	label: string;
+	canvas: StyleCanvas;
+}
+
+/** Initial swatch for the custom canvas before the user has picked a color. */
+export const DEFAULT_CUSTOM_BACKGROUND = '#4f46e5';
+
 export interface VisualStyle {
 	id: StyleId;
 	label: string;
@@ -302,6 +334,106 @@ export function getStyle(id: StyleId): VisualStyle {
 
 export const STYLES_LIST: VisualStyle[] = STYLE_ORDER.map((id) => STYLES[id]);
 
+/** Plain canvases mirroring the `preview-frame--light/--dark` CSS (the original classic look). */
+const PLAIN_BACKGROUNDS: Record<'light' | 'dark', Background> = {
+	light: {
+		id: 'light',
+		label: 'Light',
+		canvas: {
+			isDark: false,
+			previewBackground: '#ffffff',
+			textColor: '#0f172a',
+			tintBaseHex: '#ffffff'
+		}
+	},
+	dark: {
+		id: 'dark',
+		label: 'Dark',
+		canvas: {
+			isDark: true,
+			previewBackground: '#1e1e1e',
+			textColor: '#e8e8e8',
+			tintBaseHex: '#1e1e1e'
+		}
+	}
+};
+
+/** `light`/`dark` first, then every themed style's own canvas (Classic excluded — it is `light`/`dark`). */
+export const BACKGROUND_ORDER: BackgroundId[] = [
+	'light',
+	'dark',
+	...STYLE_ORDER.filter((id) => id !== 'classic')
+] as BackgroundId[];
+
+const BACKGROUNDS: Record<BackgroundId, Background> = (() => {
+	const out = { light: PLAIN_BACKGROUNDS.light, dark: PLAIN_BACKGROUNDS.dark } as Record<
+		BackgroundId,
+		Background
+	>;
+	for (const id of STYLE_ORDER) {
+		if (id === 'classic') continue;
+		out[id] = { id, label: STYLES[id].label, canvas: STYLES[id].canvas };
+	}
+	return out;
+})();
+
+export const BACKGROUNDS_LIST: Background[] = BACKGROUND_ORDER.map((id) => BACKGROUNDS[id]);
+
+export function isBackgroundId(v: unknown): v is BackgroundId {
+	return typeof v === 'string' && (v in BACKGROUNDS || v === 'custom');
+}
+
+export function getBackground(id: BackgroundId): Background {
+	return BACKGROUNDS[id];
+}
+
+/** `light`/`dark` render through the preview-frame CSS classes; themed ids are inlined. */
+export function isPlainBackground(id: BackgroundId): boolean {
+	return id === 'light' || id === 'dark';
+}
+
+/**
+ * The background actually shown: an explicit override wins; otherwise the style's default
+ * (Classic follows the legacy light/dark toggle, every themed style uses its own canvas).
+ * Leaving `backgroundId` unset reproduces the pre-feature rendering, so old links are unchanged.
+ */
+export function resolveBackgroundId(
+	styleId: StyleId,
+	backgroundId: BackgroundId | undefined,
+	legacyDark: boolean
+): BackgroundId {
+	if (backgroundId) return backgroundId;
+	if (styleId === 'classic') return legacyDark ? 'dark' : 'light';
+	return styleId as BackgroundId;
+}
+
+/** Canvas for a solid user color: readable text + dark/light chrome are derived from luminance. */
+export function computeSolidCanvas(color: string): StyleCanvas {
+	const textColor = readableTextOn(color);
+	return {
+		isDark: textColor !== '#171008',
+		previewBackground: color,
+		textColor,
+		tintBaseHex: color
+	};
+}
+
+/**
+ * The effective canvas plus whether it renders through the plain preview-frame CSS classes
+ * (`light`/`dark` only) or inline. `custom` is computed from `customColor`; every other id
+ * comes from the catalog.
+ */
+export function resolveCanvas(
+	styleId: StyleId,
+	backgroundId: BackgroundId | undefined,
+	legacyDark: boolean,
+	customColor: string
+): { id: BackgroundId; canvas: StyleCanvas; plain: boolean } {
+	const id = resolveBackgroundId(styleId, backgroundId, legacyDark);
+	if (id === 'custom') return { id, canvas: computeSolidCanvas(customColor), plain: false };
+	return { id, canvas: getBackground(id).canvas, plain: isPlainBackground(id) };
+}
+
 /** Connector color under a style: the style ink overrides the per-link palette color. */
 export function connectorColor(style: VisualStyle, linkColor: string): string {
 	return style.connector.lineColor ?? linkColor;
@@ -378,19 +510,20 @@ export function effectiveLineFamily(line: LineV2, style: VisualStyle): string {
 }
 
 /**
- * Background defs + rect(s) for the standalone SVG export. Returns null for `classic`,
- * which keeps the caller-provided light/dark fill. Mirrors `canvas.previewBackground`.
+ * Background defs + rect(s) for the standalone SVG export. Returns null for the plain
+ * `light`/`dark` canvases, which keep the caller-provided fill. Mirrors `canvas.previewBackground`.
  */
-export function styleExportBackground(
-	style: VisualStyle,
+export function backgroundExport(
+	id: BackgroundId,
 	x: number,
 	y: number,
 	width: number,
 	height: number
 ): { defs: string; rect: string } | null {
-	if (style.id === 'classic') return null;
+	// Plain light/dark and the custom solid color are filled from the caller-provided color.
+	if (isPlainBackground(id) || id === 'custom') return null;
 	const box = `x="${x}" y="${y}" width="${width}" height="${height}"`;
-	switch (style.id) {
+	switch (id) {
 		case 'aurora':
 			return {
 				defs: `<radialGradient id="bg-aurora" cx="0.5" cy="-0.1" r="1.1"><stop offset="0" stop-color="#2a2150"/><stop offset="0.7" stop-color="#14111f"/><stop offset="1" stop-color="#14111f"/></radialGradient>`,
@@ -433,8 +566,19 @@ export function styleExportBackground(
 				rect: `<rect ${box} fill="#f2eadd"/><rect ${box} fill="url(#bg-riso)"/>`
 			};
 		default:
-			return { defs: '', rect: `<rect ${box} fill="${style.canvas.tintBaseHex}"/>` };
+			return { defs: '', rect: `<rect ${box} fill="${BACKGROUNDS[id].canvas.tintBaseHex}"/>` };
 	}
+}
+
+/** Style-keyed wrapper: a style's own canvas maps to a background of the same id (`classic` → plain). */
+export function styleExportBackground(
+	style: VisualStyle,
+	x: number,
+	y: number,
+	width: number,
+	height: number
+): { defs: string; rect: string } | null {
+	return backgroundExport(style.id === 'classic' ? 'light' : style.id, x, y, width, height);
 }
 
 /** Decorative frame for the export, drawn over the background and under the tokens. `''` when none. */

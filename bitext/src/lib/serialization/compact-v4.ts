@@ -65,6 +65,10 @@ function settingsToCompact(rounded: VisualSettingsV2): CompactSettings4 | undefi
 	}
 	if (rounded.tokenPunctuationChars) o.px = rounded.tokenPunctuationChars;
 	if (rounded.style !== def.style) o.st = rounded.style;
+	if (rounded.backgroundId !== undefined) o.bi = rounded.backgroundId;
+	if (rounded.backgroundId === 'custom' && rounded.backgroundCustomColor) {
+		o.bc = rounded.backgroundCustomColor.replace(/^#/u, '');
+	}
 	if (rounded.autoFit !== def.autoFit) o.af = rounded.autoFit ? 1 : 0;
 	if (rounded.autoFitVariance !== def.autoFitVariance) o.av = rounded.autoFitVariance;
 	if (rounded.background !== def.background) {
@@ -97,6 +101,8 @@ function compactToVisualSettings(s: CompactSettings4 | undefined): VisualSetting
 		raw.background = n === 1 ? 'dark' : 'light';
 	}
 	if (s.st !== undefined) raw.style = String(s.st);
+	if (s.bi !== undefined) raw.backgroundId = String(s.bi);
+	if (s.bc !== undefined) raw.backgroundCustomColor = `#${String(s.bc)}`;
 	if (s.af !== undefined) raw.autoFit = Number(s.af) === 1;
 	if (s.av !== undefined) raw.autoFitVariance = Number(s.av);
 	return normalizeVisualSettingsV2(raw);

@@ -14,7 +14,14 @@
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { layoutExportStore } from '$lib/state/layoutExport.svelte.js';
 	import { googleFontUrlsForLines, svgFontFamilyStackLine } from '$lib/fonts/visualization-font.js';
-	import { applyStyleFont, getStyle } from '$lib/domain/styles.js';
+	import {
+		applyStyleFont,
+		getStyle,
+		getBackground,
+		resolveBackgroundId,
+		computeSolidCanvas,
+		DEFAULT_CUSTOM_BACKGROUND
+	} from '$lib/domain/styles.js';
 	import { buildInlinedFontCssFromLines } from '$lib/fonts/inline-fonts.js';
 	import { ensureVisualizationCustomFontsFromLines } from '$lib/fonts/ensure-document-fonts.js';
 	import { convertCustomFontTextToPaths } from '$lib/fonts/text-to-paths.js';
@@ -72,16 +79,29 @@
 		await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
 	}
 
+	function effectiveBackgroundId() {
+		const s = settingsStore.settings;
+		return resolveBackgroundId(s.style, s.backgroundId, s.background === 'dark');
+	}
+
+	function customColor(): string {
+		return settingsStore.settings.backgroundCustomColor ?? DEFAULT_CUSTOM_BACKGROUND;
+	}
+
 	function exportTextColor(): string {
-		const bg = settingsStore.settings.background;
-		if (bg === 'dark') return '#f8fafc';
-		return '#0f172a';
+		const id = effectiveBackgroundId();
+		if (id === 'dark') return '#f8fafc';
+		if (id === 'light') return '#0f172a';
+		if (id === 'custom') return computeSolidCanvas(customColor()).textColor;
+		return getBackground(id).canvas.textColor;
 	}
 
 	function exportBackgroundColor(): string {
-		const bg = settingsStore.settings.background;
-		if (bg === 'dark') return '#1e1e1e';
-		return '#ffffff';
+		const id = effectiveBackgroundId();
+		if (id === 'dark') return '#1e1e1e';
+		if (id === 'light') return '#ffffff';
+		if (id === 'custom') return customColor();
+		return getBackground(id).canvas.previewBackground;
 	}
 
 	/** File name seeded from the first non-empty line, plus the preset id, e.g. `al-hello-world-square.png`. */
@@ -126,6 +146,7 @@
 			backgroundColor: exportBackgroundColor(),
 			defaultTextColor: exportTextColor(),
 			style: s.style,
+			backgroundId: effectiveBackgroundId(),
 			colorTokensByLink: s.colorTokensByLink,
 			tokenLinkColorMode: s.tokenLinkColorMode,
 			lineStyle: s.lineStyle,

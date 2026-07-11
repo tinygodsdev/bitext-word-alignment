@@ -3,11 +3,23 @@
 	import SegmentedControl from '$lib/components/settings/SegmentedControl.svelte';
 	import FontsTab from '$lib/components/settings/FontsTab.svelte';
 	import { PALETTES, PALETTE_NAMES, type PaletteName } from '$lib/domain/palettes.js';
+	import {
+		BACKGROUNDS_LIST,
+		resolveBackgroundId,
+		DEFAULT_CUSTOM_BACKGROUND
+	} from '$lib/domain/styles.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
 
 	const s = $derived(settingsStore.settings);
-	const isClassic = $derived(s.style === 'classic');
+	const currentBackgroundId = $derived(
+		resolveBackgroundId(s.style, s.backgroundId, s.background === 'dark')
+	);
+	const customColor = $derived(s.backgroundCustomColor ?? DEFAULT_CUSTOM_BACKGROUND);
+
+	function chooseCustomColor(color: string) {
+		settingsStore.patch({ backgroundId: 'custom', backgroundCustomColor: color });
+	}
 
 	function choosePalette(name: PaletteName) {
 		settingsStore.patch({ palette: name });
@@ -24,21 +36,52 @@
 </script>
 
 <div class="flex flex-col gap-4">
-	<!-- Canvas: only Classic exposes a light/dark switch; other themes bring their own background. -->
-	{#if isClassic}
-		<section aria-labelledby="style-section-canvas" class={section}>
-			<h3 id="style-section-canvas" class="{sectionTitle} mb-2">Canvas</h3>
-			<SegmentedControl
-				label="Canvas background"
-				options={[
-					{ value: 'light', label: 'Light' },
-					{ value: 'dark', label: 'Dark' }
-				]}
-				value={s.background}
-				onSelect={(v) => settingsStore.patch({ background: v as 'light' | 'dark' })}
-			/>
-		</section>
-	{/if}
+	<!-- Canvas: the style sets a default background; any style can be moved onto another one. -->
+	<section aria-labelledby="style-section-canvas" class={section}>
+		<h3 id="style-section-canvas" class="{sectionTitle} mb-2">Canvas</h3>
+		<div class="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Canvas background">
+			{#each BACKGROUNDS_LIST as b (b.id)}
+				{@const selected = currentBackgroundId === b.id}
+				<button
+					type="button"
+					role="radio"
+					aria-checked={selected}
+					class="flex items-center gap-2 border p-1.5 text-left transition-colors {selected
+						? 'border-primary-500 ring-1 ring-primary-500'
+						: 'border-gray-200 hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-400'}"
+					onclick={() => settingsStore.patch({ backgroundId: b.id })}
+				>
+					<span
+						class="h-6 w-6 shrink-0 rounded-sm border border-black/15"
+						style:background={b.canvas.previewBackground}
+					></span>
+					<span class="truncate text-xs font-medium text-gray-800 dark:text-gray-100"
+						>{b.label}</span
+					>
+				</button>
+			{/each}
+			<label
+				class="flex cursor-pointer items-center gap-2 border p-1.5 text-left transition-colors {currentBackgroundId ===
+				'custom'
+					? 'border-primary-500 ring-1 ring-primary-500'
+					: 'border-gray-200 hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-400'}"
+			>
+				<input
+					type="color"
+					class="canvas-color-swatch h-6 w-6 shrink-0 cursor-pointer overflow-hidden rounded-sm border border-black/15 bg-transparent p-0"
+					aria-label="Custom canvas color"
+					value={customColor}
+					onclick={() => chooseCustomColor(customColor)}
+					oninput={(e) => chooseCustomColor((e.currentTarget as HTMLInputElement).value)}
+				/>
+				<span class="truncate text-xs font-medium text-gray-800 dark:text-gray-100">Custom</span>
+			</label>
+		</div>
+		<p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+			Picking a style resets this. Choose a background to keep a style's words and links on another
+			canvas.
+		</p>
+	</section>
 
 	<!-- Colors: link palette + how it spills onto the words -->
 	<section aria-labelledby="style-section-colors" class={section}>
@@ -207,3 +250,19 @@
 		<FontsTab />
 	</section>
 </div>
+
+<style>
+	/* Let the native color input read as a flat swatch like its sibling tiles: drop the
+	   built-in wrapper padding and the inner swatch border so the color fills the square. */
+	:global(.canvas-color-swatch::-webkit-color-swatch-wrapper) {
+		padding: 0;
+	}
+	:global(.canvas-color-swatch::-webkit-color-swatch) {
+		border: none;
+		border-radius: 0.125rem;
+	}
+	:global(.canvas-color-swatch::-moz-color-swatch) {
+		border: none;
+		border-radius: 0.125rem;
+	}
+</style>

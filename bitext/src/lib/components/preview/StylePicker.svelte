@@ -29,7 +29,8 @@
 
 	function choose(id: StyleId) {
 		const style = getStyle(id);
-		settingsStore.patch({ style: id });
+		// Clear any canvas override so the new style shows on its own default background.
+		settingsStore.patch({ style: id, backgroundId: undefined });
 		// Picking a style bundles its palette; the user can change it afterwards.
 		if (style.palette) {
 			settingsStore.patch({ palette: style.palette });
