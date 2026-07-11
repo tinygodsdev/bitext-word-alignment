@@ -95,6 +95,35 @@ describe('compact v4 encode/decode (current share format)', () => {
 		expect(decodeState(encodeState(classic)).settings.style).toBe('classic');
 	});
 
+	it('round-trip: independent background override survives a share link', () => {
+		const base = migrate({});
+		const s: AppStateV2 = {
+			...base,
+			settings: { ...base.settings, style: 'bauhaus', backgroundId: 'aurora' }
+		};
+		expect(decodeState(encodeState(s)).settings.backgroundId).toBe('aurora');
+	});
+
+	it('no override stays out of the URL and decodes to undefined', () => {
+		const base = migrate({});
+		expect(base.settings.backgroundId).toBeUndefined();
+		expect(encodeState(base)).toBe(
+			encodeState({ ...base, settings: { ...base.settings, backgroundId: undefined } })
+		);
+		expect(decodeState(encodeState(base)).settings.backgroundId).toBeUndefined();
+	});
+
+	it('round-trip: custom canvas carries its color', () => {
+		const base = migrate({});
+		const s: AppStateV2 = {
+			...base,
+			settings: { ...base.settings, backgroundId: 'custom', backgroundCustomColor: '#0055ff' }
+		};
+		const decoded = decodeState(encodeState(s)).settings;
+		expect(decoded.backgroundId).toBe('custom');
+		expect(decoded.backgroundCustomColor).toBe('#0055ff');
+	});
+
 	it('round-trip: auto-fit off + variance; defaults stay out of the URL', () => {
 		const base = migrate({});
 		expect(base.settings.autoFit).toBe(true);

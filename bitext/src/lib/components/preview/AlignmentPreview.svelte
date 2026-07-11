@@ -11,7 +11,12 @@
 	import { selectionStore } from '$lib/state/selection.svelte.js';
 	import { layoutExportStore } from '$lib/state/layoutExport.svelte.js';
 	import { lineIsLinkTargetWhilePending } from '$lib/domain/lines-helpers.js';
-	import { getStyle, effectiveLineFamily } from '$lib/domain/styles.js';
+	import {
+		getStyle,
+		effectiveLineFamily,
+		resolveCanvas,
+		DEFAULT_CUSTOM_BACKGROUND
+	} from '$lib/domain/styles.js';
 	import {
 		computeAutoFitScales,
 		scalesChanged,
@@ -46,10 +51,19 @@
 
 	let rootEl = $state<HTMLElement | null>(null);
 
-	const bg = $derived(settingsStore.settings.background);
 	const style = $derived(getStyle(settingsStore.settings.style));
-	const isClassicStyle = $derived(style.id === 'classic');
-	const previewDark = $derived(isClassicStyle ? bg === 'dark' : style.canvas.isDark);
+	const resolvedCanvas = $derived(
+		resolveCanvas(
+			settingsStore.settings.style,
+			settingsStore.settings.backgroundId,
+			settingsStore.settings.background === 'dark',
+			settingsStore.settings.backgroundCustomColor ?? DEFAULT_CUSTOM_BACKGROUND
+		)
+	);
+	const canvas = $derived(resolvedCanvas.canvas);
+	// Plain light/dark canvases render through the preview-frame CSS classes; the rest inline.
+	const plainCanvas = $derived(resolvedCanvas.plain);
+	const previewDark = $derived(canvas.isDark);
 
 	function lineFontCss(line: LineV2): string {
 		return `"${effectiveLineFamily(line, style)}", sans-serif`;
@@ -271,8 +285,8 @@
 	class:preview-frame--dark={previewDark}
 	data-aligner-style={style.id}
 	data-autofit={autoFit ? 'on' : 'off'}
-	style:background={isClassicStyle ? undefined : style.canvas.previewBackground}
-	style:color={isClassicStyle ? undefined : style.canvas.textColor}
+	style:background={plainCanvas ? undefined : canvas.previewBackground}
+	style:color={plainCanvas ? undefined : canvas.textColor}
 	style:touch-action={zoom.z > 1 ? 'none' : 'pan-y'}
 	onpointerdown={onPointerDown}
 	onpointermove={onPointerMove}

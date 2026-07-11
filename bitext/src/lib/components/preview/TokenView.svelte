@@ -4,7 +4,13 @@
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
 	import { selectionStore } from '$lib/state/selection.svelte.js';
-	import { getStyle, readableTextOn, shiftHue } from '$lib/domain/styles.js';
+	import {
+		getStyle,
+		readableTextOn,
+		shiftHue,
+		resolveCanvas,
+		DEFAULT_CUSTOM_BACKGROUND
+	} from '$lib/domain/styles.js';
 
 	let {
 		token,
@@ -39,11 +45,15 @@
 			settingsStore.settings.tokenLinkColorMode === 'background'
 	);
 
-	const previewSurfaceHex = $derived.by(() => {
-		const style = getStyle(settingsStore.settings.style);
-		if (style.id !== 'classic') return style.canvas.tintBaseHex;
-		return settingsStore.settings.background === 'dark' ? '#1e1e1e' : '#ffffff';
-	});
+	const effectiveCanvas = $derived(
+		resolveCanvas(
+			settingsStore.settings.style,
+			settingsStore.settings.backgroundId,
+			settingsStore.settings.background === 'dark',
+			settingsStore.settings.backgroundCustomColor ?? DEFAULT_CUSTOM_BACKGROUND
+		).canvas
+	);
+	const previewSurfaceHex = $derived(effectiveCanvas.tintBaseHex);
 
 	const textColor = $derived.by(() => {
 		if (!settingsStore.settings.colorTokensByLink || !conn?.color || linkBgMode) return null;
@@ -105,7 +115,7 @@
 	// Neon glow (own color) or Riso misregistration (hard offset in a shifted spot color).
 	const tokenTextShadow = $derived.by(() => {
 		if (chip) return undefined;
-		const base = displayColor ?? textColor ?? style.canvas.textColor;
+		const base = displayColor ?? textColor ?? effectiveCanvas.textColor;
 		if (style.glowText) return `0 0 0.5em ${base}`;
 		if (style.textOffsetShadow) {
 			const { dx, dy } = style.textOffsetShadow;

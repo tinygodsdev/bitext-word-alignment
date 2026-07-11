@@ -9,7 +9,16 @@ import {
 	shiftHue,
 	styleExportBackground,
 	styleExportFrame,
-	STYLE_ORDER
+	STYLE_ORDER,
+	BACKGROUNDS_LIST,
+	BACKGROUND_ORDER,
+	backgroundExport,
+	getBackground,
+	isBackgroundId,
+	isPlainBackground,
+	resolveBackgroundId,
+	resolveCanvas,
+	computeSolidCanvas
 } from './styles.js';
 import { isPaletteName, PALETTE_NAMES, PALETTES } from './palettes.js';
 import { ribbonPathD } from './link-geometry.js';
@@ -94,6 +103,97 @@ describe('style export background', () => {
 		const riso = styleExportBackground(getStyle('riso'), 0, 0, 100, 100);
 		expect(riso?.defs).toContain('pattern');
 		expect(riso?.rect).toContain('url(#bg-riso)');
+	});
+});
+
+describe('background catalog', () => {
+	it('lists light/dark first, then every themed style (Classic excluded)', () => {
+		expect(BACKGROUND_ORDER.slice(0, 2)).toEqual(['light', 'dark']);
+		expect(BACKGROUND_ORDER).not.toContain('classic');
+		for (const id of STYLE_ORDER) {
+			if (id === 'classic') continue;
+			expect(BACKGROUND_ORDER).toContain(id);
+		}
+		expect(BACKGROUNDS_LIST).toHaveLength(BACKGROUND_ORDER.length);
+	});
+
+	it('themed backgrounds reuse the style canvas', () => {
+		expect(getBackground('aurora').canvas).toEqual(getStyle('aurora').canvas);
+	});
+
+	it('isBackgroundId guards unknown values', () => {
+		expect(isBackgroundId('aurora')).toBe(true);
+		expect(isBackgroundId('light')).toBe(true);
+		expect(isBackgroundId('classic')).toBe(false);
+		expect(isBackgroundId('nope')).toBe(false);
+	});
+
+	it('isPlainBackground only for light/dark', () => {
+		expect(isPlainBackground('light')).toBe(true);
+		expect(isPlainBackground('dark')).toBe(true);
+		expect(isPlainBackground('aurora')).toBe(false);
+	});
+});
+
+describe('resolveBackgroundId', () => {
+	it('an explicit override always wins', () => {
+		expect(resolveBackgroundId('bauhaus', 'aurora', false)).toBe('aurora');
+		expect(resolveBackgroundId('classic', 'synthwave', true)).toBe('synthwave');
+	});
+
+	it('classic without override follows the legacy light/dark toggle', () => {
+		expect(resolveBackgroundId('classic', undefined, false)).toBe('light');
+		expect(resolveBackgroundId('classic', undefined, true)).toBe('dark');
+	});
+
+	it('a themed style without override uses its own canvas', () => {
+		expect(resolveBackgroundId('aurora', undefined, true)).toBe('aurora');
+	});
+});
+
+describe('backgroundExport', () => {
+	it('returns null for the plain light/dark canvases', () => {
+		expect(backgroundExport('light', 0, 0, 100, 100)).toBeNull();
+		expect(backgroundExport('dark', 0, 0, 100, 100)).toBeNull();
+	});
+
+	it('paints a themed canvas regardless of the style', () => {
+		expect(backgroundExport('aurora', 0, 0, 100, 100)?.rect).toContain('url(#bg-aurora)');
+	});
+
+	it('returns null for the custom solid canvas (caller fills it)', () => {
+		expect(backgroundExport('custom', 0, 0, 100, 100)).toBeNull();
+	});
+});
+
+describe('custom canvas', () => {
+	it('isBackgroundId accepts custom; it is not a plain (CSS-class) canvas', () => {
+		expect(isBackgroundId('custom')).toBe(true);
+		expect(isPlainBackground('custom')).toBe(false);
+	});
+
+	it('computeSolidCanvas derives readable text + isDark from luminance', () => {
+		const dark = computeSolidCanvas('#101020');
+		expect(dark.isDark).toBe(true);
+		expect(dark.textColor).toBe('#ffffff');
+		expect(dark.previewBackground).toBe('#101020');
+
+		const light = computeSolidCanvas('#fef3c7');
+		expect(light.isDark).toBe(false);
+		expect(light.textColor).toBe('#171008');
+	});
+
+	it('resolveCanvas builds the custom canvas from the chosen color', () => {
+		const r = resolveCanvas('bauhaus', 'custom', false, '#0055ff');
+		expect(r.id).toBe('custom');
+		expect(r.plain).toBe(false);
+		expect(r.canvas.previewBackground).toBe('#0055ff');
+	});
+
+	it('resolveCanvas falls back to the style default when no override', () => {
+		const r = resolveCanvas('aurora', undefined, false, '#0055ff');
+		expect(r.id).toBe('aurora');
+		expect(r.canvas).toEqual(getStyle('aurora').canvas);
 	});
 });
 

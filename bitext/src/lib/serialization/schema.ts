@@ -5,7 +5,7 @@ import {
 } from '$lib/domain/alignment.js';
 import { tokenize, tokenizeOptionsFromVisualSettings } from '$lib/domain/tokens.js';
 import { PALETTES, isPaletteName, type PaletteName } from '$lib/domain/palettes.js';
-import { isStyleId, type StyleId } from '$lib/domain/styles.js';
+import { isStyleId, isBackgroundId, type StyleId, type BackgroundId } from '$lib/domain/styles.js';
 
 export const SCHEMA_VERSION = 2 as const;
 /** @deprecated Legacy share payloads only */
@@ -165,6 +165,13 @@ export interface VisualSettingsV2 {
 	background: BackgroundMode;
 	/** Visual style preset (background, frame, connector treatment, default font). */
 	style: StyleId;
+	/**
+	 * Independent canvas override. Unset → the style's own canvas (Classic follows `background`);
+	 * set → that background is drawn under any style. Additive: absent in old payloads.
+	 */
+	backgroundId?: BackgroundId;
+	/** Remembered color for the `custom` background (used only when `backgroundId === 'custom'`). */
+	backgroundCustomColor?: string;
 	/** Shrink text to fit so a line never wraps to a second display row. */
 	autoFit: boolean;
 	/** 0 = all lines share one scale (uniform); 1 = each line fits independently. */
@@ -794,6 +801,12 @@ export function normalizeVisualSettingsV2(
 			typeof raw.previewHideChrome === 'boolean' ? raw.previewHideChrome : d.previewHideChrome,
 		background: normalizePreviewBackground(raw.background ?? d.background),
 		style: isStyleId(raw.style) ? raw.style : d.style,
+		backgroundId: isBackgroundId(raw.backgroundId) ? raw.backgroundId : undefined,
+		backgroundCustomColor:
+			typeof raw.backgroundCustomColor === 'string' &&
+			/^#[0-9a-fA-F]{6}$/u.test(raw.backgroundCustomColor)
+				? raw.backgroundCustomColor
+				: undefined,
 		autoFit: typeof raw.autoFit === 'boolean' ? raw.autoFit : d.autoFit,
 		autoFitVariance:
 			typeof raw.autoFitVariance === 'number' && Number.isFinite(raw.autoFitVariance)

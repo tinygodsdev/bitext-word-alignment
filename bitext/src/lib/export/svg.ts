@@ -9,11 +9,14 @@ import { linkEndpoints, linkPathD, ribbonPathD } from '$lib/domain/link-geometry
 import {
 	connectorColor,
 	getStyle,
+	getBackground,
+	isPlainBackground,
 	readableTextOn,
 	shiftHue,
-	styleExportBackground,
+	backgroundExport,
 	styleExportFrame,
-	type StyleId
+	type StyleId,
+	type BackgroundId
 } from '$lib/domain/styles.js';
 import {
 	chromeScale,
@@ -146,8 +149,10 @@ export function buildStandaloneSvgString(args: {
 	/** Matches on-screen preview / raster exports (PNG, PDF). Used for the `classic` style. */
 	backgroundColor: string;
 	defaultTextColor: string;
-	/** Visual style preset; drives canvas, frame and connector treatment. */
+	/** Visual style preset; drives frame and connector treatment. */
 	style?: StyleId;
+	/** Independent canvas override. Unset → the style's own canvas (or classic light/dark). */
+	backgroundId?: BackgroundId;
 	colorTokensByLink: boolean;
 	tokenLinkColorMode?: TokenLinkColorMode;
 	lineStyle: 'straight' | 'curved';
@@ -182,6 +187,7 @@ export function buildStandaloneSvgString(args: {
 		backgroundColor,
 		defaultTextColor,
 		style = 'classic',
+		backgroundId,
 		colorTokensByLink,
 		tokenLinkColorMode = 'text',
 		lineStyle,
@@ -202,9 +208,15 @@ export function buildStandaloneSvgString(args: {
 
 	const visualStyle = getStyle(style);
 	const conn = visualStyle.connector;
-	const isClassic = visualStyle.id === 'classic';
-	const resolvedTextColor = isClassic ? defaultTextColor : visualStyle.canvas.textColor;
-	const tintBase = isClassic ? backgroundColor : visualStyle.canvas.tintBaseHex;
+	// Effective canvas: an explicit override, else the style's own (classic → the plain fill).
+	const bgId: BackgroundId =
+		backgroundId ?? (style === 'classic' ? 'light' : (style as BackgroundId));
+	// Plain light/dark and the custom solid color are painted from the caller-provided fill/text;
+	// themed canvases bring their own.
+	const callerFill = isPlainBackground(bgId) || bgId === 'custom';
+	const bgCanvas = callerFill ? null : getBackground(bgId).canvas;
+	const resolvedTextColor = bgCanvas ? bgCanvas.textColor : defaultTextColor;
+	const tintBase = bgCanvas ? bgCanvas.tintBaseHex : backgroundColor;
 
 	// Fixed-canvas (social preset) geometry: card size, padding and inner area.
 	const cardW = frame ? Math.max(1, frame.width) : 0;
@@ -283,7 +295,7 @@ export function buildStandaloneSvgString(args: {
 	const bgY = frame ? 0 : cropY;
 	const bgW = frame ? cardW : cropW;
 	const bgH = frame ? cardH : cropH;
-	const exportBg = styleExportBackground(visualStyle, bgX, bgY, bgW, bgH);
+	const exportBg = backgroundExport(bgId, bgX, bgY, bgW, bgH);
 	const frameSvg = styleExportFrame(visualStyle, bgX, bgY, bgW, bgH);
 
 	const styleChunks: string[] = [];
