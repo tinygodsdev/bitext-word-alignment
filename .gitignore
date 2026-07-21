@@ -37,3 +37,6 @@ docs/tmp/
 # Cursor (local editor config for indexing)
 .cursorignore
 .cursorindexingignore
+
+# Machine-specific Obsidian task config (vault paths differ per machine)
+.agents/tools/*.local.md

@@ -5,6 +5,8 @@ Project-specific details
 Task management: Obsidian (TaskNotes plugin).
 Workflow, schema, field values, time tracking, changelog rules, and queries:
 `.agents/tools/obsidian-tasks.md`.
+Machine-specific paths (vault root) live in the gitignored `.agents/tools/obsidian-tasks.local.md`;
+run `init-obsidian-tasks` to (re)create it on a new machine.
 
 **Project name:** `Word Aligner`
 
