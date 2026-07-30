@@ -6,6 +6,10 @@ This file defines stable, project-agnostic instructions for AI agents working in
 
 Treat `AGENTS.md` as read-only operating guidance. Do not edit it or use it as project memory.
 
+## Language
+
+Reply to the user in the language they used in their message. Reading skills, instructions, or other files does not change this: the user's message language decides the reply language, regardless of the language of any files or skills you read while working.
+
 ## Tasks 
 
 When you need to search or find project tasks, issues, tickets, etc., address to @PROJECT.md file for specific instructions. Respect the task management system described there. 

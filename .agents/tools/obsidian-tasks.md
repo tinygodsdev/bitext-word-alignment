@@ -54,6 +54,7 @@ blockedBy:             # list of wikilinks, optional
 linear-issue:          # issue URL — managed by the vault's Linear sync, never edit by hand
 linear-team:           # managed by the Linear sync
 linear-synced-at:      # managed by the Linear sync
+completedDate:         # set by the user when closing the task — agents leave it empty
 timeEntries:           # filled during work, see Time tracking section
   - startTime: 2026-01-01T10:00:00.000Z
     description: Brief description of what was done
@@ -108,10 +109,16 @@ When updating a task, update `dateModified` to the current timestamp.
 
 When work on a task is complete, run the `obsidian-task-done` skill — it performs the close-out
 in the right order. The steps it covers:
-- Set `status: review` (not `done` — the user reviews and closes)
+- Set `status: review`
+- Leave `completedDate` empty
 - Add a brief summary to the task body: what was done and anything the user should know
   (e.g. decisions made, caveats, follow-ups)
 - Add a Changelog entry on the project page (see Changelog section)
+
+**`review` is the agent's terminal status.** Never set `status: done` or `status: closed`, and never
+fill `completedDate`, unless the user explicitly asked for it. Both mark the task as finished and
+hide it from the dashboard, so the user loses the task instead of reviewing it. Closing a task is
+the user's decision.
 
 ---
 
