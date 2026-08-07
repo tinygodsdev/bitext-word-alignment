@@ -37,6 +37,74 @@
 </script>
 
 <div class="flex flex-col gap-4">
+	<!-- Layout: which way the diagram flows. First, because it is structural rather than decorative,
+	     and because vertical writing is unreachable without it. -->
+	<section aria-labelledby="style-section-layout" class={section}>
+		<h3 id="style-section-layout" class="{sectionTitle} mb-2">Layout</h3>
+		<div class="flex flex-col gap-4">
+			<div>
+				<Label class="mb-2">Direction</Label>
+				<SegmentedControl
+					label="Diagram direction"
+					options={[
+						{ value: 'rows', label: 'Rows' },
+						{ value: 'columns', label: 'Columns' }
+					]}
+					value={s.layoutAxis}
+					onSelect={(v) => settingsStore.patch({ layoutAxis: v as LayoutAxis })}
+				/>
+				<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+					Columns stand every line up as a vertical column and run the connectors sideways, for
+					Japanese, Chinese, and Mongolian.
+				</p>
+			</div>
+			{#if s.layoutAxis === 'columns'}
+				<div>
+					<Label class="mb-2">First line sits</Label>
+					<SegmentedControl
+						label="Which side the first line sits on"
+						options={[
+							{ value: 'rtl', label: 'Right' },
+							{ value: 'ltr', label: 'Left' }
+						]}
+						value={s.columnOrder}
+						onSelect={(v) => settingsStore.patch({ columnOrder: v as ColumnOrder })}
+					/>
+					<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+						Right for Japanese and Chinese, left for traditional Mongolian.
+					</p>
+				</div>
+				<div>
+					<Label class="mb-2">Stack characters</Label>
+					<div class="flex flex-col gap-1.5">
+						{#each projectStore.lines as line, i (line.id)}
+							<label class={toggleRow}>
+								<input
+									type="checkbox"
+									class={chk}
+									checked={line.textOrientation === 'vertical'}
+									onchange={(e) =>
+										projectStore.updateLineStyle(line.id, {
+											textOrientation: (e.currentTarget as HTMLInputElement).checked
+												? 'vertical'
+												: 'upright'
+										})}
+								/>
+								<span class="{toggleText} min-w-0 truncate">
+									Line {i + 1} — {line.rawText.replace(/\s+/gu, ' ').trim() || 'empty'}
+								</span>
+							</label>
+						{/each}
+					</div>
+					<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+						On for the vertical script, off for a translation or gloss so its words stay upright.
+						Each line's own settings also offer a sideways (rotated) setting.
+					</p>
+				</div>
+			{/if}
+		</div>
+	</section>
+
 	<!-- Canvas: the style sets a default background; any style can be moved onto another one. -->
 	<section aria-labelledby="style-section-canvas" class={section}>
 		<h3 id="style-section-canvas" class="{sectionTitle} mb-2">Canvas</h3>
@@ -139,46 +207,6 @@
 					value={s.tokenLinkColorMode}
 					onSelect={(v) => settingsStore.patch({ tokenLinkColorMode: v as 'text' | 'background' })}
 				/>
-			{/if}
-		</div>
-	</section>
-
-	<!-- Layout: which way the diagram flows -->
-	<section aria-labelledby="style-section-layout" class={section}>
-		<h3 id="style-section-layout" class="{sectionTitle} mb-2">Layout</h3>
-		<div class="flex flex-col gap-4">
-			<div>
-				<Label class="mb-2">Direction</Label>
-				<SegmentedControl
-					label="Diagram direction"
-					options={[
-						{ value: 'rows', label: 'Rows' },
-						{ value: 'columns', label: 'Columns' }
-					]}
-					value={s.layoutAxis}
-					onSelect={(v) => settingsStore.patch({ layoutAxis: v as LayoutAxis })}
-				/>
-				<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-					Columns turn every line into a vertical column and run the connectors sideways. Set which
-					lines stack their characters under each line's own Text setting.
-				</p>
-			</div>
-			{#if s.layoutAxis === 'columns'}
-				<div>
-					<Label class="mb-2">First line sits</Label>
-					<SegmentedControl
-						label="Which side the first line sits on"
-						options={[
-							{ value: 'rtl', label: 'Right' },
-							{ value: 'ltr', label: 'Left' }
-						]}
-						value={s.columnOrder}
-						onSelect={(v) => settingsStore.patch({ columnOrder: v as ColumnOrder })}
-					/>
-					<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-						Right for Japanese and Chinese, left for traditional Mongolian.
-					</p>
-				</div>
 			{/if}
 		</div>
 	</section>
