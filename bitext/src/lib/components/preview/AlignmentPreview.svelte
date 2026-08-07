@@ -75,7 +75,6 @@
 
 	const axis = $derived(settingsStore.settings.layoutAxis);
 	const columns = $derived(axis === 'columns');
-	const columnsRtl = $derived(columns && settingsStore.settings.columnOrder === 'rtl');
 
 	// --- Auto-fit: shrink font/gap so a line never wraps to a second row ---
 	const autoFit = $derived(settingsStore.settings.autoFit);
@@ -110,7 +109,6 @@
 		void settingsStore.settings.tokenSplitChars;
 		void settingsStore.settings.style;
 		void settingsStore.settings.layoutAxis;
-		void settingsStore.settings.columnOrder;
 		void writesExportLayout;
 		void layoutExportStore.layoutRemeasureTick;
 
@@ -337,11 +335,7 @@
 		</div>
 	{/if}
 	<div class="preview-zoom" bind:this={zoomEl} style:transform={zoomTransform}>
-		<div
-			class="preview-stack"
-			class:preview-stack--columns={columns}
-			class:preview-stack--columns-rtl={columnsRtl}
-		>
+		<div class="preview-stack" class:preview-stack--columns={columns}>
 			{#if !readonly}
 				<div
 					class="flex justify-center {columns ? 'me-1 items-center' : 'mb-1'} {hideChrome
@@ -384,7 +378,6 @@
 								total={projectStore.lines.length}
 								{previewDark}
 								{axis}
-								columnOrder={settingsStore.settings.columnOrder}
 							/>
 						</div>
 					{/if}

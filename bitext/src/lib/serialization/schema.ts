@@ -6,7 +6,7 @@ import {
 import { tokenize, tokenizeOptionsFromVisualSettings } from '$lib/domain/tokens.js';
 import { PALETTES, isPaletteName, type PaletteName } from '$lib/domain/palettes.js';
 import { isStyleId, isBackgroundId, type StyleId, type BackgroundId } from '$lib/domain/styles.js';
-import type { ColumnOrder, LayoutAxis, TextOrientation } from '$lib/types/layout.js';
+import type { LayoutAxis, TextOrientation } from '$lib/types/layout.js';
 
 export const SCHEMA_VERSION = 2 as const;
 /** @deprecated Legacy share payloads only */
@@ -22,10 +22,6 @@ export type BackgroundMode = 'light' | 'dark';
 
 export function normalizeLayoutAxis(value: unknown): LayoutAxis {
 	return value === 'columns' ? 'columns' : 'rows';
-}
-
-export function normalizeColumnOrder(value: unknown): ColumnOrder {
-	return value === 'ltr' ? 'ltr' : 'rtl';
 }
 
 export function normalizeTextOrientation(value: unknown): TextOrientation {
@@ -198,8 +194,6 @@ export interface VisualSettingsV2 {
 	autoFitVariance: number;
 	/** Flow axis of the diagram; `columns` turns every line into a vertical column. */
 	layoutAxis: LayoutAxis;
-	/** Column mode only: `rtl` puts the first line rightmost (CJK), `ltr` leftmost (Mongolian). */
-	columnOrder: ColumnOrder;
 }
 
 export interface AppStateV2 {
@@ -279,8 +273,7 @@ export function defaultVisualSettingsV2(): VisualSettingsV2 {
 		style: 'classic',
 		autoFit: true,
 		autoFitVariance: 0.5,
-		layoutAxis: 'rows',
-		columnOrder: 'rtl'
+		layoutAxis: 'rows'
 	};
 }
 
@@ -359,8 +352,7 @@ export function visualSettingsV1ToV2(v1: VisualSettingsV1): VisualSettingsV2 {
 		style: 'classic',
 		autoFit: true,
 		autoFitVariance: 0.5,
-		layoutAxis: 'rows',
-		columnOrder: 'rtl'
+		layoutAxis: 'rows'
 	};
 }
 
@@ -842,7 +834,6 @@ export function normalizeVisualSettingsV2(
 			typeof raw.autoFitVariance === 'number' && Number.isFinite(raw.autoFitVariance)
 				? Math.max(0, Math.min(1, raw.autoFitVariance))
 				: d.autoFitVariance,
-		layoutAxis: normalizeLayoutAxis(raw.layoutAxis ?? d.layoutAxis),
-		columnOrder: normalizeColumnOrder(raw.columnOrder ?? d.columnOrder)
+		layoutAxis: normalizeLayoutAxis(raw.layoutAxis ?? d.layoutAxis)
 	};
 }

@@ -11,7 +11,8 @@ export const EDITOR_EXAMPLE_IDS: ExampleId[] = [
 	'rtl',
 	'tagalog',
 	'cjk',
-	'tategaki'
+	'tategaki',
+	'mongolian-vertical'
 ];
 
 export { CORE_EXAMPLES, WIKIPEDIA_EXAMPLES };

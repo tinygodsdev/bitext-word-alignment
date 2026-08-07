@@ -7,15 +7,14 @@
 		ArrowUpOutline
 	} from 'flowbite-svelte-icons';
 	import { projectStore } from '$lib/state/project.svelte.js';
-	import type { ColumnOrder, LayoutAxis } from '$lib/types/layout.js';
+	import type { LayoutAxis } from '$lib/types/layout.js';
 
 	let {
 		line,
 		index,
 		total,
 		previewDark = false,
-		axis = 'rows',
-		columnOrder = 'rtl'
+		axis = 'rows'
 	}: {
 		line: LineV2;
 		index: number;
@@ -23,22 +22,13 @@
 		/** Match preview canvas background (Appearance), not site light/dark theme. */
 		previewDark?: boolean;
 		axis?: LayoutAxis;
-		columnOrder?: ColumnOrder;
 	} = $props();
 
-	/** Arrows point where the line actually moves: earlier in stack order is left unless columns run RTL. */
-	const EarlierIcon = $derived(
-		axis === 'rows' ? ArrowUpOutline : columnOrder === 'rtl' ? ArrowRightOutline : ArrowLeftOutline
-	);
-	const LaterIcon = $derived(
-		axis === 'rows'
-			? ArrowDownOutline
-			: columnOrder === 'rtl'
-				? ArrowLeftOutline
-				: ArrowRightOutline
-	);
-	const earlierLabel = $derived(axis === 'rows' ? 'Move line up' : 'Move line earlier');
-	const laterLabel = $derived(axis === 'rows' ? 'Move line down' : 'Move line later');
+	/** Arrows point where the line actually moves: up in rows, left in columns. */
+	const EarlierIcon = $derived(axis === 'rows' ? ArrowUpOutline : ArrowLeftOutline);
+	const LaterIcon = $derived(axis === 'rows' ? ArrowDownOutline : ArrowRightOutline);
+	const earlierLabel = $derived(axis === 'rows' ? 'Move line up' : 'Move line left');
+	const laterLabel = $derived(axis === 'rows' ? 'Move line down' : 'Move line right');
 
 	const stripClass =
 		'z-10 flex w-[4.5rem] shrink-0 justify-center gap-1 font-sans text-[14px] [font-family:var(--font-sans,system-ui,sans-serif)]';

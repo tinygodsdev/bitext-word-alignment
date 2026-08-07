@@ -244,17 +244,13 @@ html {
 	align-items: stretch;
 }
 
-/* Column mode: lines sit side by side. `row-reverse` puts the first line rightmost (CJK);
-   the interleaved gap strips reverse with them, so pair order stays correct either way. */
+/* Column mode: lines sit side by side, first line leftmost — the same "first is at the start of
+   the stack" rule as rows. Which script ends up on which side is set by line order. */
 .preview-stack--columns {
 	flex-direction: row;
 	align-items: stretch;
 	justify-content: center;
 	height: 100%;
-}
-
-.preview-stack--columns-rtl {
-	flex-direction: row-reverse;
 }
 
 /* Column mode grows sideways, so the block axis needs a bound for auto-fit to target and for a

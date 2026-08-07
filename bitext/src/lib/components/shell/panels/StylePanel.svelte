@@ -10,7 +10,7 @@
 	} from '$lib/domain/styles.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
-	import type { ColumnOrder, LayoutAxis } from '$lib/types/layout.js';
+	import type { LayoutAxis } from '$lib/types/layout.js';
 
 	const s = $derived(settingsStore.settings);
 	const currentBackgroundId = $derived(
@@ -55,25 +55,11 @@
 				/>
 				<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
 					Columns stand every line up as a vertical column and run the connectors sideways, for
-					Japanese, Chinese, and Mongolian.
+					Japanese, Chinese, and Mongolian. The first line is leftmost; reorder the lines to put a
+					script on the other side.
 				</p>
 			</div>
 			{#if s.layoutAxis === 'columns'}
-				<div>
-					<Label class="mb-2">First line sits</Label>
-					<SegmentedControl
-						label="Which side the first line sits on"
-						options={[
-							{ value: 'rtl', label: 'Right' },
-							{ value: 'ltr', label: 'Left' }
-						]}
-						value={s.columnOrder}
-						onSelect={(v) => settingsStore.patch({ columnOrder: v as ColumnOrder })}
-					/>
-					<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-						Right for Japanese and Chinese, left for traditional Mongolian.
-					</p>
-				</div>
 				<div>
 					<Label class="mb-2">Stack characters</Label>
 					<div class="flex flex-col gap-1.5">

@@ -72,7 +72,6 @@ function settingsToCompact(rounded: VisualSettingsV2): CompactSettings4 | undefi
 	if (rounded.autoFit !== def.autoFit) o.af = rounded.autoFit ? 1 : 0;
 	if (rounded.autoFitVariance !== def.autoFitVariance) o.av = rounded.autoFitVariance;
 	if (rounded.layoutAxis !== def.layoutAxis) o.ax = rounded.layoutAxis === 'columns' ? 1 : 0;
-	if (rounded.columnOrder !== def.columnOrder) o.co = rounded.columnOrder === 'ltr' ? 1 : 0;
 	if (rounded.background !== def.background) {
 		o.bg = rounded.background === 'dark' ? 1 : 0;
 	}
@@ -108,7 +107,6 @@ function compactToVisualSettings(s: CompactSettings4 | undefined): VisualSetting
 	if (s.af !== undefined) raw.autoFit = Number(s.af) === 1;
 	if (s.av !== undefined) raw.autoFitVariance = Number(s.av);
 	if (s.ax !== undefined) raw.layoutAxis = Number(s.ax) === 1 ? 'columns' : 'rows';
-	if (s.co !== undefined) raw.columnOrder = Number(s.co) === 1 ? 'ltr' : 'rtl';
 	return normalizeVisualSettingsV2(raw);
 }
 

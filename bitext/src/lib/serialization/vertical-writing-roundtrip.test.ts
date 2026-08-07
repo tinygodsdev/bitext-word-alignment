@@ -23,12 +23,11 @@ function roundtrip(state: AppStateV2): AppStateV2 {
 }
 
 describe('vertical writing — compact v4 roundtrip', () => {
-	it('carries the layout axis and column order', () => {
+	it('carries the layout axis', () => {
 		const state = defaultAppStateV2();
-		state.settings = { ...state.settings, layoutAxis: 'columns', columnOrder: 'ltr' };
+		state.settings = { ...state.settings, layoutAxis: 'columns' };
 		const out = roundtrip(state);
 		expect(out.settings.layoutAxis).toBe('columns');
-		expect(out.settings.columnOrder).toBe('ltr');
 	});
 
 	it('carries per-line text orientation', () => {
@@ -58,12 +57,11 @@ describe('vertical writing — compact v4 roundtrip', () => {
 		expect(out.project.lines[0].textOrientation).toBe('vertical');
 	});
 
-	it('omits both keys from the wire when they are default', () => {
+	it('omits the axis key from the wire when it is default', () => {
 		const state = defaultAppStateV2();
 		state.settings = { ...state.settings, palette: 'vivid' };
 		const wire = JSON.parse(toCompactJSON(state));
 		expect(wire.s.ax).toBeUndefined();
-		expect(wire.s.co).toBeUndefined();
 	});
 
 	it('drops the trailing orientation column when the line is upright', () => {
@@ -81,7 +79,6 @@ describe('vertical writing — compact v4 roundtrip', () => {
 			p: { ln: `a\t${encodeURIComponent('one two')}\tInter\t0\t\t36\t14` }
 		});
 		expect(out.settings.layoutAxis).toBe('rows');
-		expect(out.settings.columnOrder).toBe('rtl');
 		expect(out.project.lines[0].textOrientation).toBeUndefined();
 	});
 
@@ -95,9 +92,8 @@ describe('vertical writing — compact v4 roundtrip', () => {
 });
 
 describe('vertical writing — defaults', () => {
-	it('ships rows / rtl so existing projects render unchanged', () => {
+	it('ships rows so existing projects render unchanged', () => {
 		const d = defaultVisualSettingsV2();
 		expect(d.layoutAxis).toBe('rows');
-		expect(d.columnOrder).toBe('rtl');
 	});
 });
