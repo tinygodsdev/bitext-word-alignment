@@ -110,6 +110,11 @@
 			body: 'Hebrew and Arabic sit alongside left-to-right text, with direction set per line.'
 		},
 		{
+			title: 'Vertical writing systems',
+			icon: 'rtl',
+			body: 'Stand the diagram up as columns for Japanese tategaki, Chinese, or Mongolian. Characters stack or the line rotates, per line, so a horizontal translation stays readable beside it.'
+		},
+		{
 			title: 'Per-line typography',
 			icon: 'fonts',
 			body: 'Set font, size, and word spacing on each line, from Google Fonts or an uploaded file. Exports keep custom-font shaping.'

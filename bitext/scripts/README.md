@@ -10,6 +10,14 @@ npm install
 npx playwright install chromium
 ```
 
+Playwright's bundled Chromium is dynamically linked and will not start on distros that do not
+provide its libraries (NixOS, Guix report `libglib-2.0.so.0: cannot open shared object file`).
+Point the render script at a system browser instead:
+
+```bash
+CHROMIUM_PATH=$(which chromium) npm run examples:render
+```
+
 Copy `.env.example` to `.env` in the `bitext/` folder and fill in object storage credentials.
 
 ## Render + upload

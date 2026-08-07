@@ -246,33 +246,41 @@ html {
 
 /* Column mode: lines sit side by side, first line leftmost — the same "first is at the start of
    the stack" rule as rows. Which script ends up on which side is set by line order. */
+/* Columns stretch to the tallest one rather than to a percentage height, so the same rules work
+   whether the frame is bounded (editor) or hugs its content (readonly embed, headless render). */
 .preview-stack--columns {
 	flex-direction: row;
+	flex-wrap: wrap;
 	align-items: stretch;
 	justify-content: center;
-	height: 100%;
 }
 
-/* Column mode grows sideways, so the block axis needs a bound for auto-fit to target and for a
-   long sentence to shrink instead of running off the canvas. */
-.preview-frame[data-aligner-axis='columns'] {
+/* Column mode grows sideways, so the block axis needs a bound for auto-fit to shrink a long
+   sentence into. Only while editing: a readonly embed has no viewport to fit, and forcing one
+   there would screenshot mostly blank canvas. */
+.preview-frame[data-aligner-axis='columns']:not([data-aligner-readonly]) {
 	height: min(70vh, 44rem);
 }
 
-.preview-frame[data-aligner-axis='columns'] .preview-zoom {
+.preview-frame[data-aligner-axis='columns']:not([data-aligner-readonly]) .preview-zoom,
+.preview-frame[data-aligner-axis='columns']:not([data-aligner-readonly]) .preview-stack--columns {
 	height: 100%;
 }
 
 .preview-stack--columns .preview-token-line {
 	min-height: 0;
-	height: 100%;
 }
 
 .preview-stack--columns .preview-gloss-wrap {
 	width: auto;
-	height: 100%;
 	min-height: 0;
 	align-items: center;
+}
+
+/* The credit is a flex item of the stack, so in a row it would sit beside the diagram. Give it a
+   full basis and it wraps onto its own line underneath. */
+.preview-stack--columns .preview-frame__attribution {
+	flex-basis: 100%;
 }
 
 .preview-frame__attribution {

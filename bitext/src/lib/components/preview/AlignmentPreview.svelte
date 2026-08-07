@@ -298,6 +298,7 @@
 	class:preview-frame--dark={previewDark}
 	data-aligner-style={style.id}
 	data-aligner-axis={axis}
+	data-aligner-readonly={readonly ? '' : undefined}
 	data-autofit={autoFit ? 'on' : 'off'}
 	style:background={plainCanvas ? undefined : canvas.previewBackground}
 	style:color={plainCanvas ? undefined : canvas.textColor}

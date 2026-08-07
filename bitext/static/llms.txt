@@ -1,6 +1,6 @@
 # Word Aligner
 
-> Free, browser-based tool for visualizing word-by-word translation alignment and interlinear glosses. Stack multiple lines of text, draw connectors between matching words or morphemes, add IPA and gloss tiers, support right-to-left scripts, and export to PNG, SVG, PDF, or HTML. Everything runs client-side; sentences are never stored unless the user chooses to share them. A free, no-auth REST API is available.
+> Free, browser-based tool for visualizing word-by-word translation alignment and interlinear glosses. Stack multiple lines of text, draw connectors between matching words or morphemes, add IPA and gloss tiers, support right-to-left scripts and vertical writing systems (Japanese tategaki, Chinese, Mongolian), and export to PNG, SVG, PDF, or HTML. Everything runs client-side; sentences are never stored unless the user chooses to share them. A free, no-auth REST API is available.
 
 Built for language learners, language teachers, linguists, and conlangers. Created by Dani Polani (dani@tinygods.dev).
 
@@ -18,6 +18,16 @@ Built for language learners, language teachers, linguists, and conlangers. Creat
 - [Classical Nahuatl interlinear gloss](https://aligner.tinygods.dev/examples/classical-nahuatl-interlinear-gloss): Polysynthetic verb morphology in an interlinear layout.
 - [Lezgian morpheme gloss](https://aligner.tinygods.dev/examples/lezgian-morpheme-gloss): Morpheme-by-morpheme glossing of a low-resource language.
 - [Lojban sumti interlinear gloss](https://aligner.tinygods.dev/examples/lojban-sumti-interlinear-gloss): Interlinear gloss of a constructed-language sentence.
+- [Japanese vertical writing (tategaki)](https://aligner.tinygods.dev/examples/japanese-vertical-writing-tategaki-alignment): Column layout for a vertically written script, with an English translation beside it.
+- [Traditional Mongolian vertical script](https://aligner.tinygods.dev/examples/traditional-mongolian-vertical-alignment): Vertical script whose columns run left to right, with a transliteration tier.
+
+## Guides
+- [Interlinear gloss generator](https://aligner.tinygods.dev/guide/interlinear-gloss-generator): What the tool does and how to build a gloss in four steps.
+- [How to read an interlinear gloss](https://aligner.tinygods.dev/guide/how-to-read-an-interlinear-gloss): The three lines, the small-capital labels, and the marks.
+- [Leipzig Glossing Rules explained](https://aligner.tinygods.dev/guide/leipzig-glossing-rules): The shared standard for morpheme-by-morpheme glosses.
+- [Glossing abbreviations cheat sheet](https://aligner.tinygods.dev/guide/glossing-abbreviations): Case, person, tense, and the notation marks.
+- [How to gloss your conlang](https://aligner.tinygods.dev/guide/how-to-gloss-a-conlang): Leipzig-style glossing for an invented language.
+- [Aligning vertical writing systems](https://aligner.tinygods.dev/guide/vertical-writing-alignment): Column layout for Japanese tategaki, Chinese, and Mongolian; stacked vs rotated text; mixing a vertical script with a horizontal translation.
 
 ## Optional
 - [Privacy policy](https://aligner.tinygods.dev/privacy): Browser-only processing; no server-side storage of user text.
