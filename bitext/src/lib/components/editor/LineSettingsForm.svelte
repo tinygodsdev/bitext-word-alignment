@@ -3,6 +3,7 @@
 	import { TrashBinOutline } from 'flowbite-svelte-icons';
 	import { Label, Range } from 'flowbite-svelte';
 	import type { LineV2 } from '$lib/serialization/schema.js';
+	import type { TextOrientation } from '$lib/types/layout.js';
 	import { GOOGLE_FONT_OPTIONS } from '$lib/fonts/google-fonts.js';
 	import {
 		MAX_TEXT_SIZE_PX,
@@ -258,6 +259,21 @@
 			/>
 			<span>Right-to-left row</span>
 		</Label>
+		<div class="min-w-0">
+			<Label class="mb-1 block text-xs text-gray-600 dark:text-gray-400">Text setting</Label>
+			<select
+				class={sel}
+				value={line.textOrientation ?? 'upright'}
+				onchange={(e) =>
+					projectStore.updateLineStyle(line.id, {
+						textOrientation: (e.currentTarget as HTMLSelectElement).value as TextOrientation
+					})}
+			>
+				<option value="upright">Upright (horizontal words)</option>
+				<option value="vertical">Vertical (stacked characters)</option>
+				<option value="sideways">Sideways (rotated line)</option>
+			</select>
+		</div>
 		{#if nextLine}
 			<Label
 				class="inline-flex min-w-0 cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-gray-300"

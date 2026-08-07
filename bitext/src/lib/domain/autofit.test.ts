@@ -5,8 +5,8 @@ describe('computeAutoFitScales', () => {
 	it('leaves lines that fit at scale 1', () => {
 		const out = computeAutoFitScales(
 			[
-				{ lineId: 'a', width: 100, effScale: 1 },
-				{ lineId: 'b', width: 200, effScale: 1 }
+				{ lineId: 'a', extent: 100, effScale: 1 },
+				{ lineId: 'b', extent: 200, effScale: 1 }
 			],
 			300,
 			1
@@ -18,8 +18,8 @@ describe('computeAutoFitScales', () => {
 	it('per-line (variance 1): each line shrinks only as much as it needs', () => {
 		const out = computeAutoFitScales(
 			[
-				{ lineId: 'short', width: 200, effScale: 1 },
-				{ lineId: 'long', width: 400, effScale: 1 }
+				{ lineId: 'short', extent: 200, effScale: 1 },
+				{ lineId: 'long', extent: 400, effScale: 1 }
 			],
 			200,
 			1
@@ -31,8 +31,8 @@ describe('computeAutoFitScales', () => {
 	it('global (variance 0): all lines use the smallest scale', () => {
 		const out = computeAutoFitScales(
 			[
-				{ lineId: 'short', width: 200, effScale: 1 },
-				{ lineId: 'long', width: 400, effScale: 1 }
+				{ lineId: 'short', extent: 200, effScale: 1 },
+				{ lineId: 'long', extent: 400, effScale: 1 }
 			],
 			200,
 			0
@@ -44,8 +44,8 @@ describe('computeAutoFitScales', () => {
 	it('variance interpolates between global and per-line', () => {
 		const out = computeAutoFitScales(
 			[
-				{ lineId: 'short', width: 200, effScale: 1 },
-				{ lineId: 'long', width: 400, effScale: 1 }
+				{ lineId: 'short', extent: 200, effScale: 1 },
+				{ lineId: 'long', extent: 400, effScale: 1 }
 			],
 			200,
 			0.5
@@ -56,20 +56,20 @@ describe('computeAutoFitScales', () => {
 	});
 
 	it('honors the minimum floor and never exceeds 1', () => {
-		const out = computeAutoFitScales([{ lineId: 'x', width: 10000, effScale: 1 }], 100, 1, 0.1);
+		const out = computeAutoFitScales([{ lineId: 'x', extent: 10000, effScale: 1 }], 100, 1, 0.1);
 		expect(out.x).toBe(0.1);
-		const grow = computeAutoFitScales([{ lineId: 'y', width: 50, effScale: 0.5 }], 400, 1);
+		const grow = computeAutoFitScales([{ lineId: 'y', extent: 50, effScale: 0.5 }], 400, 1);
 		expect(grow.y).toBe(1); // would be 4 → capped at 1
 	});
 
 	it('converges: applying the scale and re-measuring is stable', () => {
-		// width scales with effScale. Start at 1, one tick, then re-measure.
+		// extent scales with effScale. Start at 1, one tick, then re-measure.
 		const avail = 200;
 		const naturalAt1 = 400;
 		let eff = 1;
 		for (let i = 0; i < 4; i++) {
-			const width = naturalAt1 * eff;
-			eff = computeAutoFitScales([{ lineId: 'a', width, effScale: eff }], avail, 1).a;
+			const extent = naturalAt1 * eff;
+			eff = computeAutoFitScales([{ lineId: 'a', extent, effScale: eff }], avail, 1).a;
 		}
 		expect(eff).toBeCloseTo(0.5, 3);
 	});

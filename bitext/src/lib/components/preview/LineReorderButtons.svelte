@@ -1,20 +1,44 @@
 <script lang="ts">
 	import type { LineV2 } from '$lib/serialization/schema.js';
-	import { ArrowDownOutline, ArrowUpOutline } from 'flowbite-svelte-icons';
+	import {
+		ArrowDownOutline,
+		ArrowLeftOutline,
+		ArrowRightOutline,
+		ArrowUpOutline
+	} from 'flowbite-svelte-icons';
 	import { projectStore } from '$lib/state/project.svelte.js';
+	import type { ColumnOrder, LayoutAxis } from '$lib/types/layout.js';
 
 	let {
 		line,
 		index,
 		total,
-		previewDark = false
+		previewDark = false,
+		axis = 'rows',
+		columnOrder = 'rtl'
 	}: {
 		line: LineV2;
 		index: number;
 		total: number;
 		/** Match preview canvas background (Appearance), not site light/dark theme. */
 		previewDark?: boolean;
+		axis?: LayoutAxis;
+		columnOrder?: ColumnOrder;
 	} = $props();
+
+	/** Arrows point where the line actually moves: earlier in stack order is left unless columns run RTL. */
+	const EarlierIcon = $derived(
+		axis === 'rows' ? ArrowUpOutline : columnOrder === 'rtl' ? ArrowRightOutline : ArrowLeftOutline
+	);
+	const LaterIcon = $derived(
+		axis === 'rows'
+			? ArrowDownOutline
+			: columnOrder === 'rtl'
+				? ArrowLeftOutline
+				: ArrowRightOutline
+	);
+	const earlierLabel = $derived(axis === 'rows' ? 'Move line up' : 'Move line earlier');
+	const laterLabel = $derived(axis === 'rows' ? 'Move line down' : 'Move line later');
 
 	const stripClass =
 		'z-10 flex w-[4.5rem] shrink-0 justify-center gap-1 font-sans text-[14px] [font-family:var(--font-sans,system-ui,sans-serif)]';
@@ -32,17 +56,17 @@
 		class={iconBtnClass}
 		disabled={index === 0}
 		onclick={() => projectStore.moveLine(line.id, -1)}
-		aria-label="Move line up"
+		aria-label={earlierLabel}
 	>
-		<ArrowUpOutline class="h-4 w-4" />
+		<EarlierIcon class="h-4 w-4" />
 	</button>
 	<button
 		type="button"
 		class={iconBtnClass}
 		disabled={index >= total - 1}
 		onclick={() => projectStore.moveLine(line.id, 1)}
-		aria-label="Move line down"
+		aria-label={laterLabel}
 	>
-		<ArrowDownOutline class="h-4 w-4" />
+		<LaterIcon class="h-4 w-4" />
 	</button>
 </div>

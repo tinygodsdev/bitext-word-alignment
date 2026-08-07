@@ -10,6 +10,7 @@
 	} from '$lib/domain/styles.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
+	import type { ColumnOrder, LayoutAxis } from '$lib/types/layout.js';
 
 	const s = $derived(settingsStore.settings);
 	const currentBackgroundId = $derived(
@@ -142,6 +143,46 @@
 		</div>
 	</section>
 
+	<!-- Layout: which way the diagram flows -->
+	<section aria-labelledby="style-section-layout" class={section}>
+		<h3 id="style-section-layout" class="{sectionTitle} mb-2">Layout</h3>
+		<div class="flex flex-col gap-4">
+			<div>
+				<Label class="mb-2">Direction</Label>
+				<SegmentedControl
+					label="Diagram direction"
+					options={[
+						{ value: 'rows', label: 'Rows' },
+						{ value: 'columns', label: 'Columns' }
+					]}
+					value={s.layoutAxis}
+					onSelect={(v) => settingsStore.patch({ layoutAxis: v as LayoutAxis })}
+				/>
+				<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+					Columns turn every line into a vertical column and run the connectors sideways. Set which
+					lines stack their characters under each line's own Text setting.
+				</p>
+			</div>
+			{#if s.layoutAxis === 'columns'}
+				<div>
+					<Label class="mb-2">First line sits</Label>
+					<SegmentedControl
+						label="Which side the first line sits on"
+						options={[
+							{ value: 'rtl', label: 'Right' },
+							{ value: 'ltr', label: 'Left' }
+						]}
+						value={s.columnOrder}
+						onSelect={(v) => settingsStore.patch({ columnOrder: v as ColumnOrder })}
+					/>
+					<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+						Right for Japanese and Chinese, left for traditional Mongolian.
+					</p>
+				</div>
+			{/if}
+		</div>
+	</section>
+
 	<!-- Lines: the connectors between words -->
 	<section aria-labelledby="style-section-lines" class={section}>
 		<h3 id="style-section-lines" class="{sectionTitle} mb-2">Lines</h3>
@@ -207,7 +248,9 @@
 					onchange={(e) =>
 						settingsStore.patch({ autoFit: (e.currentTarget as HTMLInputElement).checked })}
 				/>
-				<span class={toggleText}>Auto-fit text to width (never wrap a line)</span>
+				<span class={toggleText}>
+					Auto-fit text to {s.layoutAxis === 'columns' ? 'height' : 'width'} (never wrap a line)
+				</span>
 			</label>
 			{#if s.autoFit}
 				<div>

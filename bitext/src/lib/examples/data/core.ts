@@ -1,3 +1,4 @@
+import { DEFAULT_WORD_GAP_PX } from '$lib/serialization/schema.js';
 import type { ExampleEntry } from '../types.js';
 import { inter, noto } from './helpers.js';
 
@@ -105,6 +106,29 @@ export const CORE_EXAMPLES: ExampleEntry[] = [
 			['zh-1', 'en-1'],
 			['zh-2', 'en-2'],
 			['zh-3', 'en-4']
+		]
+	},
+	{
+		id: 'tategaki',
+		label: 'Japanese vertical writing (tategaki ↔ English)',
+		lines: [
+			{
+				id: 'ja',
+				rawText: '猫 が 魚 を 食べた',
+				font: { family: 'Noto Serif JP', source: 'google' },
+				textSizePx: 34,
+				gapWordPx: DEFAULT_WORD_GAP_PX,
+				textOrientation: 'vertical'
+			},
+			inter('The cat ate the fish', 'en', 26)
+		],
+		settings: { layoutAxis: 'columns', columnOrder: 'rtl' },
+		connections: [
+			['ja-0', 'en-0'],
+			['ja-0', 'en-1'],
+			['ja-2', 'en-3'],
+			['ja-2', 'en-4'],
+			['ja-4', 'en-2']
 		]
 	},
 	{

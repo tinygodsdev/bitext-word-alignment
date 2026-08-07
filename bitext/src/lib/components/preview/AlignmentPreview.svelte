@@ -73,6 +73,10 @@
 	const connections = $derived(projectStore.connections);
 	const lineIds = $derived(projectStore.lines.map((l) => l.id));
 
+	const axis = $derived(settingsStore.settings.layoutAxis);
+	const columns = $derived(axis === 'columns');
+	const columnsRtl = $derived(columns && settingsStore.settings.columnOrder === 'rtl');
+
 	// --- Auto-fit: shrink font/gap so a line never wraps to a second row ---
 	const autoFit = $derived(settingsStore.settings.autoFit);
 	const autoFitVariance = $derived(settingsStore.settings.autoFitVariance);
@@ -105,6 +109,8 @@
 		void settingsStore.settings.showNumbers;
 		void settingsStore.settings.tokenSplitChars;
 		void settingsStore.settings.style;
+		void settingsStore.settings.layoutAxis;
+		void settingsStore.settings.columnOrder;
 		void writesExportLayout;
 		void layoutExportStore.layoutRemeasureTick;
 
@@ -121,14 +127,23 @@
 
 		function recompute() {
 			if (!rootEl) return;
-			const rows: { lineId: string; width: number; effScale: number }[] = [];
+			// Auto-fit works along the flow axis: row width in `rows`, column height in `columns`.
+			const vertical = settingsStore.settings.layoutAxis === 'columns';
+			const rows: { lineId: string; extent: number; effScale: number }[] = [];
 			let avail = Infinity;
 			rootEl.querySelectorAll<HTMLElement>('.token-row[data-line]').forEach((row) => {
 				const id = row.dataset.line;
 				if (!id) return;
-				const a = row.parentElement?.clientWidth ?? row.clientWidth;
+				const parent = row.parentElement;
+				const a = vertical
+					? (parent?.clientHeight ?? row.clientHeight)
+					: (parent?.clientWidth ?? row.clientWidth);
 				if (a > 0) avail = Math.min(avail, a);
-				rows.push({ lineId: id, width: row.scrollWidth, effScale: effScale[id] ?? 1 });
+				rows.push({
+					lineId: id,
+					extent: vertical ? row.scrollHeight : row.scrollWidth,
+					effScale: effScale[id] ?? 1
+				});
 			});
 			if (!rows.length || !Number.isFinite(avail)) return;
 			const next = computeAutoFitScales(rows, avail * 0.98, autoFitVariance);
@@ -284,6 +299,7 @@
 	class:preview-frame--light={!previewDark}
 	class:preview-frame--dark={previewDark}
 	data-aligner-style={style.id}
+	data-aligner-axis={axis}
 	data-autofit={autoFit ? 'on' : 'off'}
 	style:background={plainCanvas ? undefined : canvas.previewBackground}
 	style:color={plainCanvas ? undefined : canvas.textColor}
@@ -321,10 +337,16 @@
 		</div>
 	{/if}
 	<div class="preview-zoom" bind:this={zoomEl} style:transform={zoomTransform}>
-		<div class="preview-stack">
+		<div
+			class="preview-stack"
+			class:preview-stack--columns={columns}
+			class:preview-stack--columns-rtl={columnsRtl}
+		>
 			{#if !readonly}
 				<div
-					class="mb-1 flex justify-center {hideChrome ? chromeHiddenLayer : ''}"
+					class="flex justify-center {columns ? 'me-1 items-center' : 'mb-1'} {hideChrome
+						? chromeHiddenLayer
+						: ''}"
 					aria-hidden={hideChrome ? true : undefined}
 				>
 					<button
@@ -347,6 +369,7 @@
 				<div
 					data-line={line.id}
 					class="preview-token-line flex items-center gap-3 transition-opacity duration-150"
+					class:flex-col={columns}
 					class:opacity-[0.34]={!readonly && rowDimmed}
 					style:font-family={lineFontCss(line)}
 				>
@@ -360,6 +383,8 @@
 								index={li}
 								total={projectStore.lines.length}
 								{previewDark}
+								{axis}
+								columnOrder={settingsStore.settings.columnOrder}
 							/>
 						</div>
 					{/if}
@@ -372,6 +397,8 @@
 							showNumbers={settingsStore.settings.showNumbers}
 							interactive={!readonly}
 							rtl={Boolean(line.rtl)}
+							{axis}
+							orientation={line.textOrientation ?? 'upright'}
 						/>
 					</div>
 					{#if !readonly}
@@ -396,13 +423,16 @@
 						upperLineId={line.id}
 						lowerLineId={lowerLine.id}
 						{previewDark}
+						{axis}
 						showControls={!readonly && !hideChrome}
 					/>
 				{/if}
 			{/each}
 			{#if !readonly}
 				<div
-					class="mt-1 flex justify-center {hideChrome ? chromeHiddenLayer : ''}"
+					class="flex justify-center {columns ? 'ms-1 items-center' : 'mt-1'} {hideChrome
+						? chromeHiddenLayer
+						: ''}"
 					aria-hidden={hideChrome ? true : undefined}
 				>
 					<button
@@ -435,6 +465,7 @@
 			{connections}
 			{writesExportLayout}
 			{thicknessScale}
+			{axis}
 			zoom={zoom.z}
 			showPins={!readonly && !hideChrome}
 		/>

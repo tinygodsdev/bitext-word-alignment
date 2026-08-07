@@ -244,6 +244,41 @@ html {
 	align-items: stretch;
 }
 
+/* Column mode: lines sit side by side. `row-reverse` puts the first line rightmost (CJK);
+   the interleaved gap strips reverse with them, so pair order stays correct either way. */
+.preview-stack--columns {
+	flex-direction: row;
+	align-items: stretch;
+	justify-content: center;
+	height: 100%;
+}
+
+.preview-stack--columns-rtl {
+	flex-direction: row-reverse;
+}
+
+/* Column mode grows sideways, so the block axis needs a bound for auto-fit to target and for a
+   long sentence to shrink instead of running off the canvas. */
+.preview-frame[data-aligner-axis='columns'] {
+	height: min(70vh, 44rem);
+}
+
+.preview-frame[data-aligner-axis='columns'] .preview-zoom {
+	height: 100%;
+}
+
+.preview-stack--columns .preview-token-line {
+	min-height: 0;
+	height: 100%;
+}
+
+.preview-stack--columns .preview-gloss-wrap {
+	width: auto;
+	height: 100%;
+	min-height: 0;
+	align-items: center;
+}
+
 .preview-frame__attribution {
 	position: relative;
 	z-index: 3;
@@ -376,6 +411,29 @@ path.link-path {
 /* Auto-fit off → restore legacy wrapping (a line may spill onto multiple rows) */
 .preview-frame[data-autofit='off'] .token-row {
 	flex-wrap: wrap;
+}
+
+/* Column mode: setting the row itself vertically makes flex direction and the logical
+   `margin-inline-start` between tokens map to the block axis with no extra branching.
+   Baseline alignment is dropped because a column may mix upright and vertically set tokens. */
+.token-row--columns {
+	writing-mode: vertical-rl;
+	align-items: center;
+}
+
+/* Glyph setting per line. `upright` is explicit so it resets the inherited vertical row above. */
+.token-view--upright {
+	writing-mode: horizontal-tb;
+}
+
+.token-view--vertical {
+	writing-mode: vertical-rl;
+	text-orientation: upright;
+}
+
+.token-view--sideways {
+	writing-mode: vertical-rl;
+	text-orientation: sideways;
 }
 
 .token-view {

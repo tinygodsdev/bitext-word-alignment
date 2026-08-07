@@ -71,6 +71,8 @@ function settingsToCompact(rounded: VisualSettingsV2): CompactSettings4 | undefi
 	}
 	if (rounded.autoFit !== def.autoFit) o.af = rounded.autoFit ? 1 : 0;
 	if (rounded.autoFitVariance !== def.autoFitVariance) o.av = rounded.autoFitVariance;
+	if (rounded.layoutAxis !== def.layoutAxis) o.ax = rounded.layoutAxis === 'columns' ? 1 : 0;
+	if (rounded.columnOrder !== def.columnOrder) o.co = rounded.columnOrder === 'ltr' ? 1 : 0;
 	if (rounded.background !== def.background) {
 		o.bg = rounded.background === 'dark' ? 1 : 0;
 	}
@@ -105,9 +107,12 @@ function compactToVisualSettings(s: CompactSettings4 | undefined): VisualSetting
 	if (s.bc !== undefined) raw.backgroundCustomColor = `#${String(s.bc)}`;
 	if (s.af !== undefined) raw.autoFit = Number(s.af) === 1;
 	if (s.av !== undefined) raw.autoFitVariance = Number(s.av);
+	if (s.ax !== undefined) raw.layoutAxis = Number(s.ax) === 1 ? 'columns' : 'rows';
+	if (s.co !== undefined) raw.columnOrder = Number(s.co) === 1 ? 'ltr' : 'rtl';
 	return normalizeVisualSettingsV2(raw);
 }
 
+/** Trailing optional columns are dropped when empty, so old payloads stay byte-identical. */
 function encodeLines(lines: LineV2[]): string {
 	return lines
 		.map((l) => {
@@ -115,12 +120,14 @@ function encodeLines(lines: LineV2[]): string {
 				l.id,
 				encodeURIComponent(l.rawText),
 				l.font.family,
-				l.font.source === 'custom' ? 1 : 0,
+				String(l.font.source === 'custom' ? 1 : 0),
 				l.font.customName ? encodeURIComponent(l.font.customName) : '',
 				String(l.textSizePx),
-				String(l.gapWordPx)
+				String(l.gapWordPx),
+				l.rtl ? '1' : '',
+				l.textOrientation === 'vertical' ? 'v' : l.textOrientation === 'sideways' ? 's' : ''
 			];
-			if (l.rtl) cols.push('1');
+			while (cols.length > 7 && cols[cols.length - 1] === '') cols.pop();
 			return cols.join('\t');
 		})
 		.join('|');
@@ -139,6 +146,7 @@ function decodeLines(encoded: string): LineV2[] {
 		const sz = parts[5];
 		const gwRaw = parts[6];
 		const rtlRaw = parts[7];
+		const orientationRaw = parts[8];
 		if (!id || !family) continue;
 		const customName = cnEnc ? decodeURIComponent(cnEnc) : undefined;
 		const parsedGw = gwRaw !== undefined && gwRaw !== '' ? Number(gwRaw) : undefined;
@@ -148,6 +156,8 @@ function decodeLines(encoded: string): LineV2[] {
 				: DEFAULT_WORD_GAP_PX;
 		const rtl =
 			rtlRaw !== undefined && rtlRaw !== '' && (Number(rtlRaw) === 1 || rtlRaw === 'true');
+		const textOrientation =
+			orientationRaw === 'v' ? 'vertical' : orientationRaw === 's' ? 'sideways' : undefined;
 		out.push({
 			id,
 			rawText: decodeURIComponent(rawEnc ?? ''),
@@ -158,7 +168,8 @@ function decodeLines(encoded: string): LineV2[] {
 			},
 			textSizePx: Math.max(12, Math.min(64, Number(sz) || 36)),
 			gapWordPx,
-			...(rtl ? { rtl: true } : {})
+			...(rtl ? { rtl: true } : {}),
+			...(textOrientation ? { textOrientation } : {})
 		});
 	}
 	return out;
@@ -254,7 +265,8 @@ function lineEquals(a: LineV2 | undefined, b: LineV2 | undefined): boolean {
 		a.font.family === b.font.family &&
 		a.font.source === b.font.source &&
 		a.font.customName === b.font.customName &&
-		(a.rtl ?? false) === (b.rtl ?? false)
+		(a.rtl ?? false) === (b.rtl ?? false) &&
+		(a.textOrientation ?? 'upright') === (b.textOrientation ?? 'upright')
 	);
 }
 

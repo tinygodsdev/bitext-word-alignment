@@ -1,17 +1,39 @@
-import type { TokenLayout } from '$lib/types/layout.js';
+import type { LayoutAxis, TokenLayout } from '$lib/types/layout.js';
 
-/** Vertical gap between token box and line endpoint (px). */
+/** Gap between token box and line endpoint (px), measured along the connector axis. */
 const PAD = 8;
 
 /**
  * Endpoints sit outside token boxes so strokes do not cross glyph bounds.
- * upperToken layout is treated as the higher (smaller cy) row when rows differ.
+ *
+ * `pUpper` is the token on the line that comes first in stack order. In `rows` the connector
+ * leaves the box vertically, in `columns` horizontally; which edge it leaves from follows the
+ * measured positions, so a reordered stack still draws the right way round.
  */
 export function linkEndpoints(
 	pUpper: TokenLayout,
 	pLower: TokenLayout,
-	pad: number = PAD
+	pad: number = PAD,
+	axis: LayoutAxis = 'rows'
 ): { x1: number; y1: number; x2: number; y2: number } {
+	if (axis === 'columns') {
+		const upperIsLeft = pUpper.cx <= pLower.cx;
+		if (upperIsLeft) {
+			return {
+				x1: pUpper.x + pUpper.w + pad,
+				y1: pUpper.cy,
+				x2: pLower.x - pad,
+				y2: pLower.cy
+			};
+		}
+		return {
+			x1: pUpper.x - pad,
+			y1: pUpper.cy,
+			x2: pLower.x + pLower.w + pad,
+			y2: pLower.cy
+		};
+	}
+
 	const upperIsAbove = pUpper.cy <= pLower.cy;
 	if (upperIsAbove) {
 		return {
@@ -34,10 +56,15 @@ export function linkPathD(
 	y1: number,
 	x2: number,
 	y2: number,
-	style: 'straight' | 'curved'
+	style: 'straight' | 'curved',
+	axis: LayoutAxis = 'rows'
 ): string {
 	if (style === 'straight') {
 		return `M ${x1} ${y1} L ${x2} ${y2}`;
+	}
+	if (axis === 'columns') {
+		const xm = (x1 + x2) / 2;
+		return `M ${x1} ${y1} C ${xm} ${y1} ${xm} ${y2} ${x2} ${y2}`;
 	}
 	const ym = (y1 + y2) / 2;
 	return `M ${x1} ${y1} C ${x1} ${ym} ${x2} ${ym} ${x2} ${y2}`;
@@ -49,7 +76,8 @@ function centerlineControls(
 	y1: number,
 	x2: number,
 	y2: number,
-	style: 'straight' | 'curved'
+	style: 'straight' | 'curved',
+	axis: LayoutAxis
 ): [number[], number[], number[], number[]] {
 	const P0 = [x1, y1];
 	const P3 = [x2, y2];
@@ -57,6 +85,10 @@ function centerlineControls(
 		const P1 = [x1 + (x2 - x1) / 3, y1 + (y2 - y1) / 3];
 		const P2 = [x1 + (2 * (x2 - x1)) / 3, y1 + (2 * (y2 - y1)) / 3];
 		return [P0, P1, P2, P3];
+	}
+	if (axis === 'columns') {
+		const xm = (x1 + x2) / 2;
+		return [P0, [xm, y1], [xm, y2], P3];
 	}
 	const ym = (y1 + y2) / 2;
 	return [P0, [x1, ym], [x2, ym], P3];
@@ -73,10 +105,11 @@ export function ribbonPathD(
 	y2: number,
 	style: 'straight' | 'curved',
 	width: number,
-	taper: boolean
+	taper: boolean,
+	axis: LayoutAxis = 'rows'
 ): string {
 	const hw = width / 2;
-	const [P0, P1, P2, P3] = centerlineControls(x1, y1, x2, y2, style);
+	const [P0, P1, P2, P3] = centerlineControls(x1, y1, x2, y2, style, axis);
 	const profile = taper ? (t: number) => Math.pow(Math.sin(Math.PI * t), 0.7) : () => 1;
 	const N = 48;
 	const left: [number, number][] = [];
