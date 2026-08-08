@@ -284,6 +284,22 @@
 						0-based left-to-right in logical order.</td
 					>
 				</tr>
+				<tr class="bg-gray-50/50 dark:bg-gray-800/20">
+					<td class={tdClass}>orientation</td>
+					<td class={tdTypeClass}
+						><span class={codeClass}>upright</span> <span class={codeClass}>vertical</span>
+						<span class={codeClass}>sideways</span></td
+					>
+					<td class={tdTypeClass}>upright</td>
+					<td class={tdDescClass}
+						>How this line's glyphs are set, visible when <span class={codeClass}
+							>settings.axis</span
+						>
+						is <span class={codeClass}>columns</span>. <span class={codeClass}>vertical</span>
+						stacks the characters (Japanese, Chinese); <span class={codeClass}>sideways</span> rotates
+						the whole line a quarter turn (traditional Mongolian, and Latin runs inside vertical text).</td
+					>
+				</tr>
 			</tbody>
 		</table>
 	</div>
@@ -301,6 +317,36 @@
       [0, 1, 1, 1]
     ]
   }'`}</pre>
+
+	<h3 class={subheadingClass}>Example — Japanese tategaki beside an English translation</h3>
+	<p class="mt-3">
+		<span class={codeClass}>settings.axis</span> turns the whole diagram into columns;
+		<span class={codeClass}>orientation</span> decides which line stacks its characters. The first line
+		is the leftmost column, so the translation comes first and the Japanese lands on the right, where
+		a vertical text belongs.
+	</p>
+	<pre class="{preClass} mt-3">{`curl -X POST ${apiBase}/api/align \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "lines": [
+      { "text": "The cat ate the fish", "sizePx": 26 },
+      { "text": "猫 が 魚 を 食べた", "orientation": "vertical", "font": "Noto Serif JP", "sizePx": 34 }
+    ],
+    "alignments": [
+      [0, 0, 1, 0],
+      [0, 1, 1, 0],
+      [0, 3, 1, 2],
+      [0, 4, 1, 2],
+      [0, 2, 1, 4]
+    ],
+    "settings": { "axis": "columns" }
+  }'`}</pre>
+	<p class="mt-3">
+		Japanese and Chinese are written without spaces and nothing is segmented for you: put spaces
+		where the alignment units should be. For traditional Mongolian use
+		<span class={codeClass}>"orientation": "sideways"</span> instead, and keep the script line first,
+		since its columns read left to right.
+	</p>
 
 	<!-- ── Visual settings ─────────────────────────────────────── -->
 
@@ -322,6 +368,19 @@
 			</thead>
 			<tbody class="divide-y divide-gray-100 dark:divide-gray-700/60">
 				<tr>
+					<td class={tdClass}>axis</td>
+					<td class={tdTypeClass}
+						><span class={codeClass}>rows</span> <span class={codeClass}>columns</span></td
+					>
+					<td class={tdTypeClass}>rows</td>
+					<td class={tdDescClass}
+						>Flow direction of the diagram. <span class={codeClass}>columns</span> stands every line
+						up as a vertical column and runs the connectors sideways, for Japanese, Chinese, and
+						Mongolian. The first line is the leftmost column, so reorder
+						<span class={codeClass}>lines</span> to move a script to the other side.</td
+					>
+				</tr>
+				<tr class="bg-gray-50/50 dark:bg-gray-800/20">
 					<td class={tdClass}>palette</td>
 					<td class={tdTypeClass}
 						><span class={codeClass}>pastel</span> <span class={codeClass}>vivid</span></td
@@ -441,19 +500,27 @@
 					<td class={tdClass}>upper</td>
 					<td class={tdTypeClass}>integer <em>required</em></td>
 					<td class={tdTypeClass}>—</td>
-					<td class={tdDescClass}>0-based index of the upper line.</td>
+					<td class={tdDescClass}
+						>0-based index of the earlier line in the stack: the upper one in
+						<span class={codeClass}>rows</span>, the left one in
+						<span class={codeClass}>columns</span>.</td
+					>
 				</tr>
 				<tr class="bg-gray-50/50 dark:bg-gray-800/20">
 					<td class={tdClass}>lower</td>
 					<td class={tdTypeClass}>integer <em>required</em></td>
 					<td class={tdTypeClass}>—</td>
-					<td class={tdDescClass}>0-based index of the lower line (must equal upper + 1).</td>
+					<td class={tdDescClass}
+						>0-based index of the next line in the stack (must equal upper + 1): below in
+						<span class={codeClass}>rows</span>, to the right in
+						<span class={codeClass}>columns</span>.</td
+					>
 				</tr>
 				<tr>
 					<td class={tdClass}>gapPx</td>
 					<td class={tdTypeClass}>integer 12–156</td>
 					<td class={tdTypeClass}>120</td>
-					<td class={tdDescClass}>Vertical gap between the two lines in px.</td>
+					<td class={tdDescClass}>Gap between the two lines in px, measured across the stack.</td>
 				</tr>
 				<tr class="bg-gray-50/50 dark:bg-gray-800/20">
 					<td class={tdClass}>showConnectors</td>
