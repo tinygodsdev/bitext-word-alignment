@@ -72,7 +72,8 @@ function renderSentenceText(
 	y: number,
 	tokens: Token[],
 	truncated: boolean,
-	colorByTokenId: Map<string, string>
+	colorByTokenId: Map<string, string>,
+	fontFamily: string
 ): string {
 	const parts: string[] = [];
 	tokens.forEach((t, i) => {
@@ -85,36 +86,71 @@ function renderSentenceText(
 			`<tspan xml:space="preserve" fill="${DEFAULT_TOKEN_COLOR}">${escapeXml(' …')}</tspan>`
 		);
 	}
-	return `<text x="${x}" y="${y}" fill="${DEFAULT_TOKEN_COLOR}" font-family="${FONT_FAMILY}" font-size="40" font-weight="600">${parts.join('')}</text>`;
+	// The line's own family first: without it a Japanese or Mongolian card asks for Inter and
+	// resvg draws "NO GLYPH" boxes even when the right font is loaded.
+	const stack = `${escapeXml(fontFamily)}, ${FONT_FAMILY}`;
+	return `<text x="${x}" y="${y}" fill="${DEFAULT_TOKEN_COLOR}" font-family="${stack}" font-size="40" font-weight="600">${parts.join('')}</text>`;
+}
+
+function plural(n: number, noun: string): string {
+	return `${n} ${noun}${n === 1 ? '' : 's'}`;
 }
 
 function renderPlaceholder(x: number, y: number, text: string): string {
 	return `<text x="${x}" y="${y}" fill="#64748b" font-family="${FONT_FAMILY}" font-size="40" font-weight="500" font-style="italic">${escapeXml(text)}</text>`;
 }
 
-/** OG preview: colored tokens from the shared state, no alignment lines. */
-export function buildOgSvg(state: AppStateV2): string {
+/** One of the (at most two) sentence lines the card shows, after truncation to the budget. */
+export interface OgLine {
+	tokens: Token[];
+	truncated: boolean;
+	/** Font family the line asks for; the card needs a matching file to avoid missing glyphs. */
+	family: string;
+	/** Exactly the characters the card will draw — the subset request is built from this. */
+	text: string;
+}
+
+/** The card shows the first two lines; everything downstream works from this shape. */
+export function ogLines(state: AppStateV2): (OgLine | null)[] {
 	const tz = tokenizeOptionsFromVisualSettings(state.settings);
-	const lines = state.project.lines;
+	return [0, 1].map((i) => {
+		const line = state.project.lines[i];
+		if (!line) return null;
+		const { tokens, truncated } = fitTokens(tokenize(line.rawText, line.id, tz), CHAR_BUDGET);
+		if (tokens.length === 0) return null;
+		return {
+			tokens,
+			truncated,
+			family: line.font.family,
+			text: tokens.map((t) => t.text).join(' ')
+		};
+	});
+}
+
+/**
+ * OG preview: colored tokens from the shared state, no alignment lines.
+ *
+ * `unrenderable` lists line indices whose script has no usable font. Those lines fall back to a
+ * neutral summary instead of the sentence, because resvg renders a missing glyph as a visible
+ * "NO GLYPH" box and a card full of boxes is worse than one without the sentence.
+ */
+export function buildOgSvg(
+	state: AppStateV2,
+	unrenderable: ReadonlySet<number> = new Set()
+): string {
 	const colorByTokenId = buildTokenColorMap(state.project.connections);
+	const [src, tgt] = ogLines(state);
 
-	const line0 = lines[0];
-	const line1 = lines[1];
+	const summary = `${plural(state.project.lines.length, 'line')} · ${plural(state.project.connections.length, 'link')}`;
 
-	const t0 = line0 ? tokenize(line0.rawText, line0.id, tz) : [];
-	const t1 = line1 ? tokenize(line1.rawText, line1.id, tz) : [];
+	function sentence(line: OgLine | null, index: number, y: number, empty: string): string {
+		if (!line) return renderPlaceholder(60, y, empty);
+		if (unrenderable.has(index)) return renderPlaceholder(60, y, summary);
+		return renderSentenceText(60, y, line.tokens, line.truncated, colorByTokenId, line.family);
+	}
 
-	const src = fitTokens(t0, CHAR_BUDGET);
-	const tgt = fitTokens(t1, CHAR_BUDGET);
-
-	const sourceLine =
-		src.tokens.length > 0
-			? renderSentenceText(60, 340, src.tokens, src.truncated, colorByTokenId)
-			: renderPlaceholder(60, 340, 'Type a sentence…');
-	const targetLine =
-		tgt.tokens.length > 0
-			? renderSentenceText(60, 430, tgt.tokens, tgt.truncated, colorByTokenId)
-			: renderPlaceholder(60, 430, 'Add its translation…');
+	const sourceLine = sentence(src, 0, 340, 'Type a sentence…');
+	const targetLine = sentence(tgt, 1, 430, 'Add its translation…');
 
 	const w = OG_IMAGE_WIDTH;
 	const h = OG_IMAGE_HEIGHT;
