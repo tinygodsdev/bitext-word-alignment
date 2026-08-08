@@ -244,6 +244,45 @@ html {
 	align-items: stretch;
 }
 
+/* Column mode: lines sit side by side, first line leftmost — the same "first is at the start of
+   the stack" rule as rows. Which script ends up on which side is set by line order. */
+/* Columns stretch to the tallest one rather than to a percentage height, so the same rules work
+   whether the frame is bounded (editor) or hugs its content (readonly embed, headless render). */
+.preview-stack--columns {
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: stretch;
+	justify-content: center;
+}
+
+/* Column mode grows sideways, so the block axis needs a bound for auto-fit to shrink a long
+   sentence into. Only while editing: a readonly embed has no viewport to fit, and forcing one
+   there would screenshot mostly blank canvas. */
+.preview-frame[data-aligner-axis='columns']:not([data-aligner-readonly]) {
+	height: min(70vh, 44rem);
+}
+
+.preview-frame[data-aligner-axis='columns']:not([data-aligner-readonly]) .preview-zoom,
+.preview-frame[data-aligner-axis='columns']:not([data-aligner-readonly]) .preview-stack--columns {
+	height: 100%;
+}
+
+.preview-stack--columns .preview-token-line {
+	min-height: 0;
+}
+
+.preview-stack--columns .preview-gloss-wrap {
+	width: auto;
+	min-height: 0;
+	align-items: center;
+}
+
+/* The credit is a flex item of the stack, so in a row it would sit beside the diagram. Give it a
+   full basis and it wraps onto its own line underneath. */
+.preview-stack--columns .preview-frame__attribution {
+	flex-basis: 100%;
+}
+
 .preview-frame__attribution {
 	position: relative;
 	z-index: 3;
@@ -376,6 +415,29 @@ path.link-path {
 /* Auto-fit off → restore legacy wrapping (a line may spill onto multiple rows) */
 .preview-frame[data-autofit='off'] .token-row {
 	flex-wrap: wrap;
+}
+
+/* Column mode: setting the row itself vertically makes flex direction and the logical
+   `margin-inline-start` between tokens map to the block axis with no extra branching.
+   Baseline alignment is dropped because a column may mix upright and vertically set tokens. */
+.token-row--columns {
+	writing-mode: vertical-rl;
+	align-items: center;
+}
+
+/* Glyph setting per line. `upright` is explicit so it resets the inherited vertical row above. */
+.token-view--upright {
+	writing-mode: horizontal-tb;
+}
+
+.token-view--vertical {
+	writing-mode: vertical-rl;
+	text-orientation: upright;
+}
+
+.token-view--sideways {
+	writing-mode: vertical-rl;
+	text-orientation: sideways;
 }
 
 .token-view {

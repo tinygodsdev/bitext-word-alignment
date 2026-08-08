@@ -609,5 +609,224 @@ export const CORE_GALLERY: GalleryExampleEntry[] = [
 				]
 			}
 		]
+	},
+	{
+		slug: 'japanese-vertical-writing-tategaki-alignment',
+		exampleId: 'tategaki',
+		title: 'Japanese vertical writing (tategaki) aligned with English',
+		description:
+			'A Japanese sentence set vertically, with its English translation aligned beside it. Shows how column layout handles a vertical script paired with a horizontal one.',
+		body: `Japanese written vertically runs top to bottom. This example stands the whole diagram up as columns: the Japanese characters stack downward, the English words sit in their own column as upright boxes, and the connectors run sideways between them.`,
+		imageAlt:
+			'Vertical Japanese sentence with stacked characters on the right, English words stacked on the left, and horizontal connectors between matching words',
+		sections: [
+			{
+				id: 'overview',
+				heading: 'What this example shows',
+				blocks: [
+					{
+						kind: 'paragraph',
+						text: '猫が魚を食べた stands as a vertical column on the right, the way Japanese appears in books and newspapers. Its English translation stands as a second column on the left, and colored connectors run horizontally between matching words. The two columns cross in the middle, because Japanese puts the verb last and English puts it in the middle.'
+					},
+					{
+						kind: 'paragraph',
+						text: 'Each language keeps its own setting inside the shared column layout. The Japanese characters stack one under another. The English words stay horizontal and simply sit one under another as whole boxes, which keeps them readable.'
+					}
+				]
+			},
+			{
+				id: 'by-token',
+				heading: 'Word by word',
+				blocks: [
+					{
+						kind: 'gloss',
+						lead: 'Each Japanese word and the English it links to:',
+						rows: [
+							{
+								token: '猫',
+								gloss: 'the cat',
+								note: 'The subject. It links to both English words, since English needs an article where Japanese does not.'
+							},
+							{
+								token: 'が',
+								gloss: '(subject marker)',
+								note: 'A particle that marks 猫 as the subject. English marks the same thing by word position, so this box stays unlinked.'
+							},
+							{
+								token: '魚',
+								gloss: 'the fish',
+								note: 'The object, again linking to an article plus a noun.'
+							},
+							{
+								token: 'を',
+								gloss: '(object marker)',
+								note: 'The object particle. Unlinked for the same reason as が.'
+							},
+							{
+								token: '食べた',
+								gloss: 'ate',
+								note: 'The verb, in past tense. It sits last in Japanese and third in English, so its connector crosses the others.'
+							}
+						]
+					}
+				]
+			},
+			{
+				id: 'particles',
+				heading: 'Particles with no English word',
+				blocks: [
+					{
+						kind: 'paragraph',
+						text: 'が and を carry grammatical work that English does through word order. Leaving them unlinked is the point: an empty box is a visible statement that the target language expresses this some other way. The same technique works for case endings, classifiers, and evidential markers.'
+					}
+				]
+			},
+			{
+				id: 'word-order',
+				heading: 'Why the connectors cross',
+				blocks: [
+					{
+						kind: 'paragraph',
+						text: 'Japanese is subject-object-verb, English is subject-verb-object. The verb 食べた sits at the bottom of the Japanese column while "ate" sits in the middle of the English one, so its connector runs past the connector for 魚. Crossing lines are the clearest picture of reordering that a diagram can give, and they are the reason the two sentences stay on separate columns instead of being folded into one interlinear line.'
+					},
+					{
+						kind: 'links',
+						lead: 'The same reordering in horizontal layout:',
+						items: [
+							{
+								href: '/examples/japanese-chinese-english-word-order',
+								label: 'Japanese, Chinese, and English word order'
+							}
+						]
+					}
+				]
+			},
+			{
+				id: 'recreate',
+				heading: 'Set it up yourself',
+				blocks: [
+					{
+						kind: 'paragraph',
+						text: 'Open the example, then in the Style tab switch Direction to Columns and tick the Japanese line under Stack characters. Leave the translation line unticked so its words stay upright. The first line sits leftmost, so put the translation first if you want the Japanese column on the right.'
+					},
+					{
+						kind: 'paragraph',
+						text: 'Japanese is written without spaces, so type spaces between the units you want to align, or use the split character in the Tokens settings. The tool never guesses word boundaries for you.'
+					},
+					{
+						kind: 'links',
+						lead: 'More on the layout:',
+						items: [
+							{
+								href: '/guide/vertical-writing-alignment',
+								label: 'aligning vertical writing systems'
+							}
+						]
+					}
+				]
+			}
+		]
+	},
+	{
+		slug: 'traditional-mongolian-vertical-alignment',
+		exampleId: 'mongolian-vertical',
+		title: 'Traditional Mongolian script aligned with English',
+		description:
+			'A traditional Mongolian phrase in vertical script with a transliteration tier and an English translation, showing a script whose columns run left to right.',
+		body: `Traditional Mongolian runs top to bottom with its columns progressing left to right, the opposite of Japanese and Chinese. This example puts the script, a Latin transliteration, and an English translation in three columns.`,
+		imageAlt:
+			'Traditional Mongolian script in a vertical column on the left, with transliteration and English translation columns to its right and horizontal connectors',
+		sections: [
+			{
+				id: 'overview',
+				heading: 'What this example shows',
+				blocks: [
+					{
+						kind: 'paragraph',
+						text: 'The Mongolian column carries the masthead of Buriyad Mongɣol-un ünen, a newspaper published from 1925. Beside it sits a Latin transliteration, and beside that an English translation. Reading across the columns takes you from script to sound to meaning.'
+					},
+					{
+						kind: 'paragraph',
+						text: 'Mongolian columns progress left to right, so the script line comes first and the translation follows to its right. Japanese and Chinese run the other way. The tool has no separate direction setting for this: the order of your lines decides which column lands on which side.'
+					}
+				]
+			},
+			{
+				id: 'by-token',
+				heading: 'Word by word',
+				blocks: [
+					{
+						kind: 'gloss',
+						lead: 'Each Mongolian word, its transliteration, and its English:',
+						rows: [
+							{
+								token: 'ᠪᠤᠷᠢᠶᠠᠳ',
+								gloss: 'Buriyad / Buryat',
+								note: 'The Buryat people, one of the Mongolic groups.'
+							},
+							{
+								token: 'ᠮᠣᠩᠭᠣᠯ',
+								gloss: 'Mongɣol / Mongol',
+								note: 'Mongol. Together with the previous word it forms the compound name Buryat-Mongol.'
+							},
+							{
+								token: 'ᠤᠨ',
+								gloss: 'un / (genitive)',
+								note: 'The genitive particle, written as a separate unit. English shows possession by word order here, so this box links to the transliteration but has no English match.'
+							},
+							{
+								token: 'ᠦᠨᠡᠨ',
+								gloss: 'ünen / truth',
+								note: 'Truth. The head of the phrase, and the word the genitive attaches to.'
+							}
+						]
+					}
+				]
+			},
+			{
+				id: 'orientation',
+				heading: 'Rotated, not stacked',
+				blocks: [
+					{
+						kind: 'paragraph',
+						text: 'Mongolian letters join into a running vertical stem, so they cannot be set as separate stacked characters the way Japanese kanji and kana are. Fonts for the script store the glyphs rotated a quarter turn, and vertical layout rotates the whole line back. In the tool this is the sideways setting on the line, chosen instead of stacking.'
+					},
+					{
+						kind: 'paragraph',
+						text: 'The same setting suits a Latin line that you want to read like the spine of a book, inside an otherwise vertical diagram.'
+					}
+				]
+			},
+			{
+				id: 'recreate',
+				heading: 'Set it up yourself',
+				blocks: [
+					{
+						kind: 'paragraph',
+						text: "Open the example, then switch Direction to Columns in the Style tab. Open the Mongolian line's own settings and set its Text setting to sideways. The transliteration and translation lines stay upright. Adding a transliteration tier is worth it for any script your readers cannot sound out."
+					},
+					{
+						kind: 'links',
+						lead: 'Related:',
+						items: [
+							{
+								href: '/guide/vertical-writing-alignment',
+								label: 'aligning vertical writing systems',
+								text: ' covers both stacked and rotated scripts.'
+							},
+							{
+								href: '/examples/japanese-vertical-writing-tategaki-alignment',
+								label: 'Japanese tategaki alignment',
+								text: ' is the stacked case.'
+							}
+						]
+					}
+				]
+			}
+		],
+		sourceAttribution: {
+			url: 'https://en.wikipedia.org/wiki/Mongolian_script',
+			title: 'Mongolian script (Wikipedia)'
+		}
 	}
 ];

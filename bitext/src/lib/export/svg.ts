@@ -1,6 +1,6 @@
 import { ALIGNER_SITE_HOST, EXPORT_ATTRIBUTION_PLAIN } from '$lib/brand.js';
 import type { Token } from '$lib/domain/tokens.js';
-import type { TokenLayout } from '$lib/types/layout.js';
+import type { LayoutAxis, TextOrientation, TokenLayout } from '$lib/types/layout.js';
 import type { Connection } from '$lib/domain/alignment.js';
 import { primaryConnectionForToken } from '$lib/domain/alignment.js';
 import { canonicalPair, showConnectorsForPair, tokenLineId } from '$lib/domain/lines-helpers.js';
@@ -71,74 +71,89 @@ function shouldRenderConnectionPath(
 }
 
 /**
- * Redistribute the vertical spacing between line rows so the diagram fills a
- * target frame, instead of being fit-and-letterboxed. Rows keep their glyph
- * geometry; only the gaps between them grow (connectors, derived from token
- * boxes, follow). Growth is capped so extreme aspect mismatches (e.g. two lines
- * into a 9:16 story) enlarge and center rather than stretch to the edges.
+ * Redistribute the spacing between lines so the diagram fills a target frame, instead of being
+ * fit-and-letterboxed. Lines keep their glyph geometry; only the gaps between them grow
+ * (connectors, derived from token boxes, follow). Growth is capped so extreme aspect mismatches
+ * (e.g. two lines into a 9:16 story) enlarge and center rather than stretch to the edges.
  * Returns the layout unchanged when there is nothing sensible to redistribute.
+ *
+ * "Main" is the axis the lines stack along (Y in `rows`, X in `columns`); "cross" is the axis the
+ * tokens flow along.
  */
 export function refitLayoutToFill(
 	layout: Record<string, TokenLayout>,
 	lineGroups: string[][],
 	innerW: number,
 	innerH: number,
-	capMult = 2.5
+	capMult = 2.5,
+	axis: LayoutAxis = 'rows'
 ): Record<string, TokenLayout> {
+	const vertical = axis === 'columns';
+	const mainStart = (b: TokenLayout) => (vertical ? b.x : b.y);
+	const mainSize = (b: TokenLayout) => (vertical ? b.w : b.h);
+	const crossStart = (b: TokenLayout) => (vertical ? b.y : b.x);
+	const crossSize = (b: TokenLayout) => (vertical ? b.h : b.w);
+	const availMain = vertical ? innerW : innerH;
+	const availCross = vertical ? innerH : innerW;
+
 	const rows = lineGroups
 		.map((ids) => {
-			let top = Infinity;
-			let bot = -Infinity;
+			let start = Infinity;
+			let end = -Infinity;
 			let has = false;
 			for (const id of ids) {
 				const b = layout[id];
 				if (!b) continue;
 				has = true;
-				if (b.y < top) top = b.y;
-				if (b.y + b.h > bot) bot = b.y + b.h;
+				if (mainStart(b) < start) start = mainStart(b);
+				if (mainStart(b) + mainSize(b) > end) end = mainStart(b) + mainSize(b);
 			}
-			return has ? { ids, top, bot, h: bot - top } : null;
+			return has ? { ids, start, end, size: end - start } : null;
 		})
-		.filter((r): r is { ids: string[]; top: number; bot: number; h: number } => r !== null)
-		.sort((a, b) => a.top - b.top);
+		.filter((r): r is { ids: string[]; start: number; end: number; size: number } => r !== null)
+		.sort((a, b) => a.start - b.start);
 	if (rows.length < 2 || innerW <= 0 || innerH <= 0) return layout;
 
-	let xMin = Infinity;
-	let xMax = -Infinity;
+	let crossMin = Infinity;
+	let crossMax = -Infinity;
 	for (const id in layout) {
 		const b = layout[id];
-		if (b.x < xMin) xMin = b.x;
-		if (b.x + b.w > xMax) xMax = b.x + b.w;
+		if (crossStart(b) < crossMin) crossMin = crossStart(b);
+		if (crossStart(b) + crossSize(b) > crossMax) crossMax = crossStart(b) + crossSize(b);
 	}
-	const contentW = xMax - xMin;
-	const rowHeights = rows.reduce((s, r) => s + r.h, 0);
-	const contentH = rows[rows.length - 1].bot - rows[0].top;
-	const currentGap = contentH - rowHeights;
-	if (contentW <= 0) return layout;
+	const contentCross = crossMax - crossMin;
+	const lineSizes = rows.reduce((s, r) => s + r.size, 0);
+	const contentMain = rows[rows.length - 1].end - rows[0].start;
+	const currentGap = contentMain - lineSizes;
+	if (contentCross <= 0) return layout;
 
-	// Scale that fills the frame width. If that already overflows the height, the
-	// content is taller than the frame — let the outer fit-by-height handle it.
-	const fillWidthScale = innerW / contentW;
-	if (contentH * fillWidthScale > innerH) return layout;
+	// Scale that fills the frame across. If that already overflows along the stack axis, the
+	// content is longer than the frame — let the outer fit-to-frame handle it.
+	const fillCrossScale = availCross / contentCross;
+	if (contentMain * fillCrossScale > availMain) return layout;
 
-	const desiredGap = innerH / fillWidthScale - rowHeights;
-	const cappedGap = Math.max(currentGap, Math.min(desiredGap, capMult * rowHeights));
+	const desiredGap = availMain / fillCrossScale - lineSizes;
+	const cappedGap = Math.max(currentGap, Math.min(desiredGap, capMult * lineSizes));
 	if (cappedGap <= currentGap + 0.5) return layout;
 
 	const gapEach = cappedGap / (rows.length - 1);
 	const deltas: Record<string, number> = {};
-	let cursor = rows[0].top;
+	let cursor = rows[0].start;
 	for (const r of rows) {
-		const delta = cursor - r.top;
+		const delta = cursor - r.start;
 		for (const id of r.ids) deltas[id] = delta;
-		cursor += r.h + gapEach;
+		cursor += r.size + gapEach;
 	}
 
 	const out: Record<string, TokenLayout> = {};
 	for (const id in layout) {
 		const b = layout[id];
 		const d = deltas[id];
-		out[id] = d ? { ...b, y: b.y + d, cy: b.cy + d } : b;
+		if (!d) {
+			out[id] = b;
+			continue;
+		}
+		out[id] = vertical ? { ...b, x: b.x + d, cx: b.cx + d } : { ...b, y: b.y + d, cy: b.cy + d };
 	}
 	return out;
 }
@@ -162,7 +177,16 @@ export function buildStandaloneSvgString(args: {
 	contentScale?: number;
 	/** In display order (top to bottom). */
 	lineOrder: string[];
-	lines: { lineId: string; tokens: Token[]; fontFamilyStack: string; textSizePx: number }[];
+	lines: {
+		lineId: string;
+		tokens: Token[];
+		fontFamilyStack: string;
+		textSizePx: number;
+		/** Glyph setting for the line; omitted means `upright`. */
+		orientation?: TextOrientation;
+	}[];
+	/** Diagram flow axis; connectors run across it. Defaults to `rows`. */
+	axis?: LayoutAxis;
 	tokenLayout: Record<string, TokenLayout>;
 	connections: Connection[];
 	pairControls: PairControlV2[];
@@ -196,6 +220,7 @@ export function buildStandaloneSvgString(args: {
 		contentScale = 1,
 		lineOrder,
 		lines,
+		axis = 'rows',
 		tokenLayout: tokenLayoutIn,
 		connections,
 		pairControls,
@@ -240,7 +265,9 @@ export function buildStandaloneSvgString(args: {
 				tokenLayoutIn,
 				lines.map((l) => l.tokens.map((t) => t.id)),
 				cardInnerW,
-				cardDiagramInnerH
+				cardDiagramInnerH,
+				2.5,
+				axis
 			)
 		: tokenLayoutIn;
 
@@ -338,7 +365,7 @@ export function buildStandaloneSvgString(args: {
 		const p1 = tokenLayout[c.upperTokenId];
 		const p2 = tokenLayout[c.lowerTokenId];
 		if (!p1 || !p2) continue;
-		const { x1, y1, x2, y2 } = linkEndpoints(p1, p2, visualStyle.tokenChips ? 0 : undefined);
+		const { x1, y1, x2, y2 } = linkEndpoints(p1, p2, visualStyle.tokenChips ? 0 : undefined, axis);
 		if (isRibbon) {
 			const d = ribbonPathD(
 				x1,
@@ -347,14 +374,15 @@ export function buildStandaloneSvgString(args: {
 				y2,
 				lineStyle,
 				lineThickness * (conn.ribbonScale ?? 8) * lineScale,
-				conn.taper ?? false
+				conn.taper ?? false,
+				axis
 			);
 			paths.push(
 				`<path stroke="none" fill="${escapeXml(color)}" fill-opacity="${lineOpacity}" d="${d}"/>`
 			);
 			continue;
 		}
-		const d = linkPathD(x1, y1, x2, y2, lineStyle);
+		const d = linkPathD(x1, y1, x2, y2, lineStyle, axis);
 		// Glow: a blurred copy of the same stroke behind the crisp one.
 		if (conn.glow) {
 			paths.push(
@@ -394,22 +422,62 @@ export function buildStandaloneSvgString(args: {
 		return mixLinkBackground(link.color, tintBase, 0.28);
 	}
 
-	function pushTokenText(t: Token, fontFamily: string, sizePx: number) {
+	/**
+	 * SVG 1.1 has no reliable `writing-mode`, and PNG/PDF go through an `<img>` rasterizer that
+	 * ignores it, so vertical tokens are drawn explicitly: `vertical` stacks one `<tspan>` per
+	 * character down the box, `sideways` rotates the whole string 90° about the box center.
+	 * The character advance is the font size (upright CJK is one em per glyph), and the run is
+	 * centered in the measured box so it lands where the preview put it.
+	 */
+	function textBody(
+		label: string,
+		orientation: TextOrientation,
+		box: TokenLayout,
+		sizePx: number
+	): { inner: string; transform: string } {
+		if (orientation === 'sideways') {
+			return {
+				inner: escapeXml(label),
+				transform: `translate(${box.cx},${box.cy}) rotate(90)`
+			};
+		}
+		if (orientation === 'vertical') {
+			const chars = [...label];
+			const top = (box.h - chars.length * sizePx) / 2;
+			const inner = chars
+				.map(
+					(ch, i) =>
+						`<tspan x="0" y="${Math.round((top + sizePx * (i + 0.5)) * 100) / 100}">${escapeXml(ch)}</tspan>`
+				)
+				.join('');
+			return { inner, transform: `translate(${box.cx},${box.y})` };
+		}
+		return { inner: escapeXml(label), transform: `translate(${box.cx},${box.cy})` };
+	}
+
+	function pushTokenText(
+		t: Token,
+		fontFamily: string,
+		sizePx: number,
+		orientation: TextOrientation
+	) {
 		const box = tokenLayout[t.id];
 		if (!box) return;
 		const link = primaryConnectionForToken(connections, t.id);
 		const chipColor = visualStyle.tokenChips && link?.color ? link.color : null;
+		const vertical = orientation === 'vertical';
 
 		if (chipColor) {
 			// Word card: hard offset shadow + solid chip + readable text.
 			const off = Math.round(sizePx * 0.11 * 100) / 100;
 			const shadow = visualStyle.tokenChips!.shadow;
+			const chipBody = textBody(t.text, orientation, box, sizePx);
 			tokenRects.push(
 				`<rect x="${box.x + off}" y="${box.y + off}" width="${box.w}" height="${box.h}" fill="${escapeXml(shadow)}"/>`,
 				`<rect x="${box.x}" y="${box.y}" width="${box.w}" height="${box.h}" fill="${escapeXml(chipColor)}"/>`
 			);
 			texts.push(
-				`<text fill="${escapeXml(readableTextOn(chipColor))}" font-family="${escapeXml(fontFamily)}" font-size="${sizePx}" font-weight="700" text-anchor="middle" dominant-baseline="central" transform="translate(${box.cx},${box.cy})">${escapeXml(t.text)}</text>`
+				`<text fill="${escapeXml(readableTextOn(chipColor))}" font-family="${escapeXml(fontFamily)}" font-size="${sizePx}" font-weight="700" text-anchor="middle" dominant-baseline="central" transform="${chipBody.transform}">${chipBody.inner}</text>`
 			);
 			return;
 		}
@@ -422,34 +490,40 @@ export function buildStandaloneSvgString(args: {
 			);
 		}
 		// Deco lettering: uppercase + letter-spacing (compensate the trailing space for centering).
+		// Letter-spacing is a horizontal advance tweak, so a vertically stacked token skips it.
 		const tt = visualStyle.tokenTransform;
 		const label = tt?.uppercase ? t.text.toUpperCase() : t.text;
-		const ls = tt?.letterSpacingEm ? Math.round(sizePx * tt.letterSpacingEm * 100) / 100 : 0;
+		const ls =
+			tt?.letterSpacingEm && !vertical ? Math.round(sizePx * tt.letterSpacingEm * 100) / 100 : 0;
 		const lsAttr = ls ? ` letter-spacing="${ls}"` : '';
-		const cx = box.cx - ls / 2;
-		const common = `font-family="${escapeXml(fontFamily)}" font-size="${sizePx}"${lsAttr} text-anchor="middle" dominant-baseline="central" transform="translate(${cx},${box.cy})"`;
+		const body = textBody(label, orientation, { ...box, cx: box.cx - ls / 2 }, sizePx);
+		const common = `font-family="${escapeXml(fontFamily)}" font-size="${sizePx}"${lsAttr} text-anchor="middle" dominant-baseline="central" transform="${body.transform}"`;
 		if (visualStyle.glowText) {
 			// Soft halo: a blurred copy of the glyph behind the crisp one.
 			texts.push(
-				`<text fill="${escapeXml(fill)}" filter="url(#wa-glow-text)" font-weight="500" ${common}>${escapeXml(label)}</text>`
+				`<text fill="${escapeXml(fill)}" filter="url(#wa-glow-text)" font-weight="500" ${common}>${body.inner}</text>`
 			);
 		}
 		if (visualStyle.textOffsetShadow) {
 			// Riso misregistration: a hard offset copy in a hue-shifted spot ink, behind the glyph.
 			const { dx, dy } = visualStyle.textOffsetShadow;
-			const shadowCommon = `font-family="${escapeXml(fontFamily)}" font-size="${sizePx}"${lsAttr} text-anchor="middle" dominant-baseline="central" transform="translate(${cx + dx},${box.cy + dy})"`;
+			const shadowBody = textBody(
+				label,
+				orientation,
+				{ ...box, cx: box.cx - ls / 2 + dx, cy: box.cy + dy, y: box.y + dy },
+				sizePx
+			);
+			const shadowCommon = `font-family="${escapeXml(fontFamily)}" font-size="${sizePx}"${lsAttr} text-anchor="middle" dominant-baseline="central" transform="${shadowBody.transform}"`;
 			texts.push(
-				`<text fill="${escapeXml(shiftHue(fill, 165))}" font-weight="500" ${shadowCommon}>${escapeXml(label)}</text>`
+				`<text fill="${escapeXml(shiftHue(fill, 165))}" font-weight="500" ${shadowCommon}>${shadowBody.inner}</text>`
 			);
 		}
-		texts.push(
-			`<text fill="${escapeXml(fill)}" font-weight="500" ${common}>${escapeXml(label)}</text>`
-		);
+		texts.push(`<text fill="${escapeXml(fill)}" font-weight="500" ${common}>${body.inner}</text>`);
 	}
 
 	for (const row of lines) {
 		for (const t of row.tokens) {
-			pushTokenText(t, row.fontFamilyStack, row.textSizePx);
+			pushTokenText(t, row.fontFamilyStack, row.textSizePx, row.orientation ?? 'upright');
 		}
 	}
 

@@ -114,7 +114,7 @@ class ProjectStore {
 
 	updateLineStyle(
 		lineId: string,
-		patch: Partial<Pick<LineV2, 'font' | 'textSizePx' | 'gapWordPx' | 'rtl'>>
+		patch: Partial<Pick<LineV2, 'font' | 'textSizePx' | 'gapWordPx' | 'rtl' | 'textOrientation'>>
 	) {
 		this.lines = this.lines.map((l) => {
 			if (l.id !== lineId) return l;
@@ -123,16 +123,20 @@ class ProjectStore {
 			const gapWordPx =
 				patch.gapWordPx !== undefined ? clampWordGapPx(patch.gapWordPx) : l.gapWordPx;
 			const nextRtl = patch.rtl !== undefined ? (patch.rtl ? true : undefined) : l.rtl;
+			const nextOrientation = patch.textOrientation ?? l.textOrientation;
 			const out: LineV2 = { ...l, font, textSizePx, gapWordPx };
 			if (nextRtl) out.rtl = true;
 			else delete out.rtl;
+			if (nextOrientation && nextOrientation !== 'upright') out.textOrientation = nextOrientation;
+			else delete out.textOrientation;
 			return out;
 		});
 		if (
 			patch.gapWordPx !== undefined ||
 			patch.textSizePx !== undefined ||
 			patch.font !== undefined ||
-			patch.rtl !== undefined
+			patch.rtl !== undefined ||
+			patch.textOrientation !== undefined
 		) {
 			layoutExportStore.requestRemeasureAfterLayout();
 		}

@@ -6,15 +6,16 @@
  *   - `0` → every line uses the single smallest scale (uniform / "global").
  *   - `1` → every line uses its own fit scale (independent / "per-line").
  *
- * `width` is a line's measured content width at its current `effScale`; `avail` is the width to fit
- * into. The width∝scale assumption is only approximate (fixed token padding), so the caller applies
- * the result and re-measures — this function converges in a couple of ticks.
+ * `extent` is a line's measured content size along the flow axis at its current `effScale` (width
+ * in `rows`, height in `columns`); `avail` is the extent to fit into. The extent∝scale assumption
+ * is only approximate (fixed token padding), so the caller applies the result and re-measures —
+ * this function converges in a couple of ticks.
  */
 
 export interface AutoFitRow {
 	lineId: string;
-	/** Measured content width of the row at its current applied scale. */
-	width: number;
+	/** Measured content extent of the row along the flow axis, at its current applied scale. */
+	extent: number;
 	/** Scale currently applied to the row (1 on first pass). */
 	effScale: number;
 }
@@ -33,11 +34,11 @@ export function computeAutoFitScales(
 	// Per-line fit target: grow toward 1 when there's slack, shrink when overflowing.
 	const perLine = new Map<string, number>();
 	for (const r of rows) {
-		if (r.width <= 0 || avail <= 0) {
+		if (r.extent <= 0 || avail <= 0) {
 			perLine.set(r.lineId, r.effScale);
 			continue;
 		}
-		perLine.set(r.lineId, clamp((r.effScale * avail) / r.width, min, 1));
+		perLine.set(r.lineId, clamp((r.effScale * avail) / r.extent, min, 1));
 	}
 	const values = [...perLine.values()];
 	const smallest = values.length ? Math.min(...values) : 1;

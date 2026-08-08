@@ -31,5 +31,11 @@ export const GUIDES: GuideEntry[] = [
 		path: '/guide/how-to-gloss-a-conlang',
 		title: 'How to gloss your conlang',
 		blurb: 'Leipzig-style glossing for an invented language, with custom scripts and fonts.'
+	},
+	{
+		path: '/guide/vertical-writing-alignment',
+		title: 'Aligning vertical writing systems',
+		blurb:
+			'Column layout for Japanese tategaki, Chinese, and Mongolian, and how a horizontal translation sits beside them.'
 	}
 ];

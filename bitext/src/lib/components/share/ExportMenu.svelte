@@ -138,7 +138,8 @@
 			lineId: l.id,
 			tokens: projectStore.tokensOnLine(l.id),
 			fontFamilyStack: svgFontFamilyStackLine(l),
-			textSizePx: l.textSizePx * (lay.fontScaleByLine[l.id] ?? 1)
+			textSizePx: l.textSizePx * (lay.fontScaleByLine[l.id] ?? 1),
+			orientation: l.textOrientation ?? ('upright' as const)
 		}));
 		return buildStandaloneSvgString({
 			width: Math.max(1, lay.width),
@@ -155,6 +156,7 @@
 			contentScale: lay.contentScale,
 			lineOrder,
 			lines,
+			axis: s.layoutAxis,
 			tokenLayout: lay.tokenLayout,
 			connections: projectStore.connections,
 			pairControls: projectStore.pairControls,

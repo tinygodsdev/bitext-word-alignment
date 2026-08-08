@@ -21,6 +21,7 @@ No accounts, no machine translation — you stay in control of every link. Great
 - **Manual word linking** — click a word, then its match; supports one-to-many and many-to-one links and freely crossing connectors for reordered translations.
 - **Interlinear glosses & IPA** — add annotation tiers above or below any line.
 - **Right-to-left scripts** — Hebrew, Arabic, and mixed LTR/RTL layouts.
+- **Vertical writing systems** — stand the whole diagram up as columns for Japanese tategaki, Chinese, or traditional Mongolian; characters stack or the line rotates, chosen per line, so a horizontal translation stays readable beside it.
 - **Tokenization control** — choose how text splits into word boxes (split characters, a join marker for fixed expressions, optional punctuation handling).
 - **Per-line typography** — font, size, spacing, and direction per line; custom and Google Fonts.
 - **Exports** — PNG, SVG, PDF, and a self-contained HTML file; exports match the preview, including custom-font shaping.
@@ -28,7 +29,7 @@ No accounts, no machine translation — you stay in control of every link. Great
 
 ## Examples
 
-Browse ready-made examples — bilingual pairs, Turkish interlinear with IPA, RTL scripts, Tagalog compounds, Japanese–Chinese–English word order, and more interlinear glosses — at **[aligner.tinygods.dev/examples](https://aligner.tinygods.dev/examples)**. Open any one in the editor to adapt it.
+Browse ready-made examples — bilingual pairs, Turkish interlinear with IPA, RTL scripts, vertical Japanese and traditional Mongolian, Tagalog compounds, Japanese–Chinese–English word order, and more interlinear glosses — at **[aligner.tinygods.dev/examples](https://aligner.tinygods.dev/examples)**. Open any one in the editor to adapt it.
 
 ![Turkish interlinear preview with glosses, IPA, and connectors](bitext/static/screenshots/preview-turkish-example.png)
 

@@ -6,6 +6,7 @@ import {
 import { tokenize, tokenizeOptionsFromVisualSettings } from '$lib/domain/tokens.js';
 import { PALETTES, isPaletteName, type PaletteName } from '$lib/domain/palettes.js';
 import { isStyleId, isBackgroundId, type StyleId, type BackgroundId } from '$lib/domain/styles.js';
+import type { LayoutAxis, TextOrientation } from '$lib/types/layout.js';
 
 export const SCHEMA_VERSION = 2 as const;
 /** @deprecated Legacy share payloads only */
@@ -18,6 +19,15 @@ export const NEW_LINE_HINT_TEXT = 'Type your text here';
 
 export type LineStyle = 'straight' | 'curved';
 export type BackgroundMode = 'light' | 'dark';
+
+export function normalizeLayoutAxis(value: unknown): LayoutAxis {
+	return value === 'columns' ? 'columns' : 'rows';
+}
+
+export function normalizeTextOrientation(value: unknown): TextOrientation {
+	if (value === 'vertical' || value === 'sideways') return value;
+	return 'upright';
+}
 
 /** Map legacy / invalid values to the preview background enum (image mode removed). */
 export function normalizePreviewBackground(mode: unknown): BackgroundMode {
@@ -114,8 +124,14 @@ export interface LineV2 {
 	/**
 	 * When true, the preview/editor token row uses right-to-left direction (Hebrew, Arabic, etc.).
 	 * Token order and ids stay in logical “first word → last word” order; only layout mirrors.
+	 * Ignored while `textOrientation` is `vertical`: a vertically set line has no horizontal flow.
 	 */
 	rtl?: boolean;
+	/**
+	 * Glyph setting for this line's tokens. Omitted means `upright`. Independent of the project's
+	 * layout axis: an upright line in column mode is a stack of horizontal word boxes.
+	 */
+	textOrientation?: TextOrientation;
 }
 
 export interface PairControlV2 {
@@ -176,6 +192,8 @@ export interface VisualSettingsV2 {
 	autoFit: boolean;
 	/** 0 = all lines share one scale (uniform); 1 = each line fits independently. */
 	autoFitVariance: number;
+	/** Flow axis of the diagram; `columns` turns every line into a vertical column. */
+	layoutAxis: LayoutAxis;
 }
 
 export interface AppStateV2 {
@@ -254,7 +272,8 @@ export function defaultVisualSettingsV2(): VisualSettingsV2 {
 		background: 'light',
 		style: 'classic',
 		autoFit: true,
-		autoFitVariance: 0.5
+		autoFitVariance: 0.5,
+		layoutAxis: 'rows'
 	};
 }
 
@@ -332,7 +351,8 @@ export function visualSettingsV1ToV2(v1: VisualSettingsV1): VisualSettingsV2 {
 		background: normalizePreviewBackground(v1.background),
 		style: 'classic',
 		autoFit: true,
-		autoFitVariance: 0.5
+		autoFitVariance: 0.5,
+		layoutAxis: 'rows'
 	};
 }
 
@@ -710,9 +730,11 @@ export function normalizeProjectSnapshotV2(
 				? clampWordGapPx(l.gapWordPx)
 				: undefined;
 		const gapWordPx = fromLine ?? legacySettingsGapWordPx ?? DEFAULT_WORD_GAP_PX;
-		const { rtl, ...rest } = l;
+		const { rtl, textOrientation, ...rest } = l;
 		const lineOut: LineV2 = { ...rest, font: { ...l.font }, gapWordPx };
 		if (rtl) lineOut.rtl = true;
+		const orientation = normalizeTextOrientation(textOrientation);
+		if (orientation !== 'upright') lineOut.textOrientation = orientation;
 		return lineOut;
 	});
 
@@ -811,6 +833,7 @@ export function normalizeVisualSettingsV2(
 		autoFitVariance:
 			typeof raw.autoFitVariance === 'number' && Number.isFinite(raw.autoFitVariance)
 				? Math.max(0, Math.min(1, raw.autoFitVariance))
-				: d.autoFitVariance
+				: d.autoFitVariance,
+		layoutAxis: normalizeLayoutAxis(raw.layoutAxis ?? d.layoutAxis)
 	};
 }

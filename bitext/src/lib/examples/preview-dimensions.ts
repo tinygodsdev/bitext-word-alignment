@@ -12,6 +12,8 @@ export const EXAMPLE_PREVIEW_DIMENSIONS: Record<string, PreviewDimensions> = {
 	'tagalog-compound-word-alignment': { width: 1920, height: 598 },
 	'japanese-chinese-english-word-order': { width: 1920, height: 940 },
 	'conlang-custom-font-interlinear-gloss': { width: 1920, height: 958 },
+	'japanese-vertical-writing-tategaki-alignment': { width: 1920, height: 694 },
+	'traditional-mongolian-vertical-alignment': { width: 1920, height: 724 },
 	'classical-nahuatl-interlinear-gloss': { width: 1920, height: 696 },
 	'nahuatl-leipzig-glossing-abbreviations': { width: 1920, height: 696 },
 	'taiwanese-minnan-interlinear-gloss': { width: 1920, height: 696 },

@@ -7,6 +7,7 @@ Short notes for changes on branch **`v2`** relative to **`main`** (no dedicated 
 ### Added
 
 - **Multi-line alignment** — projects and preview support more than two lines; links only between vertically adjacent lines.
+- **Vertical writing systems** — a project-wide layout direction (`layoutAxis`): `rows` as before, or `columns`, where every line becomes a vertical column and connectors run sideways. Per line, a `textOrientation` of `upright`, `vertical` (stacked characters, for Japanese and Chinese), or `sideways` (rotated line, for traditional Mongolian and for Latin runs inside vertical text). Preview, all four export formats, and share links carry both. Column side follows line order; there is no separate direction setting. Gallery examples `japanese-vertical-writing-tategaki-alignment` and `traditional-mongolian-vertical-alignment`, plus the guide `/guide/vertical-writing-alignment`. Not yet exposed through the HTTP API, the MCP server, or vertical shaping of uploaded custom fonts in PNG/PDF export.
 - **Line editor** — line cards (`LineCard`), modal text editing (`LineEditModal`), line settings (font, size, spacing, LTR/RTL, etc.) via popover/sheet.
 - **Per-pair line controls** — vertical gap slider (`LinePairGapSlider`), toggling connector visibility for each adjacent line pair (`pairControls`).
 - **Tokenization settings** — Tokens tab (word split characters, join character, optional punctuation tokenization); “?” hints (`SettingsFieldHint`).

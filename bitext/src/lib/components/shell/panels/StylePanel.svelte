@@ -10,6 +10,7 @@
 	} from '$lib/domain/styles.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
+	import type { LayoutAxis } from '$lib/types/layout.js';
 
 	const s = $derived(settingsStore.settings);
 	const currentBackgroundId = $derived(
@@ -36,6 +37,60 @@
 </script>
 
 <div class="flex flex-col gap-4">
+	<!-- Layout: which way the diagram flows. First, because it is structural rather than decorative,
+	     and because vertical writing is unreachable without it. -->
+	<section aria-labelledby="style-section-layout" class={section}>
+		<h3 id="style-section-layout" class="{sectionTitle} mb-2">Layout</h3>
+		<div class="flex flex-col gap-4">
+			<div>
+				<Label class="mb-2">Direction</Label>
+				<SegmentedControl
+					label="Diagram direction"
+					options={[
+						{ value: 'rows', label: 'Rows' },
+						{ value: 'columns', label: 'Columns' }
+					]}
+					value={s.layoutAxis}
+					onSelect={(v) => settingsStore.patch({ layoutAxis: v as LayoutAxis })}
+				/>
+				<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+					Columns stand every line up as a vertical column and run the connectors sideways, for
+					Japanese, Chinese, and Mongolian. The first line is leftmost; reorder the lines to put a
+					script on the other side.
+				</p>
+			</div>
+			{#if s.layoutAxis === 'columns'}
+				<div>
+					<Label class="mb-2">Stack characters</Label>
+					<div class="flex flex-col gap-1.5">
+						{#each projectStore.lines as line, i (line.id)}
+							<label class={toggleRow}>
+								<input
+									type="checkbox"
+									class={chk}
+									checked={line.textOrientation === 'vertical'}
+									onchange={(e) =>
+										projectStore.updateLineStyle(line.id, {
+											textOrientation: (e.currentTarget as HTMLInputElement).checked
+												? 'vertical'
+												: 'upright'
+										})}
+								/>
+								<span class="{toggleText} min-w-0 truncate">
+									Line {i + 1} — {line.rawText.replace(/\s+/gu, ' ').trim() || 'empty'}
+								</span>
+							</label>
+						{/each}
+					</div>
+					<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+						On for the vertical script, off for a translation or gloss so its words stay upright.
+						Each line's own settings also offer a sideways (rotated) setting.
+					</p>
+				</div>
+			{/if}
+		</div>
+	</section>
+
 	<!-- Canvas: the style sets a default background; any style can be moved onto another one. -->
 	<section aria-labelledby="style-section-canvas" class={section}>
 		<h3 id="style-section-canvas" class="{sectionTitle} mb-2">Canvas</h3>
@@ -207,7 +262,9 @@
 					onchange={(e) =>
 						settingsStore.patch({ autoFit: (e.currentTarget as HTMLInputElement).checked })}
 				/>
-				<span class={toggleText}>Auto-fit text to width (never wrap a line)</span>
+				<span class={toggleText}>
+					Auto-fit text to {s.layoutAxis === 'columns' ? 'height' : 'width'} (never wrap a line)
+				</span>
 			</label>
 			{#if s.autoFit}
 				<div>

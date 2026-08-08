@@ -63,6 +63,9 @@ function resolveRenderFonts(): { css: string; skip: Set<string> } {
 	return { css: faces.join('\n'), skip };
 }
 
+/** Path to a system Chromium; unset means Playwright's own download. */
+const CHROMIUM_EXECUTABLE = process.env.CHROMIUM_PATH?.trim() || undefined;
+
 const PREVIEW_PORT = Number(process.env.PREVIEW_PORT ?? 4173);
 const PREVIEW_URL = (process.env.PREVIEW_URL ?? `http://127.0.0.1:${PREVIEW_PORT}`).replace(
 	/\/$/,
@@ -228,7 +231,11 @@ async function main(): Promise<void> {
 		const { css: renderFontCss, skip: skipSlugs } = resolveRenderFonts();
 		const renderedSlugs: string[] = [];
 
-		const browser = await chromium.launch();
+		// Playwright's bundled Chromium is dynamically linked against libs some distros (NixOS,
+		// Guix) do not provide, so allow pointing at a system browser instead.
+		const browser = await chromium.launch(
+			CHROMIUM_EXECUTABLE ? { executablePath: CHROMIUM_EXECUTABLE } : {}
+		);
 		try {
 			const page = await browser.newPage({
 				viewport: { width: EXAMPLE_RENDER_WIDTH + 80, height: 1200 },

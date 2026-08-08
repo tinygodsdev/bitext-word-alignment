@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Token } from '$lib/domain/tokens.js';
+	import type { TextOrientation } from '$lib/types/layout.js';
 	import { pendingAlignmentColor, primaryConnectionForToken } from '$lib/domain/alignment.js';
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
@@ -19,6 +20,8 @@
 		showNumber,
 		index,
 		interactive = false,
+		orientation = 'upright',
+		dir = undefined,
 		joinTightStart = false,
 		joinTightEnd = false
 	}: {
@@ -28,6 +31,10 @@
 		showNumber: boolean;
 		index: number;
 		interactive?: boolean;
+		/** Glyph setting for this token; `upright` also resets an inherited vertical row. */
+		orientation?: TextOrientation;
+		/** Set only in column mode, where the row cannot carry `dir` itself. */
+		dir?: 'rtl' | undefined;
 		joinTightStart?: boolean;
 		joinTightEnd?: boolean;
 	} = $props();
@@ -141,7 +148,8 @@
 {#if interactive}
 	<button
 		type="button"
-		class="token-view token-view--clickable"
+		class="token-view token-view--clickable token-view--{orientation}"
+		{dir}
 		class:token-view--join-before={joinTightStart}
 		class:token-view--join-after={joinTightEnd}
 		class:token-view--colored={!linkBgMode && textColor && !accentColor}
@@ -173,7 +181,8 @@
 	</button>
 {:else}
 	<span
-		class="token-view"
+		class="token-view token-view--{orientation}"
+		{dir}
 		class:token-view--join-before={joinTightStart}
 		class:token-view--join-after={joinTightEnd}
 		class:token-view--colored={!linkBgMode && !!textColor}

@@ -1,3 +1,4 @@
+import { DEFAULT_WORD_GAP_PX } from '$lib/serialization/schema.js';
 import type { ExampleEntry } from '../types.js';
 import { inter, noto } from './helpers.js';
 
@@ -105,6 +106,67 @@ export const CORE_EXAMPLES: ExampleEntry[] = [
 			['zh-1', 'en-1'],
 			['zh-2', 'en-2'],
 			['zh-3', 'en-4']
+		]
+	},
+	{
+		// English first so the Japanese column lands on the right, where a vertical text belongs.
+		// Column side follows line order; there is no separate direction setting.
+		id: 'tategaki',
+		label: 'Japanese vertical writing (tategaki ↔ English)',
+		lines: [
+			inter('The cat ate the fish', 'en', 26),
+			{
+				id: 'ja',
+				rawText: '猫 が 魚 を 食べた',
+				font: { family: 'Noto Serif JP', source: 'google' },
+				textSizePx: 34,
+				gapWordPx: DEFAULT_WORD_GAP_PX,
+				textOrientation: 'vertical'
+			}
+		],
+		settings: { layoutAxis: 'columns' },
+		connections: [
+			['en-0', 'ja-0'],
+			['en-1', 'ja-0'],
+			['en-3', 'ja-2'],
+			['en-4', 'ja-2'],
+			['en-2', 'ja-4']
+		]
+	},
+	{
+		/**
+		 * Traditional Mongolian runs top-to-bottom with columns progressing left to right, so the
+		 * script line comes first. Its setting is `sideways`, not `vertical`: Mongolian fonts store
+		 * glyphs rotated 90° counter-clockwise and expect the line to be rotated back (UAX #50),
+		 * unlike CJK where each character is set upright.
+		 *
+		 * Text: masthead of the newspaper Buriyad Mongɣol-un ünen (1925). The genitive ᠤᠨ has no
+		 * English word of its own, so it stays unlinked.
+		 */
+		id: 'mongolian-vertical',
+		label: 'Traditional Mongolian (vertical script ↔ English)',
+		lines: [
+			{
+				id: 'mn',
+				rawText: 'ᠪᠤᠷᠢᠶᠠᠳ ᠮᠣᠩᠭᠣᠯ ᠤᠨ ᠦᠨᠡᠨ',
+				font: { family: 'Noto Sans Mongolian', source: 'google' },
+				textSizePx: 30,
+				gapWordPx: DEFAULT_WORD_GAP_PX,
+				textOrientation: 'sideways'
+			},
+			inter('Buriyad Mongɣol un ünen', 'tr', 22),
+			inter('Buryat Mongol truth', 'en', 24)
+		],
+		settings: { layoutAxis: 'columns' },
+		linePairGaps: [{ upperLineId: 'mn', lowerLineId: 'tr', gapPx: 60 }],
+		connections: [
+			['mn-0', 'tr-0'],
+			['mn-1', 'tr-1'],
+			['mn-2', 'tr-2'],
+			['mn-3', 'tr-3'],
+			['tr-0', 'en-0'],
+			['tr-1', 'en-1'],
+			['tr-3', 'en-2']
 		]
 	},
 	{

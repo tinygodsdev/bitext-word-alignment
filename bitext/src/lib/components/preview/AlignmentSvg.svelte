@@ -15,6 +15,7 @@
 	import { settingsStore } from '$lib/state/settings.svelte.js';
 	import { linkHover } from '$lib/state/linkHover.svelte.js';
 	import { layoutExportStore, type TokenLayout } from '$lib/state/layoutExport.svelte.js';
+	import type { LayoutAxis } from '$lib/types/layout.js';
 	import { selectionStore } from '$lib/state/selection.svelte.js';
 
 	let {
@@ -22,6 +23,7 @@
 		connections,
 		writesExportLayout = true,
 		thicknessScale = 1,
+		axis = 'rows',
 		zoom = 1,
 		showPins = false
 	}: {
@@ -31,6 +33,8 @@
 		writesExportLayout?: boolean;
 		/** Auto-fit shrink applied to connector thickness so lines don't look huge on small text. */
 		thicknessScale?: number;
+		/** Diagram flow axis; connectors run across it. */
+		axis?: LayoutAxis;
 		/** Visual pan/zoom scale of the wrapper; measurements are divided by it to stay in layout space. */
 		zoom?: number;
 		/** Editing affordance only: mark pinned-color groups. Never part of the export. */
@@ -58,14 +62,23 @@
 			if (!groupConns.some((c) => c.pinned)) continue;
 			if (selectedComponent && groupConns.some((c) => selectedComponent.has(c.id))) continue;
 			const color = groupConns.find((c) => c.color)?.color ?? '#94a3b8';
-			let best: { cx: number; y: number; li: number; x: number; tid: string } | null = null;
+			// Badge sits just outside the group's first token: above it in `rows`, beside it in
+			// `columns`. "First" is the earliest line in stack order, then earliest along the flow.
+			let best: { cx: number; y: number; li: number; along: number; tid: string } | null = null;
 			for (const tid of groupConns.flatMap((c) => [c.upperTokenId, c.lowerTokenId])) {
 				const layout = displayTokenLayout[tid];
 				if (!layout) continue;
 				const li = lineOrder.indexOf(tokenLineId(tid));
 				if (li < 0) continue;
-				if (!best || li < best.li || (li === best.li && layout.x < best.x)) {
-					best = { cx: layout.cx, y: layout.y - 12, li, x: layout.x, tid };
+				const along = axis === 'columns' ? layout.y : layout.x;
+				if (!best || li < best.li || (li === best.li && along < best.along)) {
+					best = {
+						cx: axis === 'columns' ? layout.x - 12 : layout.cx,
+						y: axis === 'columns' ? layout.cy : layout.y - 12,
+						li,
+						along,
+						tid
+					};
 				}
 			}
 			if (best) {
@@ -142,8 +155,8 @@
 			const p1 = tokenLayout[conn.upperTokenId];
 			const p2 = tokenLayout[conn.lowerTokenId];
 			if (!p1 || !p2) continue;
-			const { x1, y1, x2, y2 } = linkEndpoints(p1, p2);
-			const d = linkPathD(x1, y1, x2, y2, style);
+			const { x1, y1, x2, y2 } = linkEndpoints(p1, p2, undefined, axis);
+			const d = linkPathD(x1, y1, x2, y2, style, axis);
 			const color = conn.color ?? '#94a3b8';
 			linkPaths.push({ linkId: conn.id, color, d });
 		}
@@ -174,6 +187,7 @@
 		void settingsStore.settings.previewHideChrome;
 		void projectStore.lines;
 		void writesExportLayout;
+		void axis;
 
 		function remeasure() {
 			requestAnimationFrame(() => {
@@ -218,7 +232,7 @@
 				{@const p1 = displayTokenLayout[conn.upperTokenId]}
 				{@const p2 = displayTokenLayout[conn.lowerTokenId]}
 				{#if p1 && p2}
-					{@const pts = linkEndpoints(p1, p2, style.tokenChips ? 0 : undefined)}
+					{@const pts = linkEndpoints(p1, p2, style.tokenChips ? 0 : undefined, axis)}
 					{@const ribbon = style.connector.mode === 'ribbon'}
 					{@const d = ribbon
 						? ribbonPathD(
@@ -230,9 +244,10 @@
 								settingsStore.settings.lineThickness *
 									(style.connector.ribbonScale ?? 8) *
 									thicknessScale,
-								style.connector.taper ?? false
+								style.connector.taper ?? false,
+								axis
 							)
-						: linkPathD(pts.x1, pts.y1, pts.x2, pts.y2, settingsStore.settings.lineStyle)}
+						: linkPathD(pts.x1, pts.y1, pts.x2, pts.y2, settingsStore.settings.lineStyle, axis)}
 					{@const col = connectorColor(style, conn.color ?? '#94a3b8')}
 					{@const hi = linkHover.id === conn.id}
 					{@const pend = selectionStore.pending}
@@ -289,8 +304,15 @@
 			{@const p1 = displayTokenLayout[conn.upperTokenId]}
 			{@const p2 = displayTokenLayout[conn.lowerTokenId]}
 			{#if p1 && p2}
-				{@const pts = linkEndpoints(p1, p2, style.tokenChips ? 0 : undefined)}
-				{@const hitD = linkPathD(pts.x1, pts.y1, pts.x2, pts.y2, settingsStore.settings.lineStyle)}
+				{@const pts = linkEndpoints(p1, p2, style.tokenChips ? 0 : undefined, axis)}
+				{@const hitD = linkPathD(
+					pts.x1,
+					pts.y1,
+					pts.x2,
+					pts.y2,
+					settingsStore.settings.lineStyle,
+					axis
+				)}
 				{@const hitWidth = Math.max(settingsStore.settings.lineThickness, 5) + 10}
 				<path
 					class="link-hit-path"
