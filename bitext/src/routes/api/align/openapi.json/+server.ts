@@ -57,6 +57,28 @@ export const GET: RequestHandler = ({ url }) => {
 											]
 										}
 									},
+									verticalJapanese: {
+										summary: 'Japanese tategaki beside an English translation',
+										value: {
+											lines: [
+												{ text: 'The cat ate the fish', sizePx: 26 },
+												{
+													text: '猫 が 魚 を 食べた',
+													orientation: 'vertical',
+													font: 'Noto Serif JP',
+													sizePx: 34
+												}
+											],
+											alignments: [
+												[0, 0, 1, 0],
+												[0, 1, 1, 0],
+												[0, 3, 1, 2],
+												[0, 4, 1, 2],
+												[0, 2, 1, 4]
+											],
+											settings: { axis: 'columns' }
+										}
+									},
 									multiLine: {
 										summary: '3 lines, gloss row with larger gap',
 										value: {
@@ -158,6 +180,12 @@ export const GET: RequestHandler = ({ url }) => {
 								rtl: {
 									type: 'boolean',
 									description: 'Right-to-left layout for Hebrew, Arabic, etc. Defaults to false.'
+								},
+								orientation: {
+									type: 'string',
+									enum: ['upright', 'vertical', 'sideways'],
+									description:
+										'How this line\'s glyphs are set, visible when settings.axis is "columns". "vertical" stacks the characters (Japanese, Chinese); "sideways" rotates the line a quarter turn (traditional Mongolian, and Latin runs inside vertical text). Defaults to upright.'
 								}
 							}
 						}
@@ -167,6 +195,12 @@ export const GET: RequestHandler = ({ url }) => {
 					type: 'object',
 					description: 'Visual settings overrides. Unset fields inherit defaults.',
 					properties: {
+						axis: {
+							type: 'string',
+							enum: ['rows', 'columns'],
+							description:
+								'Flow direction of the diagram. "rows" stacks lines downward with vertical connectors. "columns" stands every line up as a vertical column with sideways connectors, for Japanese, Chinese, and Mongolian; the first line is the leftmost column, so reorder lines to move a script to the other side. Default: rows.'
+						},
 						palette: {
 							type: 'string',
 							enum: ['pastel', 'vivid'],

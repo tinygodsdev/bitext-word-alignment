@@ -33,6 +33,7 @@ Each entry in `lines` is a plain string (shorthand) or an object:
 | `sizePx` | integer 12–64 | `36`              | Text size in px |
 | `gapPx`  | integer 0–56  | `14`              | Horizontal gap between word tokens in px |
 | `rtl`    | boolean       | `false`           | Right-to-left layout (Hebrew, Arabic, Farsi, Urdu, etc.) |
+| `orientation` | `upright` `vertical` `sideways` | `upright` | How the glyphs are set, visible with `settings.axis: "columns"`. `vertical` stacks characters (Japanese, Chinese); `sideways` rotates the line (traditional Mongolian) |
 
 ---
 
@@ -42,6 +43,7 @@ Global visual overrides. All fields optional; unset fields use defaults.
 
 | Field               | Values                      | Default   | Description |
 |---------------------|-----------------------------|-----------|-------------|
+| `axis`              | `rows` `columns`            | `rows`    | Flow direction. `columns` stands every line up as a vertical column with sideways connectors; the first line is the leftmost column |
 | `palette`           | `pastel` `vivid` `academic` | `pastel`  | Color palette for connection lines and token tints |
 | `lineStyle`         | `curved` `straight`         | `curved`  | Shape of connection lines |
 | `lineThickness`     | number 1–8                  | `3`       | Stroke width |
