@@ -28,6 +28,8 @@ these project-level rules on top:
   content, and ask when it is unclear rather than picking the wrong one.
 - Put the issue identifier in parentheses at the end of a PR title (`... (BLD-88)`). That is what
   makes Linear link the PR, with its state and diffs. Never attach PR links by hand.
+- Assign every issue you create to the user (`--assignee me`), and assign anything you find
+  unassigned. Never reassign an issue that already has an assignee.
 - Every issue you create gets the project label above, plus every scope label that applies
   (`frontend`, `backend`, `devops`, `content`, `research`, `design`) — a task can carry several.
   Update them with `label add` / `label remove` when the scope turns out different. Never invent a

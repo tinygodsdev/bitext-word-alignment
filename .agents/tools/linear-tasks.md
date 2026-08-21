@@ -90,6 +90,21 @@ Priority: `none`, `low`, `medium`, `high`, `urgent`.
 
 ---
 
+## Assignee
+
+Every issue belongs to the user unless they said otherwise. Pass `--assignee me` when creating, and
+assign anything you find unassigned:
+
+```bash
+ORCA linear assignee set <ID> --me --workspace <WORKSPACE> --json | jq -r '.ok'
+```
+
+`me` resolves to the account Orca's Linear connection authenticates as, which is the user's own
+account here, not an app identity. Never reassign an issue that already has an assignee, and never
+assign one to yourself or to an agent account.
+
+---
+
 ## Labels
 
 Labels exist so the human can scan and group issues; Orca's list does not group by Linear project.
@@ -187,7 +202,7 @@ Refine the title or description when it makes the task more precise. Keep titles
 ## Creating an issue
 
 ```bash
-ORCA linear create --title "<title>" --team <TEAM> --project <PROJECT_ID> \
+ORCA linear create --title "<title>" --team <TEAM> --project <PROJECT_ID> --assignee me \
   --workspace <WORKSPACE> --body-file - --label <PROJECT_LABEL> --label Feature --json <<'EOF' \
   | jq -r '.result.issue.identifier'
 <body markdown>
@@ -195,6 +210,7 @@ EOF
 ```
 
 - `--team <TEAM>` is required: Linear cannot create an issue without one.
+- `--assignee me` unless the user named someone else.
 - Always pass `--label <PROJECT_LABEL>`. Add every applicable scope label and a type label. The
   `create` signature marks `--label` as repeatable; if a repeated flag errors, create with the
   project label alone and add the rest with `ORCA linear label add`.
