@@ -30,10 +30,12 @@ these project-level rules on top:
   makes Linear link the PR, with its state and diffs. Never attach PR links by hand.
 - Assign every issue you create to the user (`--assignee me`), and assign anything you find
   unassigned. Never reassign an issue that already has an assignee.
-- Every issue you create gets the project label above, plus every scope label that applies
-  (`frontend`, `backend`, `devops`, `content`, `research`, `design`) — a task can carry several.
-  Update them with `label add` / `label remove` when the scope turns out different. Never invent a
-  label that does not exist: the CLI cannot create them.
+- Label every issue with the project label above and at least one scope label (`frontend`,
+  `backend`, `devops`, `content`, `research`, `design`) — a task can carry several. Update them with
+  `label add` / `label remove` when the scope turns out different.
+- Those are the only labels there are. Never invent one, and never reach for Linear's defaults like
+  `Bug` or `Feature`: they were removed from this workspace on purpose. If nothing fits, propose a
+  name and ask the user to create it rather than leaving the issue without a scope.
 - After work: post a completion comment covering this round and set the status to `In Review`. An
   issue can hold several comments, one per round of work; do not rewrite earlier ones. Never set
   `Done` or `Canceled` without an explicit request — that closes the issue before the user has seen
