@@ -29,15 +29,18 @@ const PREVIEW_WIDTH = 800;
 
 const TOOL_DESCRIPTION = `Create a shareable Word Aligner diagram that shows which words match across two or more stacked lines of text (a translation and its source, an interlinear gloss, IPA, etc.). Returns a URL that opens the interactive diagram, plus a preview image.
 
-Use this when the user wants to translate a phrase and show word correspondences, align a translation with its source (including RTL scripts like Hebrew or Arabic), or build a Leipzig-style interlinear gloss.
+Use this when the user wants to translate a phrase and show word correspondences, align a translation with its source (including RTL scripts like Hebrew or Arabic, or vertically written ones like Japanese and Mongolian), or build a Leipzig-style interlinear gloss.
 
 Word indices are 0-based token positions. Tokenize each line the same way the tool does before assigning indices:
 - Whitespace always splits ("I have been going" -> I[0] have[1] been[2] going[3]).
 - The characters in settings.tokenSplitChars (default ".-|") also split and are then removed from the rendered text, so "go.PST.IPFV" becomes three tokens (go, PST, IPFV) and the dots disappear. For Leipzig glosses set tokenSplitChars to "-|" to keep the dots.
 - Punctuation stays attached by default ("Hello, world!" -> Hello,[0] world![1]).
 - In RTL lines, word 0 is the logically first word (rightmost on screen); index in reading order.
+- Japanese and Chinese are written without spaces and nothing is segmented for you: put spaces where the alignment units should be.
 
-Each alignment is [lineA, wordA, lineB, wordB]; the two lines must be vertically adjacent (|lineA - lineB| = 1). To express many-to-one, list each target word as its own tuple. Tokens that share a connection group get the same color automatically.`;
+For a vertically written script set settings.axis to "columns". Every line then becomes a vertical column and the connectors run sideways. Set orientation per line: "vertical" stacks the characters (Japanese, Chinese), "sideways" rotates the line a quarter turn (traditional Mongolian, and Latin runs inside vertical text), "upright" leaves a translation as horizontal word boxes. The first line is the leftmost column, so for Japanese and Chinese, whose columns read right to left, list the translation first and the script second.
+
+Each alignment is [lineA, wordA, lineB, wordB]; the two lines must be neighbours in the stack (|lineA - lineB| = 1), which means one above the other in rows and side by side in columns. To express many-to-one, list each target word as its own tuple. Tokens that share a connection group get the same color automatically.`;
 
 const LINE_INPUT_SCHEMA = {
 	oneOf: [
@@ -67,6 +70,12 @@ const LINE_INPUT_SCHEMA = {
 				rtl: {
 					type: 'boolean',
 					description: 'Right-to-left layout (Hebrew, Arabic, ...). Default false.'
+				},
+				orientation: {
+					type: 'string',
+					enum: ['upright', 'vertical', 'sideways'],
+					description:
+						'How this line\'s glyphs are set, visible with settings.axis "columns". "vertical" stacks characters (Japanese, Chinese), "sideways" rotates the line (Mongolian). Default "upright".'
 				}
 			}
 		}
@@ -102,6 +111,12 @@ const TOOL_INPUT_SCHEMA = {
 			additionalProperties: false,
 			description: 'Global visual overrides. Unset fields inherit defaults.',
 			properties: {
+				axis: {
+					type: 'string',
+					enum: ['rows', 'columns'],
+					description:
+						'Flow direction of the diagram. "rows" (default) stacks lines downward with vertical connectors. "columns" stands each line up as a vertical column with sideways connectors, for Japanese, Chinese, and Mongolian; the first line is the leftmost column.'
+				},
 				palette: {
 					type: 'string',
 					enum: ['pastel', 'vivid'],

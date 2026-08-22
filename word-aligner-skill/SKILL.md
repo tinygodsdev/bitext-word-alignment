@@ -75,6 +75,22 @@ If unsure, call `GET https://aligner.tinygods.dev/api/align?lines=your+text` fir
 }
 ```
 
+**Vertical writing** (Japanese, Chinese, Mongolian): set `"axis": "columns"` in settings, then `"orientation"` per line. Every line becomes a vertical column and connectors run sideways.
+
+```json
+{
+  "lines": [
+    {"text": "The cat ate the fish", "sizePx": 26},
+    {"text": "猫 が 魚 を 食べた", "orientation": "vertical", "font": "Noto Serif JP", "sizePx": 34}
+  ],
+  "alignments": [[0,0,1,0], [0,1,1,0], [0,3,1,2], [0,4,1,2], [0,2,1,4]],
+  "settings": {"axis": "columns"}
+}
+```
+The first line is the leftmost column. Japanese and Chinese read their columns right to left, so list the translation first and the script second. Traditional Mongolian reads left to right and uses `"orientation": "sideways"` (its letters join into a running stem and cannot be stacked one by one), so its script line comes first.
+
+Japanese and Chinese are written without spaces and nothing is segmented for you — put spaces where the alignment units should be.
+
 **Interlinear (Leipzig) gloss** — three lines: gloss on top, source in the middle, free translation at the bottom.
 
 Important: a Leipzig gloss uses periods to pack grammatical features into one morpheme (`go.PST.IPFV` = "go" + past + imperfective, **one** token). The default `tokenSplitChars` is `".-|"`, which would split on the period and hide it — rendering `goPSTIPFV`. To keep the periods, set `"tokenSplitChars": "-|"` (drop the dot).

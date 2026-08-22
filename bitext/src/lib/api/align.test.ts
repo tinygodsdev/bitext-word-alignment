@@ -282,3 +282,74 @@ describe('buildAlignUrl', () => {
 		expect(buildAlignUrl(ORIGIN, { lines })).not.toHaveProperty('err');
 	});
 });
+
+// ── Vertical writing ──────────────────────────────────────────────────────────
+
+describe('vertical writing', () => {
+	it('accepts the column axis and per-line orientation', () => {
+		const parsed = parseAlignBody({
+			lines: [
+				'The cat ate the fish',
+				{ text: '猫 が 魚 を 食べた', orientation: 'vertical', font: 'Noto Serif JP' }
+			],
+			settings: { axis: 'columns' }
+		});
+		if ('err' in parsed) throw new Error(parsed.err);
+		expect(parsed.ok.settings?.axis).toBe('columns');
+		expect(parsed.ok.lines[1]).toMatchObject({ orientation: 'vertical' });
+	});
+
+	it('encodes the axis into the shared state, not as a stray key', () => {
+		const result = buildAlignUrl(ORIGIN, {
+			lines: ['one two', { text: '猫 魚', orientation: 'vertical' }],
+			settings: { axis: 'columns' }
+		});
+		if (!('url' in result)) throw new Error(result.err);
+		const state = decodeState(new URL(result.url).searchParams.get('data'));
+		expect(state.settings.layoutAxis).toBe('columns');
+		expect(state.project.lines[1]!.textOrientation).toBe('vertical');
+		expect(state.project.lines[0]!.textOrientation).toBeUndefined();
+	});
+
+	it('carries the sideways orientation for Mongolian', () => {
+		const result = buildAlignUrl(ORIGIN, {
+			lines: [
+				{ text: 'ᠮᠣᠩᠭᠣᠯ ᠪᠢᠴᠢᠭ', orientation: 'sideways', font: 'Noto Sans Mongolian' },
+				'Mongolian script'
+			],
+			settings: { axis: 'columns' }
+		});
+		if (!('url' in result)) throw new Error(result.err);
+		const state = decodeState(new URL(result.url).searchParams.get('data'));
+		expect(state.project.lines[0]!.textOrientation).toBe('sideways');
+	});
+
+	it('defaults to rows and upright when neither is given', () => {
+		const result = buildAlignUrl(ORIGIN, { lines: ['a b', 'c d'] });
+		if (!('url' in result)) throw new Error(result.err);
+		const state = decodeState(new URL(result.url).searchParams.get('data'));
+		expect(state.settings.layoutAxis).toBe('rows');
+		expect(state.project.lines[0]!.textOrientation).toBeUndefined();
+	});
+
+	it('treats an explicit upright orientation as the default', () => {
+		const result = buildAlignUrl(ORIGIN, {
+			lines: [{ text: 'a b', orientation: 'upright' }, 'c d']
+		});
+		if (!('url' in result)) throw new Error(result.err);
+		const state = decodeState(new URL(result.url).searchParams.get('data'));
+		expect(state.project.lines[0]!.textOrientation).toBeUndefined();
+	});
+
+	it('rejects an unknown axis', () => {
+		expect(parseAlignBody({ lines: ['a'], settings: { axis: 'diagonal' } })).toMatchObject({
+			err: expect.stringContaining('settings.axis')
+		});
+	});
+
+	it('rejects an unknown orientation', () => {
+		expect(parseAlignBody({ lines: [{ text: 'a', orientation: 'upside-down' }] })).toMatchObject({
+			err: expect.stringContaining('orientation')
+		});
+	});
+});

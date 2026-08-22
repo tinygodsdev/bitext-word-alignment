@@ -15,6 +15,10 @@ import {
 	type VisualSettingsV2
 } from '$lib/serialization/schema.js';
 import { PALETTES } from '$lib/domain/palettes.js';
+import type { LayoutAxis, TextOrientation } from '$lib/types/layout.js';
+
+const TEXT_ORIENTATIONS = ['upright', 'vertical', 'sideways'] as const;
+const LAYOUT_AXES = ['rows', 'columns'] as const;
 
 const DEFAULT_FONT_FAMILY = 'Inter';
 const DEFAULT_TEXT_SIZE_PX = 36;
@@ -32,12 +36,26 @@ export interface LineInput {
 	sizePx?: number;
 	/** Horizontal gap between word tokens in px (0–56). Defaults to 14. */
 	gapPx?: number;
-	/** Right-to-left layout (Hebrew, Arabic, etc.). Defaults to false. */
+	/** Right-to-left layout (Hebrew, Arabic, etc.). Defaults to false. Ignored when orientation is "vertical". */
 	rtl?: boolean;
+	/**
+	 * How this line's glyphs are set. Defaults to "upright" (words render horizontally).
+	 * "vertical" stacks the characters, for Japanese and Chinese. "sideways" rotates the whole
+	 * line a quarter turn, which is what traditional Mongolian needs and what a Latin line inside
+	 * vertical text usually wants. Only visible with `settings.axis: "columns"`.
+	 */
+	orientation?: TextOrientation;
 }
 
 /** Global visual settings overrides. All fields optional; unset fields inherit defaults. */
 export interface SettingsInput {
+	/**
+	 * Flow direction of the whole diagram. Defaults to "rows": lines stack downward, words run
+	 * across, connectors run vertically. "columns" stands every line up as a vertical column with
+	 * connectors running sideways, for Japanese, Chinese, and Mongolian. The first line is
+	 * leftmost, so reorder `lines` to put a script on the other side.
+	 */
+	axis?: LayoutAxis;
 	/** Color palette for connection lines. */
 	palette?: 'pastel' | 'vivid';
 	/** Connection line shape. */
@@ -113,12 +131,15 @@ function parseLineEntry(val: unknown, idx: number): LineInput | { err: string } 
 		return { err: `lines[${idx}].gapPx must be a number` };
 	if (v.rtl !== undefined && typeof v.rtl !== 'boolean')
 		return { err: `lines[${idx}].rtl must be a boolean` };
+	if (v.orientation !== undefined && !TEXT_ORIENTATIONS.includes(v.orientation as TextOrientation))
+		return { err: `lines[${idx}].orientation must be one of: ${TEXT_ORIENTATIONS.join(', ')}` };
 	return {
 		text: v.text,
 		font: typeof v.font === 'string' ? v.font : undefined,
 		sizePx: typeof v.sizePx === 'number' ? v.sizePx : undefined,
 		gapPx: typeof v.gapPx === 'number' ? v.gapPx : undefined,
-		rtl: typeof v.rtl === 'boolean' ? v.rtl : undefined
+		rtl: typeof v.rtl === 'boolean' ? v.rtl : undefined,
+		orientation: v.orientation as TextOrientation | undefined
 	};
 }
 
@@ -130,6 +151,8 @@ function parseSettingsInput(val: unknown): { ok: SettingsInput } | { err: string
 	const STYLES = new Set(['straight', 'curved']);
 	const THEMES_AND_BKGS = new Set(['light', 'dark']);
 
+	if (v.axis !== undefined && !LAYOUT_AXES.includes(v.axis as LayoutAxis))
+		return { err: `settings.axis must be one of: ${LAYOUT_AXES.join(', ')}` };
 	if (v.palette !== undefined && !PALETTE_NAMES.has(v.palette as string))
 		return { err: `settings.palette must be one of: ${[...PALETTE_NAMES].join(', ')}` };
 	if (v.lineStyle !== undefined && !STYLES.has(v.lineStyle as string))
@@ -162,6 +185,7 @@ function parseSettingsInput(val: unknown): { ok: SettingsInput } | { err: string
 
 	return {
 		ok: {
+			axis: v.axis as SettingsInput['axis'],
 			palette: v.palette as SettingsInput['palette'],
 			lineStyle: v.lineStyle as SettingsInput['lineStyle'],
 			theme: v.theme as SettingsInput['theme'],
@@ -257,12 +281,14 @@ export function parseAlignBody(body: unknown): { ok: AlignRequest } | { err: str
 export function buildAlignUrl(origin: string, req: AlignRequest): AlignResult {
 	const defaults = defaultVisualSettingsV2();
 
-	// Merge settings overrides
+	// Merge settings overrides. `axis` is spelled differently inside (`layoutAxis`), so it is
+	// pulled out of the spread and mapped by hand; leaving it in would add a stray key that the
+	// compact encoder silently drops.
+	const { axis, ...spreadableSettings } = req.settings ?? {};
 	const visualSettings: VisualSettingsV2 = {
 		...defaults,
-		...(req.settings
-			? Object.fromEntries(Object.entries(req.settings).filter(([, v]) => v !== undefined))
-			: {})
+		...Object.fromEntries(Object.entries(spreadableSettings).filter(([, v]) => v !== undefined)),
+		...(axis !== undefined ? { layoutAxis: axis } : {})
 	};
 	// Clamp numeric settings to valid ranges
 	visualSettings.lineThickness = Math.min(8, Math.max(1, visualSettings.lineThickness));
@@ -280,7 +306,10 @@ export function buildAlignUrl(origin: string, req: AlignRequest): AlignResult {
 			font: { family: inp.font ?? DEFAULT_FONT_FAMILY, source: 'google' as const },
 			textSizePx: Math.min(64, Math.max(12, inp.sizePx ?? DEFAULT_TEXT_SIZE_PX)),
 			gapWordPx: Math.min(56, Math.max(0, inp.gapPx ?? DEFAULT_WORD_GAP_PX)),
-			...(inp.rtl ? { rtl: true } : {})
+			...(inp.rtl ? { rtl: true } : {}),
+			...(inp.orientation && inp.orientation !== 'upright'
+				? { textOrientation: inp.orientation }
+				: {})
 		};
 	});
 
