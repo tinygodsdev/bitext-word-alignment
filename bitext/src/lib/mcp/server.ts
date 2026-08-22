@@ -5,11 +5,9 @@
 // API stay in sync. This module is transport-agnostic: it takes a parsed JSON-RPC message
 // and the request origin, and returns the response object (or null for notifications).
 
-import { Resvg } from '@resvg/resvg-js';
 import { parseAlignBody, buildAlignUrl } from '$lib/api/align.js';
 import { decodeState } from '$lib/serialization/decode.js';
-import { buildOgSvg } from '$lib/seo/og-svg.js';
-import { loadOgFontFiles } from '$lib/seo/og-fonts.js';
+import { renderOgPng } from '$lib/seo/og-render.js';
 
 export const MCP_PROTOCOL_VERSION = '2025-06-18';
 
@@ -249,15 +247,8 @@ function error(id: JsonRpcId, code: number, message: string) {
 async function renderPreviewPng(url: string): Promise<string | null> {
 	const data = new URL(url).searchParams.get('data');
 	if (!data) return null;
-	const state = decodeState(data);
-	const svg = buildOgSvg(state);
-	const fontFiles = await loadOgFontFiles();
-	const resvg = new Resvg(svg, {
-		fitTo: { mode: 'width', value: PREVIEW_WIDTH },
-		background: '#0f172a',
-		font: { fontFiles, loadSystemFonts: false, defaultFontFamily: 'Inter' }
-	});
-	return Buffer.from(resvg.render().asPng()).toString('base64');
+	const png = await renderOgPng(decodeState(data), PREVIEW_WIDTH);
+	return png.toString('base64');
 }
 
 async function callCreateAlignment(origin: string, args: unknown) {

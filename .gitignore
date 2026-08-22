@@ -39,4 +39,3 @@ docs/tmp/
 .cursorindexingignore
 
 # Machine-specific Obsidian task config (vault paths differ per machine)
-.agents/tools/*.local.md
