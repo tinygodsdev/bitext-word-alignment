@@ -14,6 +14,17 @@ Reply to the user in the language they used in their message. Reading skills, in
 
 When you need to search or find project tasks, issues, tickets, etc., address to @PROJECT.md file for specific instructions. Respect the task management system described there. 
 
+## Delegating to agents
+
+When this session runs inside Orca (`TERM_PROGRAM=Orca`) and the user asks to delegate, distribute, hand off, or orchestrate work across agents ("поручи агентам", "распредели задачи", "делегируй", "оркеструй", and the like), that means Orca's own agent mechanism: real agents launched in Orca worktrees and terminals through the `orca` CLI. It does not mean the built-in Task or subagent tool. Never substitute a built-in subagent when Orca delegation was requested.
+
+Do not drive `orca` from memory. The mechanics are served version-matched by the binary; read the one that fits before running commands:
+
+- `orca skills get orca-cli` — launch an agent in a worktree, drive its terminal, and full fire-and-forget handoffs.
+- `orca skills get orchestration` — supervised workers: waiting on results, tracking completion, DAGs, ask/reply.
+
+Choose by whether the user wants the result back. No supervision ("hand this off", "give it to another agent") is a handoff through `orca-cli`. Supervision ("delegate and report back", "orchestrate", "split the work and collect results") is `orchestration`. The `orca-orchestrate` skill carries the practical playbook on top of both.
+
 ## Architecture
 
 - Use the simplest architecture that keeps the code easy to understand, test, and change.
