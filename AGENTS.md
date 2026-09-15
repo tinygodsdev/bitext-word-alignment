@@ -16,7 +16,9 @@ When you need to search or find project tasks, issues, tickets, etc., address to
 
 ## Delegating to agents
 
-When this session runs inside Orca (`TERM_PROGRAM=Orca`) and the user asks to delegate, distribute, hand off, or orchestrate work across agents ("поручи агентам", "распредели задачи", "делегируй", "оркеструй", and the like), that means Orca's own agent mechanism: real agents launched in Orca worktrees and terminals through the `orca` CLI. It does not mean the built-in Task or subagent tool. Never substitute a built-in subagent when Orca delegation was requested.
+When this session runs inside Orca (`TERM_PROGRAM=Orca`) and the user asks to spread several tickets or tasks across agents ("поручи агентам", "распредели задачи", "делегируй", "оркеструй", and the like), that means Orca's own agent mechanism: real agents launched in Orca worktrees and terminals through the `orca` CLI, not the built-in Task or subagent tool.
+
+Built-in subagents stay available for their own uses: a piece of research, a debugging pass, a review, or any sub-step inside one task, at your discretion. The line is what gets distributed. Handing out standalone tickets or tasks to agents is Orca orchestration; a subagent helping you within a single task is not.
 
 Do not drive `orca` from memory. The mechanics are served version-matched by the binary; read the one that fits before running commands:
 
