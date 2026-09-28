@@ -70,9 +70,7 @@
 	$effect(() => {
 		if (hydrated) return;
 		if (data.initialState) {
-			projectStore.loadSnapshotV2(data.initialState.project);
-			settingsStore.load(data.initialState.settings);
-			projectStore.retokenizeFromSettings();
+			projectStore.loadState(data.initialState);
 		}
 		hydrated = true;
 	});

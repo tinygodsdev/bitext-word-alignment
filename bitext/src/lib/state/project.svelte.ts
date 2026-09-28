@@ -25,6 +25,7 @@ import {
 	MAX_LINES,
 	NEW_LINE_HINT_TEXT,
 	normalizeProjectSnapshotV2,
+	type AppStateV2,
 	type LinePairGapV2,
 	type LineV2,
 	type PairControlV2,
@@ -363,11 +364,14 @@ class ProjectStore {
 		this.pruneInvalidConnections();
 	}
 
-	loadExample(kind: ExampleId = 'simple') {
-		const state = buildAppStateFromExample(findExample(kind));
+	/** Settings load first: connections are pruned against tokens built from them. */
+	loadState(state: AppStateV2) {
 		settingsStore.load(state.settings);
 		this.loadSnapshotV2(state.project);
-		this.retokenizeFromSettings();
+	}
+
+	loadExample(kind: ExampleId = 'simple') {
+		this.loadState(buildAppStateFromExample(findExample(kind)));
 		layoutExportStore.requestRemeasureAfterLayout();
 	}
 }

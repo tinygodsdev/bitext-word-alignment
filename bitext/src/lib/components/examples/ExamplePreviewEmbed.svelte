@@ -5,7 +5,6 @@
 	import { findExample, type ExampleId } from '$lib/state/examples.js';
 	import { layoutExportStore } from '$lib/state/layoutExport.svelte.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
-	import { settingsStore } from '$lib/state/settings.svelte.js';
 
 	let {
 		exampleId,
@@ -20,10 +19,9 @@
 
 	onMount(() => {
 		void (async () => {
-			const state = buildAppStateFromExample(findExample(exampleId), { previewHideChrome: true });
-			settingsStore.load(state.settings);
-			projectStore.loadSnapshotV2(state.project);
-			projectStore.retokenizeFromSettings();
+			projectStore.loadState(
+				buildAppStateFromExample(findExample(exampleId), { previewHideChrome: true })
+			);
 			layoutExportStore.requestRemeasureAfterLayout();
 			await document.fonts.ready;
 			await tick();
