@@ -284,6 +284,14 @@ describe('compact v4 encode/decode (current share format)', () => {
 		expect(decoded.settings.tokenSplitChars).toBe('.');
 	});
 
+	it('round-trip: a changed merge char survives when it is the only non-default setting', () => {
+		const base = migrate({});
+		for (const tokenMergeChar of ['_', '']) {
+			const s: AppStateV2 = { ...base, settings: { ...base.settings, tokenMergeChar } };
+			expect(decodeState(encodeState(s)).settings.tokenMergeChar).toBe(tokenMergeChar);
+		}
+	});
+
 	it('round-trip: token link color mode (background)', () => {
 		const base = migrate({});
 		const s: AppStateV2 = {
