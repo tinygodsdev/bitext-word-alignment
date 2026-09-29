@@ -75,11 +75,11 @@ function settingsToCompact(rounded: VisualSettingsV2): CompactSettings4 | undefi
 	if (rounded.background !== def.background) {
 		o.bg = rounded.background === 'dark' ? 1 : 0;
 	}
-	const keysBeforeFinalize = Object.keys(o).length;
-	if (keysBeforeFinalize > 0) {
+	// Decoding treats a present `s` without `mg` as "no merge char", so any emitted `s` carries it.
+	if (Object.keys(o).length > 0 || rounded.tokenMergeChar !== def.tokenMergeChar) {
 		o.mg = rounded.tokenMergeChar;
 	}
-	return keysBeforeFinalize > 0 ? sortKeys(o) : undefined;
+	return Object.keys(o).length > 0 ? sortKeys(o) : undefined;
 }
 
 function compactToVisualSettings(s: CompactSettings4 | undefined): VisualSettingsV2 {
