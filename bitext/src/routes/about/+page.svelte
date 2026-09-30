@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import { SITE_CONTACT_EMAIL, TALLY_FORM_ID } from '$lib/brand.js';
+	import { DISCORD_INVITE_URL, SITE_CONTACT_EMAIL, TALLY_FORM_ID } from '$lib/brand.js';
 	import PartnerBannerCursor from '$lib/components/partners/PartnerBannerCursor.svelte';
 	import PartnerBannerPreply from '$lib/components/partners/PartnerBannerPreply.svelte';
 	import PartnerBannerRailway from '$lib/components/partners/PartnerBannerRailway.svelte';
@@ -43,8 +43,7 @@
 		'overflow-hidden border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900/50';
 	const linkClass =
 		'font-medium text-primary-700 underline decoration-primary-700/40 underline-offset-2 hover:text-primary-800 hover:decoration-primary-800 dark:text-primary-400 dark:decoration-primary-400/50 dark:hover:text-primary-300';
-	const feedbackBtnClass =
-		'inline cursor-pointer border-0 bg-transparent p-0 text-sm text-gray-600 underline decoration-gray-400/50 underline-offset-2 transition-colors hover:text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:text-gray-400 dark:decoration-gray-500/50 dark:hover:text-gray-200 dark:focus-visible:outline-primary-500';
+	const feedbackBtnClass = `inline cursor-pointer border-0 bg-transparent p-0 ${linkClass}`;
 
 	const ctaPrimary =
 		'inline-flex items-center gap-2 border border-primary-600 bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white no-underline transition-colors hover:bg-primary-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:border-primary-500 dark:hover:bg-primary-500';
@@ -553,9 +552,14 @@
 			Contact
 		</h2>
 		<p class="mt-3 text-gray-700 dark:text-gray-300">
-			Questions or feedback about {DISPLAY_NAME}:
-			<a href={`mailto:${SITE_CONTACT_EMAIL}`} class={linkClass}>{SITE_CONTACT_EMAIL}</a>
-			<span class="text-gray-400 dark:text-gray-600"> · </span>
+			Questions and feedback about {DISPLAY_NAME} go to the
+			<a href={DISCORD_INVITE_URL} class={linkClass} target="_blank" rel="noopener noreferrer"
+				>#word-aligner-support</a
+			>
+			channel on Discord.
+		</p>
+		<p class="mt-3 text-gray-700 dark:text-gray-300">
+			You can also use the
 			<button
 				type="button"
 				class={feedbackBtnClass}
@@ -564,8 +568,10 @@
 				data-tally-hide-title="1"
 				data-tally-form-events-forwarding="1"
 			>
-				Feedback form (Tally)
+				feedback form
 			</button>
+			or write to
+			<a href={`mailto:${SITE_CONTACT_EMAIL}`} class={linkClass}>{SITE_CONTACT_EMAIL}</a>.
 		</p>
 
 		<h2

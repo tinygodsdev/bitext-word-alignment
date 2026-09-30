@@ -193,6 +193,6 @@
 			href="https://danipolani.github.io/en/"
 			target="_blank"
 			rel="noopener noreferrer">author's site</a
-		>, or the in-app "Send feedback" form.
+		>, or the feedback form on the <a class={linkClass} href={resolve('/about')}>About page</a>.
 	</p>
 </main>

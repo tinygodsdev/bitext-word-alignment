@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { ALIGNER_DISPLAY_NAME, TALLY_FORM_ID } from '$lib/brand.js';
+	import { ALIGNER_DISPLAY_NAME, DISCORD_INVITE_URL } from '$lib/brand.js';
 
 	let { class: className = '' }: { class?: string } = $props();
 
 	const linkClass =
 		'font-medium text-primary-700 underline decoration-primary-700/40 underline-offset-2 hover:text-primary-800 hover:decoration-primary-800 dark:text-primary-400 dark:decoration-primary-400/50 dark:hover:text-primary-300';
 
-	const feedbackBtnClass =
-		'inline cursor-pointer border-0 bg-transparent p-0 text-sm text-gray-600 underline decoration-gray-400/50 underline-offset-2 transition-colors hover:text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:text-gray-400 dark:decoration-gray-500/50 dark:hover:text-gray-200 dark:focus-visible:outline-primary-500';
+	const discordLinkClass =
+		'text-sm text-gray-600 underline decoration-gray-400/50 underline-offset-2 transition-colors hover:text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:text-gray-400 dark:decoration-gray-500/50 dark:hover:text-gray-200 dark:focus-visible:outline-primary-500';
 
 	const year = new Date().getFullYear();
 	const authorSite = 'https://danipolani.github.io/en/';
@@ -41,16 +41,9 @@
 		and conlanging.
 	</p>
 	<p class="mt-4">
-		<button
-			type="button"
-			class={feedbackBtnClass}
-			data-tally-open={TALLY_FORM_ID}
-			data-tally-auto-close="0"
-			data-tally-hide-title="1"
-			data-tally-form-events-forwarding="1"
+		<a href={DISCORD_INVITE_URL} class={discordLinkClass} target="_blank" rel="noopener noreferrer"
+			>Support and feedback on Discord</a
 		>
-			Send feedback
-		</button>
 	</p>
 	<p class="mt-4 text-gray-500 dark:text-gray-500">© {year} Dani Polani</p>
 </footer>

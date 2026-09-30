@@ -28,8 +28,11 @@ export const EXPORT_ATTRIBUTION_PLAIN = `Created with ${ALIGNER_SITE_HOST}`;
 /** Google Analytics 4 measurement ID (gtag). */
 export const GA_MEASUREMENT_ID = 'G-6Z5775NY39';
 
+/** Discord invite into the support channel; the main support and feedback route. */
+export const DISCORD_INVITE_URL = 'https://discord.gg/T6jHGWT5Vz';
+
 /**
- * Tally feedback form: opened by the embed in `app.html` via a trigger with
- * `data-tally-open` (https://tally.so/help/install-with-javascript).
+ * Tally feedback form, offered on the About page: opened by the embed in `app.html` via a
+ * trigger with `data-tally-open` (https://tally.so/help/install-with-javascript).
  */
 export const TALLY_FORM_ID = 'Ekb2l2';

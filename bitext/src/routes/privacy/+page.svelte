@@ -125,8 +125,8 @@
 		</li>
 		<li>
 			<strong class="text-gray-900 dark:text-white">Tally</strong> (Tally BV) — used only when you
-			open the "Send feedback" form. Submitting feedback shares whatever you type with Tally, who
-			delivers it to us. See
+			open the feedback form on the About page. Submitting feedback shares whatever you type with
+			Tally, who delivers it to us. See
 			<a
 				class={linkClass}
 				href="https://tally.so/help/privacy-policy"
@@ -184,6 +184,6 @@
 			href="https://danipolani.github.io/en/"
 			target="_blank"
 			rel="noopener noreferrer">author's site</a
-		>, or the in-app "Send feedback" form (Tally).
+		>, or the feedback form on the <a class={linkClass} href={resolve('/about')}>About page</a>.
 	</p>
 </main>
