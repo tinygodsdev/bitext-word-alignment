@@ -554,7 +554,7 @@
 		<p class="mt-3 text-gray-700 dark:text-gray-300">
 			Questions and feedback about {DISPLAY_NAME} go to the
 			<a href={DISCORD_INVITE_URL} class={linkClass} target="_blank" rel="noopener noreferrer"
-				>#word-aligner-support</a
+				>#aligner-support</a
 			>
 			channel on Discord.
 		</p>
