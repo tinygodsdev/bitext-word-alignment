@@ -29,7 +29,7 @@ export const EXPORT_ATTRIBUTION_PLAIN = `Created with ${ALIGNER_SITE_HOST}`;
 export const GA_MEASUREMENT_ID = 'G-6Z5775NY39';
 
 /** Discord invite into the support channel; the main support and feedback route. */
-export const DISCORD_INVITE_URL = 'https://discord.gg/T6jHGWT5Vz';
+export const DISCORD_INVITE_URL = 'https://discord.gg/A5xnAsTk29';
 
 /**
  * Tally feedback form, offered on the About page: opened by the embed in `app.html` via a
