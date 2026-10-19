@@ -19,6 +19,7 @@
 	} from '$lib/domain/styles.js';
 	import {
 		computeAutoFitScales,
+		computeWidthFitCap,
 		scalesChanged,
 		chromeScale,
 		AUTOFIT_LINE_STRENGTH,
@@ -50,6 +51,7 @@
 	} = $props();
 
 	let rootEl = $state<HTMLElement | null>(null);
+	let linesEl = $state<HTMLElement | null>(null);
 
 	const style = $derived(getStyle(settingsStore.settings.style));
 	const resolvedCanvas = $derived(
@@ -80,6 +82,10 @@
 	const autoFit = $derived(settingsStore.settings.autoFit);
 	const autoFitVariance = $derived(settingsStore.settings.autoFitVariance);
 	let effScale = $state<Record<string, number>>({});
+	/** Column mode only: uniform cap on line scales and column gaps so the diagram fits the width. */
+	let widthFit = $state(1);
+	/** Each pass re-measures after the previous one applied its scales; this bounds the loop. */
+	const MAX_AUTOFIT_PASSES = 12;
 
 	function scaleFor(id: string): number {
 		return autoFit ? (effScale[id] ?? 1) : 1;
@@ -109,6 +115,7 @@
 		void settingsStore.settings.tokenSplitChars;
 		void settingsStore.settings.style;
 		void settingsStore.settings.layoutAxis;
+		void projectStore.linePairGaps;
 		void writesExportLayout;
 		void layoutExportStore.layoutRemeasureTick;
 
@@ -116,6 +123,7 @@
 
 		if (!autoFit) {
 			if (Object.keys(effScale).length) effScale = {};
+			widthFit = 1;
 			if (writesExportLayout) {
 				layoutExportStore.setFontScaleByLine({});
 				layoutExportStore.setContentScale(1);
@@ -123,8 +131,13 @@
 			return;
 		}
 
+		let passes = 0;
+		function scheduleRecompute() {
+			requestAnimationFrame(() => requestAnimationFrame(() => recompute()));
+		}
+
 		function recompute() {
-			if (!rootEl) return;
+			if (cancelled || !rootEl) return;
 			// Auto-fit works along the flow axis: row width in `rows`, column height in `columns`.
 			const vertical = settingsStore.settings.layoutAxis === 'columns';
 			const rows: { lineId: string; extent: number; effScale: number }[] = [];
@@ -144,8 +157,31 @@
 				});
 			});
 			if (!rows.length || !Number.isFinite(avail)) return;
-			const next = computeAutoFitScales(rows, avail * 0.98, autoFitVariance);
-			if (scalesChanged(effScale, next)) effScale = next;
+			// A readonly column diagram hugs its content, so its height is no bound: fitting into it
+			// shrank the text on every pass, as each pass also shrank the frame.
+			const next =
+				vertical && readonly
+					? Object.fromEntries(rows.map((r) => [r.lineId, 1]))
+					: computeAutoFitScales(rows, avail * 0.98, autoFitVariance);
+			// Columns sit side by side, so the whole diagram must also fit the frame's width.
+			let nextWidthFit = 1;
+			if (vertical && linesEl) {
+				const frameStyle = getComputedStyle(rootEl);
+				const availWidth =
+					rootEl.clientWidth -
+					parseFloat(frameStyle.paddingLeft) -
+					parseFloat(frameStyle.paddingRight);
+				nextWidthFit = computeWidthFitCap(widthFit, linesEl.offsetWidth, availWidth * 0.98);
+				for (const id in next) next[id] = Math.min(next[id]!, nextWidthFit);
+			}
+			const changed =
+				scalesChanged(effScale, next) || scalesChanged({ w: widthFit }, { w: nextWidthFit });
+			if (changed) {
+				effScale = next;
+				widthFit = nextWidthFit;
+				passes++;
+				if (passes < MAX_AUTOFIT_PASSES) scheduleRecompute();
+			}
 			if (writesExportLayout) {
 				layoutExportStore.setFontScaleByLine(effScale);
 				const vals = Object.values(effScale);
@@ -155,23 +191,27 @@
 			}
 		}
 
-		const ro = new ResizeObserver(() => {
-			requestAnimationFrame(() => recompute());
-		});
-		ro.observe(rootEl);
-		requestAnimationFrame(() => requestAnimationFrame(() => recompute()));
+		/** A new size or font starts a fresh round of passes. */
+		function remeasure() {
+			passes = 0;
+			recompute();
+		}
 
 		let cancelled = false;
+		const ro = new ResizeObserver(() => {
+			requestAnimationFrame(() => remeasure());
+		});
+		ro.observe(rootEl);
+		scheduleRecompute();
+
 		if (document.fonts) {
-			void document.fonts.ready.then(() => {
-				if (!cancelled) recompute();
-			});
-			document.fonts.addEventListener('loadingdone', recompute);
+			void document.fonts.ready.then(() => remeasure());
+			document.fonts.addEventListener('loadingdone', remeasure);
 		}
 		return () => {
 			cancelled = true;
 			ro.disconnect();
-			if (document.fonts) document.fonts.removeEventListener('loadingdone', recompute);
+			if (document.fonts) document.fonts.removeEventListener('loadingdone', remeasure);
 		};
 	});
 
@@ -300,9 +340,10 @@
 	data-aligner-axis={axis}
 	data-aligner-readonly={readonly ? '' : undefined}
 	data-autofit={autoFit ? 'on' : 'off'}
+	data-zoomed={zoom.z > 1 ? '' : undefined}
 	style:background={plainCanvas ? undefined : canvas.previewBackground}
 	style:color={plainCanvas ? undefined : canvas.textColor}
-	style:touch-action={zoom.z > 1 ? 'none' : 'pan-y'}
+	style:touch-action={zoom.z > 1 ? 'none' : columns ? 'pan-x pan-y' : 'pan-y'}
 	onpointerdown={onPointerDown}
 	onpointermove={onPointerMove}
 	onpointerup={onPointerUp}
@@ -337,110 +378,113 @@
 	{/if}
 	<div class="preview-zoom" bind:this={zoomEl} style:transform={zoomTransform}>
 		<div class="preview-stack" class:preview-stack--columns={columns}>
-			{#if !readonly}
-				<div
-					class="flex justify-center {columns ? 'me-1 items-center' : 'mb-1'} {hideChrome
-						? chromeHiddenLayer
-						: ''}"
-					aria-hidden={hideChrome ? true : undefined}
-				>
-					<button
-						type="button"
-						class="rounded-none border border-dashed px-2 py-0.5 text-xs font-medium disabled:opacity-40 {previewDark
-							? 'border-gray-600 text-gray-400 hover:border-primary-400 hover:text-primary-300'
-							: 'border-gray-400 text-gray-600 hover:border-primary-500 hover:text-primary-700'}"
-						disabled={projectStore.lines.length >= MAX_LINES}
-						onclick={() => projectStore.addLine(0)}
+			<div class="preview-lines" bind:this={linesEl}>
+				{#if !readonly}
+					<div
+						class="flex justify-center {columns ? 'me-1 items-center' : 'mb-1'} {hideChrome
+							? chromeHiddenLayer
+							: ''}"
+						aria-hidden={hideChrome ? true : undefined}
 					>
-						+ Add line
-					</button>
-				</div>
-			{/if}
-			{#each projectStore.lines as line, li (line.id)}
-				{@const gearDomId = `${instancePrefix}-line-gear-${line.id}`}
-				{@const pending = selectionStore.pending}
-				{@const rowDimmed =
-					pending != null && !lineIsLinkTargetWhilePending(lineIds, pending.lineId, line.id)}
-				<div
-					data-line={line.id}
-					class="preview-token-line flex items-center gap-3 transition-opacity duration-150"
-					class:flex-col={columns}
-					class:opacity-[0.34]={!readonly && rowDimmed}
-					style:font-family={lineFontCss(line)}
-				>
-					{#if !readonly}
-						<div
-							class="shrink-0 {hideChrome ? chromeHiddenLayer : ''}"
-							aria-hidden={hideChrome ? true : undefined}
+						<button
+							type="button"
+							class="rounded-none border border-dashed px-2 py-0.5 text-xs font-medium disabled:opacity-40 {previewDark
+								? 'border-gray-600 text-gray-400 hover:border-primary-400 hover:text-primary-300'
+								: 'border-gray-400 text-gray-600 hover:border-primary-500 hover:text-primary-700'}"
+							disabled={projectStore.lines.length >= MAX_LINES}
+							onclick={() => projectStore.addLine(0)}
 						>
-							<LineReorderButtons
-								{line}
-								index={li}
-								total={projectStore.lines.length}
-								{previewDark}
-								{axis}
-							/>
-						</div>
-					{/if}
-					<div class="preview-gloss-wrap min-w-0 flex-1">
-						<TokenRow
-							tokens={projectStore.tokensOnLine(line.id)}
-							lineId={line.id}
-							textSizePx={line.textSizePx * scaleFor(line.id)}
-							gapWordPx={line.gapWordPx * scaleFor(line.id)}
-							showNumbers={settingsStore.settings.showNumbers}
-							interactive={!readonly}
-							rtl={Boolean(line.rtl)}
-							{axis}
-							orientation={line.textOrientation ?? 'upright'}
-						/>
+							+ Add line
+						</button>
 					</div>
-					{#if !readonly}
-						<div
-							class="shrink-0 {hideChrome ? chromeHiddenLayer : ''}"
-							aria-hidden={hideChrome ? true : undefined}
-						>
-							<LineTrailingActions
-								{line}
-								index={li}
-								total={projectStore.lines.length}
-								{gearDomId}
-								triggeredBy={`#${gearDomId}`}
-								{previewDark}
+				{/if}
+				{#each projectStore.lines as line, li (line.id)}
+					{@const gearDomId = `${instancePrefix}-line-gear-${line.id}`}
+					{@const pending = selectionStore.pending}
+					{@const rowDimmed =
+						pending != null && !lineIsLinkTargetWhilePending(lineIds, pending.lineId, line.id)}
+					<div
+						data-line={line.id}
+						class="preview-token-line flex items-center gap-3 transition-opacity duration-150"
+						class:flex-col={columns}
+						class:opacity-[0.34]={!readonly && rowDimmed}
+						style:font-family={lineFontCss(line)}
+					>
+						{#if !readonly}
+							<div
+								class="shrink-0 {hideChrome ? chromeHiddenLayer : ''}"
+								aria-hidden={hideChrome ? true : undefined}
+							>
+								<LineReorderButtons
+									{line}
+									index={li}
+									total={projectStore.lines.length}
+									{previewDark}
+									{axis}
+								/>
+							</div>
+						{/if}
+						<div class="preview-gloss-wrap min-w-0 flex-1">
+							<TokenRow
+								tokens={projectStore.tokensOnLine(line.id)}
+								lineId={line.id}
+								textSizePx={line.textSizePx * scaleFor(line.id)}
+								gapWordPx={line.gapWordPx * scaleFor(line.id)}
+								showNumbers={settingsStore.settings.showNumbers}
+								interactive={!readonly}
+								rtl={Boolean(line.rtl)}
+								{axis}
+								orientation={line.textOrientation ?? 'upright'}
 							/>
 						</div>
+						{#if !readonly}
+							<div
+								class="shrink-0 {hideChrome ? chromeHiddenLayer : ''}"
+								aria-hidden={hideChrome ? true : undefined}
+							>
+								<LineTrailingActions
+									{line}
+									index={li}
+									total={projectStore.lines.length}
+									{gearDomId}
+									triggeredBy={`#${gearDomId}`}
+									{previewDark}
+								/>
+							</div>
+						{/if}
+					</div>
+					{#if li < projectStore.lines.length - 1}
+						{@const lowerLine = projectStore.lines[li + 1]!}
+						<LinePairGapSlider
+							upperLineId={line.id}
+							lowerLineId={lowerLine.id}
+							{previewDark}
+							{axis}
+							gapScale={widthFit}
+							showControls={!readonly && !hideChrome}
+						/>
 					{/if}
-				</div>
-				{#if li < projectStore.lines.length - 1}
-					{@const lowerLine = projectStore.lines[li + 1]!}
-					<LinePairGapSlider
-						upperLineId={line.id}
-						lowerLineId={lowerLine.id}
-						{previewDark}
-						{axis}
-						showControls={!readonly && !hideChrome}
-					/>
-				{/if}
-			{/each}
-			{#if !readonly}
-				<div
-					class="flex justify-center {columns ? 'ms-1 items-center' : 'mt-1'} {hideChrome
-						? chromeHiddenLayer
-						: ''}"
-					aria-hidden={hideChrome ? true : undefined}
-				>
-					<button
-						type="button"
-						class="rounded-none border border-dashed px-2 py-0.5 text-xs font-medium disabled:opacity-40 {previewDark
-							? 'border-gray-600 text-gray-400 hover:border-primary-400 hover:text-primary-300'
-							: 'border-gray-400 text-gray-600 hover:border-primary-500 hover:text-primary-700'}"
-						disabled={projectStore.lines.length >= MAX_LINES}
-						onclick={() => projectStore.addLine()}
+				{/each}
+				{#if !readonly}
+					<div
+						class="flex justify-center {columns ? 'ms-1 items-center' : 'mt-1'} {hideChrome
+							? chromeHiddenLayer
+							: ''}"
+						aria-hidden={hideChrome ? true : undefined}
 					>
-						+ Add line
-					</button>
-				</div>
-			{/if}
+						<button
+							type="button"
+							class="rounded-none border border-dashed px-2 py-0.5 text-xs font-medium disabled:opacity-40 {previewDark
+								? 'border-gray-600 text-gray-400 hover:border-primary-400 hover:text-primary-300'
+								: 'border-gray-400 text-gray-600 hover:border-primary-500 hover:text-primary-700'}"
+							disabled={projectStore.lines.length >= MAX_LINES}
+							onclick={() => projectStore.addLine()}
+						>
+							+ Add line
+						</button>
+					</div>
+				{/if}
+			</div>
 			{#if hideChrome}
 				<p class="preview-frame__attribution" style:font-size="{0.75 * creditScale}rem">
 					Created with

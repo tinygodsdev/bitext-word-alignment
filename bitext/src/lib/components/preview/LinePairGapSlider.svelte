@@ -9,6 +9,7 @@
 		lowerLineId,
 		previewDark = false,
 		axis = 'rows',
+		gapScale = 1,
 		showControls = true
 	}: {
 		upperLineId: string;
@@ -16,6 +17,8 @@
 		previewDark?: boolean;
 		/** `rows` reserves gap height between stacked rows; `columns` reserves width between columns. */
 		axis?: LayoutAxis;
+		/** Auto-fit shrink applied to the reserved gap; the control keeps showing the set value. */
+		gapScale?: number;
 		/** When false, only reserve the gap (gallery / headless render). */
 		showControls?: boolean;
 	} = $props();
@@ -27,6 +30,7 @@
 		void projectStore.linePairGaps;
 		return projectStore.lineGapPxBetween(upperLineId, lowerLineId);
 	});
+	const reservedPx = $derived(gapPx * gapScale);
 </script>
 
 <!-- Exact gap size between lines; the control is centered and may overflow when the gap is
@@ -35,10 +39,10 @@
 	class="relative shrink-0 overflow-visible bg-transparent"
 	class:w-full={!columns}
 	class:h-full={columns}
-	style:width={columns ? `${gapPx}px` : undefined}
-	style:min-width={columns ? `${gapPx}px` : undefined}
-	style:height={columns ? undefined : `${gapPx}px`}
-	style:min-height={columns ? undefined : `${gapPx}px`}
+	style:width={columns ? `${reservedPx}px` : undefined}
+	style:min-width={columns ? `${reservedPx}px` : undefined}
+	style:height={columns ? undefined : `${reservedPx}px`}
+	style:min-height={columns ? undefined : `${reservedPx}px`}
 	aria-label={columns ? 'Gap between columns' : 'Vertical gap between lines'}
 >
 	{#if showControls}
