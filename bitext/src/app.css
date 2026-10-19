@@ -425,6 +425,13 @@ path.link-path {
 	align-items: center;
 }
 
+/* Upright word in a column: each joined piece sits in its own row and column of the grid, which
+   lays the pieces out as a staircase. `dir="rtl"` on the word runs the steps right to left. */
+.token-row__word {
+	display: inline-grid;
+	writing-mode: horizontal-tb;
+}
+
 /* Glyph setting per line. `upright` is explicit so it resets the inherited vertical row above. */
 .token-view--upright {
 	writing-mode: horizontal-tb;

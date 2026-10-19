@@ -166,6 +166,23 @@ export function tokenize(raw: string, lineId: string, opts: TokenizeOptions): To
 	return out;
 }
 
+export interface IndexedToken {
+	token: Token;
+	/** Position of the token in its line. */
+	index: number;
+}
+
+/** Split a line's tokens into words: each token plus the tokens joined to it with `joinLeft`. */
+export function groupJoinedTokens(tokens: Token[]): IndexedToken[][] {
+	const words: IndexedToken[][] = [];
+	tokens.forEach((token, index) => {
+		const current = words[words.length - 1];
+		if (current && token.joinLeft) current.push({ token, index });
+		else words.push([{ token, index }]);
+	});
+	return words;
+}
+
 /**
  * Preserve token ids when text edits add/remove words.
  */
