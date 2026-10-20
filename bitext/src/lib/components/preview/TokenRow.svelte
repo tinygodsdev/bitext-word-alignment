@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Token } from '$lib/domain/tokens.js';
+	import { groupJoinedTokens, type Token } from '$lib/domain/tokens.js';
 	import type { LayoutAxis, TextOrientation } from '$lib/types/layout.js';
 	import TokenView from './TokenView.svelte';
 
@@ -35,6 +35,14 @@
 	 */
 	const rowDir = $derived(columns ? 'ltr' : rtl ? 'rtl' : 'ltr');
 	const tokenDir = $derived(columns && rtl ? 'rtl' : undefined);
+	/**
+	 * Upright words in a column would put a joined morpheme on its own row, where it reads as a
+	 * separate word. Each word becomes a staircase instead: every piece keeps its own row, so
+	 * connectors still reach both sides of it, and starts where the previous piece ends.
+	 * Vertical and sideways glyphs already continue the word along the column.
+	 */
+	const staircase = $derived(columns && orientation === 'upright');
+	const words = $derived(staircase ? groupJoinedTokens(tokens) : []);
 </script>
 
 <div
@@ -44,24 +52,53 @@
 	role="group"
 	dir={rowDir}
 >
-	{#each tokens as t, i (t.id)}
-		{@const nextTok = tokens[i + 1]}
-		<span
-			class="token-row__item"
-			style:margin-inline-start="{i === 0 ? 0 : t.joinLeft ? 0 : gapWordPx}px"
-		>
-			<TokenView
-				token={t}
-				{lineId}
-				{textSizePx}
-				showNumber={showNumbers}
-				index={i}
-				{interactive}
-				{orientation}
+	{#if staircase}
+		{#each words as word, wi (word[0]!.token.id)}
+			<!-- The word sets its own text horizontally, so a logical margin would land on its side;
+			     the column always runs top to bottom. -->
+			<span
+				class="token-row__item token-row__word"
 				dir={tokenDir}
-				joinTightStart={Boolean(t.joinLeft)}
-				joinTightEnd={Boolean(nextTok?.joinLeft)}
-			/>
-		</span>
-	{/each}
+				style:margin-top="{wi === 0 ? 0 : gapWordPx}px"
+			>
+				{#each word as { token, index }, k (token.id)}
+					<span style:grid-row={k + 1} style:grid-column={k + 1}>
+						<TokenView
+							{token}
+							{lineId}
+							{textSizePx}
+							showNumber={showNumbers}
+							{index}
+							{interactive}
+							{orientation}
+							dir={tokenDir}
+							joinTightStart={k > 0}
+							joinTightEnd={k < word.length - 1}
+						/>
+					</span>
+				{/each}
+			</span>
+		{/each}
+	{:else}
+		{#each tokens as t, i (t.id)}
+			{@const nextTok = tokens[i + 1]}
+			<span
+				class="token-row__item"
+				style:margin-inline-start="{i === 0 ? 0 : t.joinLeft ? 0 : gapWordPx}px"
+			>
+				<TokenView
+					token={t}
+					{lineId}
+					{textSizePx}
+					showNumber={showNumbers}
+					index={i}
+					{interactive}
+					{orientation}
+					dir={tokenDir}
+					joinTightStart={Boolean(t.joinLeft)}
+					joinTightEnd={Boolean(nextTok?.joinLeft)}
+				/>
+			</span>
+		{/each}
+	{/if}
 </div>

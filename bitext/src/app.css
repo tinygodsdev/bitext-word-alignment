@@ -244,15 +244,37 @@ html {
 	align-items: stretch;
 }
 
+/* Rows: the wrapper around the lines takes no part in layout. */
+.preview-lines {
+	display: contents;
+}
+
 /* Column mode: lines sit side by side, first line leftmost — the same "first is at the start of
    the stack" rule as rows. Which script ends up on which side is set by line order. */
 /* Columns stretch to the tallest one rather than to a percentage height, so the same rules work
    whether the frame is bounded (editor) or hugs its content (readonly embed, headless render). */
-.preview-stack--columns {
-	flex-direction: row;
-	flex-wrap: wrap;
+.preview-stack--columns .preview-lines {
+	display: flex;
+	flex: 1;
+	min-height: 0;
 	align-items: stretch;
-	justify-content: center;
+	/* Columns never wrap: a wrapped column would be linked across the whole diagram. Auto-fit
+	   shrinks it to the frame's width; when it still does not fit, the frame scrolls. Auto margins
+	   center a narrow diagram and let a wide one start at the left edge, so all of it scrolls into
+	   view. */
+	width: max-content;
+	margin-inline: auto;
+}
+
+/* While pinch-zoomed, panning moves the diagram; a scrollbar would also grow with the zoom. */
+.preview-frame[data-aligner-axis='columns']:not([data-zoomed]) {
+	overflow-x: auto;
+}
+
+/* The connector layer covers the zoom box, so the box grows with a diagram wider than the frame. */
+.preview-frame[data-aligner-axis='columns'] .preview-zoom {
+	width: max-content;
+	min-width: 100%;
 }
 
 /* Column mode grows sideways, so the block axis needs a bound for auto-fit to shrink a long
@@ -275,12 +297,6 @@ html {
 	width: auto;
 	min-height: 0;
 	align-items: center;
-}
-
-/* The credit is a flex item of the stack, so in a row it would sit beside the diagram. Give it a
-   full basis and it wraps onto its own line underneath. */
-.preview-stack--columns .preview-frame__attribution {
-	flex-basis: 100%;
 }
 
 .preview-frame__attribution {
@@ -423,6 +439,13 @@ path.link-path {
 .token-row--columns {
 	writing-mode: vertical-rl;
 	align-items: center;
+}
+
+/* Upright word in a column: each joined piece sits in its own row and column of the grid, which
+   lays the pieces out as a staircase. `dir="rtl"` on the word runs the steps right to left. */
+.token-row__word {
+	display: inline-grid;
+	writing-mode: horizontal-tb;
 }
 
 /* Glyph setting per line. `upright` is explicit so it resets the inherited vertical row above. */

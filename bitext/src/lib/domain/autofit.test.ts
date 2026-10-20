@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { chromeScale, computeAutoFitScales, scalesChanged } from './autofit.js';
+import {
+	chromeScale,
+	computeAutoFitScales,
+	computeWidthFitCap,
+	scalesChanged,
+	WIDTH_FIT_MIN_SCALE
+} from './autofit.js';
 
 describe('computeAutoFitScales', () => {
 	it('leaves lines that fit at scale 1', () => {
@@ -72,6 +78,39 @@ describe('computeAutoFitScales', () => {
 			eff = computeAutoFitScales([{ lineId: 'a', extent, effScale: eff }], avail, 1).a;
 		}
 		expect(eff).toBeCloseTo(0.5, 3);
+	});
+});
+
+describe('computeWidthFitCap', () => {
+	/** A diagram whose width is `fixed` px of buttons plus `scalable` px at scale 1. */
+	const widthAt = (cap: number, fixed: number, scalable: number) => fixed + scalable * cap;
+
+	it('settles on a cap that fits the width when part of it does not scale', () => {
+		const avail = 1000;
+		let cap = 1;
+		for (let pass = 0; pass < 10; pass++) {
+			cap = computeWidthFitCap(cap, widthAt(cap, 300, 1100), avail);
+		}
+		expect(widthAt(cap, 300, 1100)).toBeLessThanOrEqual(avail + 0.5);
+		expect(widthAt(cap, 300, 1100)).toBeGreaterThan(avail - 5);
+	});
+
+	it('grows back to 1 once the diagram fits, without overshooting the width', () => {
+		const avail = 1000;
+		let cap = WIDTH_FIT_MIN_SCALE;
+		for (let pass = 0; pass < 10; pass++) {
+			cap = computeWidthFitCap(cap, widthAt(cap, 300, 600), avail);
+			expect(widthAt(cap, 300, 600)).toBeLessThanOrEqual(avail);
+		}
+		expect(cap).toBe(1);
+	});
+
+	it('stops at the minimum scale when even that cannot fit', () => {
+		expect(computeWidthFitCap(0.6, 5000, 400)).toBe(WIDTH_FIT_MIN_SCALE);
+	});
+
+	it('keeps the previous cap while nothing is measured yet', () => {
+		expect(computeWidthFitCap(0.6, 0, 400)).toBe(0.6);
 	});
 });
 

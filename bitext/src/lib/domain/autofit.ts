@@ -52,6 +52,32 @@ export function computeAutoFitScales(
 }
 
 /**
+ * Width fitting stops here and leaves the rest to scrolling. On a phone the line buttons alone can
+ * be wider than the frame, and shrinking text further would make it unreadable without making the
+ * diagram fit.
+ */
+export const WIDTH_FIT_MIN_SCALE = 0.5;
+
+/**
+ * Column mode also has to fit the frame's width, because lines sit side by side. Returns the
+ * uniform cap on every line's scale (also applied to the gaps between columns) that brings
+ * `extent`, the diagram width measured at the current cap `prev`, down to `avail`.
+ *
+ * Buttons and other chrome do not scale, so a single step undershoots the shrink; the caller
+ * re-measures and steps again until the cap settles. Growing back never overshoots for the same
+ * reason.
+ */
+export function computeWidthFitCap(
+	prev: number,
+	extent: number,
+	avail: number,
+	min = WIDTH_FIT_MIN_SCALE
+): number {
+	if (extent <= 0 || avail <= 0) return prev;
+	return clamp((prev * avail) / extent, min, 1);
+}
+
+/**
  * When auto-fit shrinks the text, connectors and the attribution credit should shrink too — but
  * only partially, so they don't vanish. `strength` is how much of the shrink to apply (0 = none,
  * 1 = full). `contentScale` is the overall text scale (e.g. the mean of the per-line scales).
