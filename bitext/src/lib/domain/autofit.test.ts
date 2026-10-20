@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { chromeScale, computeAutoFitScales, computeWidthFitCap, scalesChanged } from './autofit.js';
+import {
+	chromeScale,
+	computeAutoFitScales,
+	computeWidthFitCap,
+	scalesChanged,
+	WIDTH_FIT_MIN_SCALE
+} from './autofit.js';
 
 describe('computeAutoFitScales', () => {
 	it('leaves lines that fit at scale 1', () => {
@@ -91,7 +97,7 @@ describe('computeWidthFitCap', () => {
 
 	it('grows back to 1 once the diagram fits, without overshooting the width', () => {
 		const avail = 1000;
-		let cap = 0.3;
+		let cap = WIDTH_FIT_MIN_SCALE;
 		for (let pass = 0; pass < 10; pass++) {
 			cap = computeWidthFitCap(cap, widthAt(cap, 300, 600), avail);
 			expect(widthAt(cap, 300, 600)).toBeLessThanOrEqual(avail);
@@ -100,7 +106,7 @@ describe('computeWidthFitCap', () => {
 	});
 
 	it('stops at the minimum scale when even that cannot fit', () => {
-		expect(computeWidthFitCap(0.12, 5000, 400)).toBe(0.1);
+		expect(computeWidthFitCap(0.6, 5000, 400)).toBe(WIDTH_FIT_MIN_SCALE);
 	});
 
 	it('keeps the previous cap while nothing is measured yet', () => {
