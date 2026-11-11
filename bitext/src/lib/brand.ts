@@ -14,14 +14,6 @@ export const SITE_AUTHOR_URL = 'https://danipolani.github.io/en/';
 /** User-facing product name in copy (legal/site title may differ). */
 export const ALIGNER_DISPLAY_NAME = 'Aligner';
 
-/** Multiline tooltip for partner link cards; shown on “?” hint. */
-export const PARTNER_LINK_WHY_TOOLTIP = `Why is this here?
-
-${ALIGNER_DISPLAY_NAME} stays free. Upkeep still has a cost, so we add a few partner links. Use them if you consider the service. It helps us to maintain the app. I recommend only the services I happily use myself.
-
-Thanks,
-Dani`;
-
 /** Plain attribution line (matches standalone SVG export footer text). */
 export const EXPORT_ATTRIBUTION_PLAIN = `Created with ${ALIGNER_SITE_HOST}`;
 

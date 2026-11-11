@@ -6,7 +6,6 @@ import {
 	galleryPreviewImageFor,
 	GALLERY_EXAMPLES
 } from '$lib/examples/catalog.js';
-import { getExamplePagePartnerId } from '$lib/partners/home-rotation.js';
 import type { PageLoad } from './$types';
 
 export function entries() {
@@ -37,7 +36,6 @@ export const load: PageLoad = ({ params }) => {
 		entry,
 		previewImageUrl: galleryPreviewImageFor(entry),
 		exampleSlug: entry.slug,
-		partnerId: getExamplePagePartnerId(entry.slug),
 		related: relatedExamples(entry.slug)
 	};
 };

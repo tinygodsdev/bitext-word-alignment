@@ -22,7 +22,7 @@
 	import EditorPanels from '$lib/components/editor-shell/EditorPanels.svelte';
 	import JsonLd from '$lib/components/seo/JsonLd.svelte';
 	import SeoDrawer from '$lib/components/seo/SeoDrawer.svelte';
-	import CanvasPartnerStrip from '$lib/components/partners/CanvasPartnerStrip.svelte';
+	import LemulaStrip from '$lib/components/lemula/LemulaStrip.svelte';
 	import { editorShellStore } from '$lib/state/editorShell.svelte.js';
 	import { viewportStore } from '$lib/state/viewport.svelte.js';
 	import { projectStore } from '$lib/state/project.svelte.js';
@@ -283,8 +283,8 @@
 				</div>
 			</div>
 
-			<!-- Partner offers fill the space under a short diagram; auto-collapse when it grows. -->
-			<CanvasPartnerStrip partnerIds={data.homePartnerOrder} scrollEl={canvasScrollEl} />
+			<!-- Lemula banners fill the space under a short diagram; auto-collapse when it grows. -->
+			<LemulaStrip pair={data.lemulaStripPair} scrollEl={canvasScrollEl} />
 
 			<!-- Narrow: sheet over the canvas (above the pinned bottom bar) -->
 			{#if viewportStore.isNarrow && editorShellStore.sheetOpen}

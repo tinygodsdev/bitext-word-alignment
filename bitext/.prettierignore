@@ -7,3 +7,7 @@ bun.lockb
 
 # Miscellaneous
 /static/
+
+# Lemula banner set, copied verbatim from the Lemula repo (marketing/aligner-banners)
+/src/lib/components/lemula/blocks/
+/src/lib/components/lemula/lemula-banners.css

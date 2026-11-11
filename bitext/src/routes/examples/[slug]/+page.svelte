@@ -5,7 +5,7 @@
 	import PageHero from '$lib/components/layout/PageHero.svelte';
 	import SiteFooter from '$lib/components/layout/SiteFooter.svelte';
 	import ExampleSections from '$lib/components/examples/ExampleSections.svelte';
-	import PartnerBannerById from '$lib/components/partners/PartnerBannerById.svelte';
+	import LemulaBlock from '$lib/components/lemula/LemulaBlock.svelte';
 	import StructuredData from '$lib/components/seo/StructuredData.svelte';
 	import { SITE_NAME } from '$lib/seo/metadata.js';
 	import { breadcrumbList, techArticle } from '$lib/seo/structured-data.js';
@@ -177,7 +177,7 @@
 	{/if}
 
 	<div class="mt-10">
-		<PartnerBannerById partnerId={data.partnerId} />
+		<LemulaBlock name="feature" />
 	</div>
 
 	<SiteFooter />
