@@ -2,11 +2,8 @@
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import { DISCORD_INVITE_URL, SITE_CONTACT_EMAIL, TALLY_FORM_ID } from '$lib/brand.js';
-	import PartnerBannerCursor from '$lib/components/partners/PartnerBannerCursor.svelte';
-	import PartnerBannerPreply from '$lib/components/partners/PartnerBannerPreply.svelte';
-	import PartnerBannerRailway from '$lib/components/partners/PartnerBannerRailway.svelte';
-	import PartnerBannerWise from '$lib/components/partners/PartnerBannerWise.svelte';
 	import SiteFooter from '$lib/components/layout/SiteFooter.svelte';
+	import LemulaBlock from '$lib/components/lemula/LemulaBlock.svelte';
 	import YouTubeEmbed from '$lib/components/media/YouTubeEmbed.svelte';
 	import StructuredData from '$lib/components/seo/StructuredData.svelte';
 	import { breadcrumbList, personCreator } from '$lib/seo/structured-data.js';
@@ -497,22 +494,17 @@
 		</div>
 	</section>
 
-	<!-- Partner links + creator + contact + privacy -->
+	<!-- Lemula + creator + contact + privacy -->
 	<div class="mx-auto w-full max-w-3xl min-w-0 px-4 py-16 leading-relaxed sm:px-6 md:py-20">
-		<h2 id="doc-partners" class="font-heading text-2xl font-semibold text-gray-900 dark:text-white">
-			Partner links
+		<h2 id="doc-lemula" class="font-heading text-2xl font-semibold text-gray-900 dark:text-white">
+			Lemula
 		</h2>
 		<p class="mt-3 text-gray-700 dark:text-gray-300">
-			{DISPLAY_NAME} stays free and without aggressive ads. Hosting and ongoing upkeep still have a cost,
-			so I add a few optional partner links. Use them if you were already considering the service, it
-			helps keep the site running. The referral bonuses come from the provider. These are services I use
-			myself.
+			{DISPLAY_NAME} stays free and shows no third-party ads. The banners on the site point to Lemula,
+			my other tool, for conlangers who want their language to change over time.
 		</p>
-		<div class="mt-5 flex min-w-0 flex-col gap-4">
-			<PartnerBannerPreply />
-			<PartnerBannerRailway />
-			<PartnerBannerCursor />
-			<PartnerBannerWise />
+		<div class="mt-5 min-w-0">
+			<LemulaBlock name="feature" />
 		</div>
 
 		<h2

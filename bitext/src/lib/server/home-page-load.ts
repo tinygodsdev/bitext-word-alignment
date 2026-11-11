@@ -1,10 +1,10 @@
-import { getHomePartnerOrder } from '$lib/partners/home-rotation.js';
 import { buildAppStateFromExample } from '$lib/examples/build-app-state.js';
 import { findGalleryBySlug } from '$lib/examples/catalog.js';
 import { findExample } from '$lib/state/examples.js';
 import { decodeState } from '$lib/serialization/decode.js';
+import { getLemulaStripPair } from '$lib/lemula/strip-rotation.js';
 
-/** Load for the editor home (`/`): decoded `?data=` / `?example=` state plus partner rotation. */
+/** Load for the editor home (`/`): decoded `?data=` / `?example=` state plus the Lemula banner pair. */
 export function loadHomePage(url: URL) {
 	const data = url.searchParams.get('data');
 	const exampleParam = url.searchParams.get('example');
@@ -25,6 +25,6 @@ export function loadHomePage(url: URL) {
 		dataParam: data,
 		initialState,
 		exampleInvalid,
-		homePartnerOrder: getHomePartnerOrder(Date.now())
+		lemulaStripPair: getLemulaStripPair(Date.now())
 	};
 }

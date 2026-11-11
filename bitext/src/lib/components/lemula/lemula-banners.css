@@ -1,0 +1,972 @@
+/*
+ * Lemula house banners for Aligner. Every rule is scoped under .lmb, and the colours follow a
+ * .dark ancestor, the way Aligner switches themes. Each block is its own size container, so it lays
+ * itself out by the width of the slot it is put in, not the viewport.
+ */
+
+@font-face {
+  font-family: 'Lemula Serif Banner';
+  src: url('fonts/LemulaSerif-Banner-Regular.woff2') format('woff2');
+  font-display: swap;
+  /* Charis sets wider than the serif the brand was sized for; the site scales it the same way. */
+  size-adjust: 88%;
+}
+
+/* Rule notation only: ASCII and the IPA the bold cards' rules use. */
+@font-face {
+  font-family: 'Lemula Mono Banner';
+  src: url('fonts/NotoSansMono-Banner.woff2') format('woff2');
+  font-display: swap;
+}
+
+.lmb {
+  --lmb-bg: #fafaf9;
+  --lmb-ink: #1b1b1b;
+  --lmb-muted: #6d6d6b;
+  --lmb-rule: #e4e4e1;
+  --lmb-accent: #8a4a9c;
+  --lmb-deep: #3b1d45;
+  --lmb-on-deep: #f4eef6;
+  --lmb-on-deep-muted: #c9b3d1;
+  --lmb-deep-rule: #6f4e7a;
+  --lmb-deep-hover: #e2c6ea;
+  --lmb-serif: 'Lemula Serif Banner', Georgia, 'Times New Roman', serif;
+  --lmb-mono: 'Lemula Mono Banner', 'Lemula Serif Banner', ui-monospace, monospace;
+
+  position: relative;
+  container-type: inline-size;
+  box-sizing: border-box;
+  min-width: 0;
+  margin: 0;
+  color: var(--lmb-ink);
+  font-size: 14px;
+  line-height: 1.45;
+  text-align: left;
+  -webkit-font-smoothing: antialiased;
+}
+
+:where(.dark) .lmb {
+  --lmb-bg: #1e1e21;
+  --lmb-ink: #ebebe8;
+  --lmb-muted: #9a9a97;
+  --lmb-rule: #34343a;
+  --lmb-accent: #bd91cb;
+  --lmb-deep: #2a1531;
+  --lmb-deep-rule: #5a3f64;
+}
+
+.lmb *,
+.lmb *::before,
+.lmb *::after {
+  box-sizing: border-box;
+}
+
+.lmb p {
+  margin: 0;
+}
+
+/* Shared pieces */
+
+/* What Lemula is, the only text in the bar besides the link. */
+.lmb-tagline {
+  font-size: 12.5px;
+  line-height: 1.3;
+  color: var(--lmb-accent);
+  white-space: nowrap;
+}
+
+.lmb-form {
+  font-family: var(--lmb-serif);
+  white-space: nowrap;
+}
+
+.lmb-old {
+  color: var(--lmb-muted);
+}
+
+.lmb-arrow {
+  color: var(--lmb-muted);
+  opacity: 0.7;
+}
+
+.lmb-gloss {
+  font-size: 12px;
+  color: var(--lmb-muted);
+  white-space: nowrap;
+}
+
+/* The link stretches over the whole block, so a click anywhere opens Lemula. */
+.lmb-cta::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.lmb-cta:focus-visible {
+  outline: none;
+}
+
+.lmb:has(.lmb-cta:focus-visible) {
+  outline: 2px solid var(--lmb-accent);
+  outline-offset: 2px;
+}
+
+.lmb-link {
+  color: var(--lmb-ink);
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--lmb-rule);
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.lmb:hover .lmb-link {
+  color: var(--lmb-accent);
+  border-color: var(--lmb-accent);
+}
+
+.lmb-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 18px;
+  border-radius: 999px;
+  background: var(--lmb-ink);
+  color: var(--lmb-bg);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.lmb:hover .lmb-pill {
+  background: var(--lmb-accent);
+}
+
+/* Card: half of the editor strip, or one card on a phone */
+
+.lmb-card {
+  display: flex;
+  min-height: 141px;
+  padding: 14px 18px 12px;
+  border: 1px solid var(--lmb-rule);
+  border-radius: 6px;
+  background: var(--lmb-bg);
+  transition: border-color 0.15s;
+}
+
+.lmb-card:hover {
+  border-color: var(--lmb-accent);
+}
+
+/* The headline and the link share the top row; the example sits at the foot of the card, however
+   tall the strip makes it. */
+.lmb-card__in {
+  display: grid;
+  flex: 1;
+  grid-template: 'title cta' auto 'specimen specimen' 1fr / minmax(0, 1fr) auto;
+  column-gap: 20px;
+}
+
+.lmb-card__title {
+  grid-area: title;
+  align-self: baseline;
+  margin: 0 0 12px;
+  font-family: var(--lmb-serif);
+  font-size: 28px;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+.lmb-card__cta {
+  grid-area: cta;
+  align-self: baseline;
+  justify-self: end;
+  font-size: 16px;
+}
+
+.lmb-card__specimen {
+  display: flex;
+  flex-wrap: wrap;
+  grid-area: specimen;
+  align-self: end;
+  align-items: baseline;
+  gap: 2px 10px;
+  padding-top: 9px;
+  border-top: 1px solid var(--lmb-rule);
+  font-size: 19px;
+  line-height: 1.3;
+}
+
+.lmb-pair {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+@container (max-width: 440px) {
+  .lmb-card .lmb-narrow-drop {
+    display: none;
+  }
+}
+
+/* On a phone the link goes under the example, so the headline gets the whole width. */
+@container (max-width: 380px) {
+  .lmb-card__in {
+    grid-template: 'title' auto 'specimen' 1fr 'cta' auto / minmax(0, 1fr);
+  }
+
+  .lmb-card__title {
+    font-size: 25px;
+  }
+
+  .lmb-card__cta {
+    justify-self: start;
+    margin-top: 12px;
+  }
+}
+
+/* Strip: one banner across the whole editor strip */
+
+.lmb-strip {
+  padding: 14px 20px;
+  border: 1px solid var(--lmb-rule);
+  border-radius: 6px;
+  background: var(--lmb-bg);
+  transition: border-color 0.15s;
+}
+
+.lmb-strip:hover {
+  border-color: var(--lmb-accent);
+}
+
+.lmb-strip__in {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px 32px;
+}
+
+.lmb-strip__title {
+  font-family: var(--lmb-serif);
+  font-size: 26px;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.lmb-strip__forms {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.lmb-strip__cell {
+  display: inline-flex;
+  flex-direction: column;
+}
+
+.lmb-strip__chain .lmb-form {
+  font-size: 21px;
+  line-height: 1.2;
+}
+
+.lmb-strip__date {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--lmb-muted);
+  white-space: nowrap;
+}
+
+@container (max-width: 900px) {
+  .lmb-strip__chain {
+    display: none;
+  }
+
+  .lmb-strip__in {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
+@container (max-width: 540px) {
+  .lmb-strip__in {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .lmb-strip .lmb-pill {
+    justify-self: start;
+  }
+}
+
+/* Feature: the deep band for example pages and the About page */
+
+.lmb-feature {
+  padding: 28px;
+  border-radius: 8px;
+  background: var(--lmb-deep);
+  color: var(--lmb-on-deep);
+}
+
+.lmb-feature__in {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 28px 40px;
+}
+
+.lmb-feature__title {
+  font-family: var(--lmb-serif);
+  font-size: 30px;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.lmb-feature__lede {
+  margin-top: 14px;
+  font-family: var(--lmb-serif);
+  font-size: 17px;
+  line-height: 1.4;
+  color: var(--lmb-on-deep-muted);
+  text-wrap: pretty;
+}
+
+.lmb-feature__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  margin-top: 22px;
+}
+
+.lmb-feature .lmb-pill {
+  background: var(--lmb-on-deep);
+  color: var(--lmb-deep);
+}
+
+.lmb-feature:hover .lmb-pill {
+  background: var(--lmb-deep-hover);
+}
+
+.lmb-feature__note {
+  font-size: 13px;
+  color: var(--lmb-on-deep-muted);
+}
+
+.lmb-steps {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.lmb-steps__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--lmb-on-deep-muted);
+}
+
+.lmb-step {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr);
+  gap: 0 14px;
+}
+
+.lmb-step__rail {
+  position: relative;
+}
+
+.lmb-step__rail::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  bottom: -12px;
+  left: 5px;
+  width: 1px;
+  background: var(--lmb-deep-rule);
+}
+
+.lmb-step:last-child .lmb-step__rail::before {
+  display: none;
+}
+
+.lmb-step__rail::after {
+  content: '';
+  position: absolute;
+  top: 7px;
+  left: 0;
+  width: 11px;
+  height: 11px;
+  border: 1.5px solid var(--lmb-on-deep-muted);
+  border-radius: 50%;
+  background: var(--lmb-deep);
+}
+
+.lmb-step:last-child .lmb-step__rail::after {
+  border-color: var(--lmb-on-deep);
+  background: var(--lmb-on-deep);
+}
+
+.lmb-step__body {
+  padding-bottom: 12px;
+}
+
+.lmb-step .lmb-form {
+  font-size: 23px;
+  line-height: 1.1;
+  color: var(--lmb-on-deep-muted);
+}
+
+.lmb-step:last-child .lmb-form {
+  color: var(--lmb-on-deep);
+}
+
+.lmb-step__stage {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--lmb-on-deep-muted);
+}
+
+@container (max-width: 600px) {
+  .lmb-feature {
+    padding: 22px 20px;
+  }
+
+  .lmb-feature__in {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .lmb-feature__title {
+    font-size: 26px;
+  }
+
+  .lmb-step--mid {
+    display: none;
+  }
+}
+
+/* Bar: one line, for the strip when it is collapsed */
+
+.lmb-bar {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 8px 16px;
+}
+
+.lmb-bar .lmb-tagline {
+  font-size: 13px;
+}
+
+.lmb-bar .lmb-cta {
+  margin-left: auto;
+  font-size: 13px;
+}
+
+/* Container sizes are content widths: the block's padding is already taken off. */
+@container (max-width: 400px) {
+  .lmb-bar .lmb-tagline {
+    display: none;
+  }
+}
+
+/*
+ * Bold cards: the graphic half of the editor strip, the same size as a card. They keep their
+ * colours in both themes. Motion plays a few times on load and stops on the final state; with
+ * reduced motion that final state is all there is.
+ */
+
+.lmb-bold {
+  --lmb-glow: #f2c46d;
+  --lmb-pink: #f4a3c8;
+  --lmb-bold-line: rgb(244 238 246 / 0.45);
+
+  overflow: hidden;
+  min-height: 141px;
+  padding: 14px 16px;
+  border-radius: 6px;
+  background: #3b1d45;
+  color: var(--lmb-on-deep);
+}
+
+:where(.dark) .lmb-bold {
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
+}
+
+.lmb-bold--morph {
+  background: radial-gradient(130% 160% at 100% 0%, #9a52ad 0%, #5a2869 45%, #2e1438 100%);
+}
+
+.lmb-bold--tree {
+  background:
+    radial-gradient(60% 90% at 76% 0%, rgb(242 196 109 / 0.22), transparent 70%),
+    linear-gradient(160deg, #4d2160 0%, #2b1235 75%);
+}
+
+.lmb-bold--sentence {
+  background: radial-gradient(120% 150% at 0% 100%, #8a4a9c 0%, #4a1f58 50%, #2a1331 100%);
+}
+
+.lmb-bold--rule {
+  background: linear-gradient(135deg, #a35bb6 0%, #6c3480 55%, #4a2059 100%);
+}
+
+.lmb-bold__in {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  align-items: center;
+  gap: 14px 20px;
+  min-height: 113px;
+}
+
+.lmb-bold__text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.lmb-bold__title {
+  font-family: var(--lmb-serif);
+  font-size: 20px;
+  line-height: 1.12;
+  text-wrap: balance;
+}
+
+.lmb-bold .lmb-pill {
+  margin-top: 2px;
+  padding: 7px 15px;
+  background: var(--lmb-on-deep);
+  color: #3b1d45;
+  font-size: 13px;
+}
+
+.lmb-bold:hover .lmb-pill {
+  background: var(--lmb-glow);
+}
+
+.lmb-bold__visual {
+  min-width: 0;
+}
+
+.lmb-bold__caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lmb-on-deep-muted);
+}
+
+@container (max-width: 470px) {
+  .lmb-bold__title {
+    font-size: 18px;
+  }
+
+  .lmb-bold__glyph {
+    display: none;
+  }
+}
+
+@container (max-width: 340px) {
+  .lmb-bold__in {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .lmb-bold__visual {
+    order: -1;
+  }
+}
+
+/* Morph: one word turning through its stages */
+
+.lmb-morph__dots {
+  display: inline-flex;
+  flex: none;
+  gap: 5px;
+}
+
+.lmb-morph__dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--lmb-on-deep);
+}
+
+.lmb-morph__dots i:last-child {
+  background: var(--lmb-glow);
+}
+
+.lmb-morph__stack {
+  display: grid;
+  margin-top: 8px;
+}
+
+/* All steps share one grid cell, so the stack is as tall as the tallest step. */
+.lmb-morph__step {
+  display: flex;
+  flex-direction: column;
+  grid-area: 1 / 1;
+  opacity: 0;
+}
+
+.lmb-morph__step:last-child {
+  opacity: 1;
+}
+
+.lmb-morph__step .lmb-form {
+  font-size: 40px;
+  line-height: 1;
+  color: var(--lmb-on-deep);
+}
+
+.lmb-morph__step:last-child .lmb-form {
+  color: var(--lmb-glow);
+}
+
+.lmb-morph__meta {
+  margin-top: 7px;
+  font-size: 12px;
+  color: var(--lmb-on-deep-muted);
+}
+
+.lmb-morph__rule {
+  margin-top: 1px;
+  font-family: var(--lmb-mono);
+  font-size: 11.5px;
+  color: var(--lmb-pink);
+  white-space: nowrap;
+}
+
+/*
+ * A cycle is 8.8 s, 2.2 s a step. Iteration counts are fractional so that every step stops at
+ * 25.96 s, when only the last one is showing and every dot is lit.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .lmb-morph__step {
+    animation: lmb-morph-step 8.8s linear both;
+  }
+
+  .lmb-morph__step:nth-child(1) {
+    animation-iteration-count: 2.95;
+  }
+
+  .lmb-morph__step:nth-child(2) {
+    animation-delay: 2.2s;
+    animation-iteration-count: 2.7;
+  }
+
+  .lmb-morph__step:nth-child(3) {
+    animation-delay: 4.4s;
+    animation-iteration-count: 2.45;
+  }
+
+  .lmb-morph__step:nth-child(4) {
+    animation-delay: 6.6s;
+    animation-iteration-count: 2.2;
+  }
+
+  .lmb-morph__dots i:nth-child(2) {
+    animation: lmb-morph-dot-2 8.8s linear 2.95 both;
+  }
+
+  .lmb-morph__dots i:nth-child(3) {
+    animation: lmb-morph-dot-3 8.8s linear 2.95 both;
+  }
+
+  .lmb-morph__dots i:nth-child(4) {
+    animation: lmb-morph-dot-4 8.8s linear 2.95 both;
+  }
+}
+
+@keyframes lmb-morph-step {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  4%,
+  21% {
+    opacity: 1;
+    transform: none;
+  }
+  25%,
+  100% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes lmb-morph-dot-2 {
+  0%,
+  24.9% {
+    opacity: 0.3;
+  }
+  25%,
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes lmb-morph-dot-3 {
+  0%,
+  49.9% {
+    opacity: 0.3;
+  }
+  50%,
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes lmb-morph-dot-4 {
+  0%,
+  74.9% {
+    opacity: 0.3;
+  }
+  75%,
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Tree: one Latin word and its descendants */
+
+.lmb-tree {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.lmb-tree text {
+  font-family: var(--lmb-serif);
+  font-size: 17px;
+  text-anchor: middle;
+  fill: var(--lmb-on-deep);
+}
+
+.lmb-tree .lmb-tree__root {
+  font-size: 19px;
+  fill: var(--lmb-glow);
+}
+
+.lmb-tree .lmb-tree__lang {
+  font-family: inherit;
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  fill: var(--lmb-on-deep-muted);
+}
+
+.lmb-tree__line {
+  fill: none;
+  stroke: var(--lmb-bold-line);
+  stroke-width: 1.2;
+}
+
+.lmb-tree__leaf circle {
+  fill: var(--lmb-glow);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lmb-tree__line {
+    stroke-dasharray: 1;
+    animation: lmb-draw 1s ease-out 0.2s both;
+  }
+
+  .lmb-tree__leaf {
+    animation: lmb-rise 0.5s ease-out both;
+  }
+
+  .lmb-tree__leaf:nth-of-type(1) {
+    animation-delay: 0.9s;
+  }
+
+  .lmb-tree__leaf:nth-of-type(2) {
+    animation-delay: 1.05s;
+  }
+
+  .lmb-tree__leaf:nth-of-type(3) {
+    animation-delay: 1.2s;
+  }
+
+  .lmb-tree__leaf:nth-of-type(4) {
+    animation-delay: 1.35s;
+  }
+}
+
+/* Sentence: one example sentence at three stages, on the stage rail */
+
+.lmb-sentence__translation {
+  font-size: 11px;
+  font-style: italic;
+  color: var(--lmb-on-deep-muted);
+}
+
+.lmb-sentence {
+  margin-top: 4px;
+}
+
+.lmb-sentence__row {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 0 0 3px 20px;
+}
+
+.lmb-sentence__row:last-child {
+  padding-bottom: 0;
+}
+
+.lmb-sentence__row::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 0;
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid var(--lmb-on-deep-muted);
+  border-radius: 50%;
+}
+
+.lmb-sentence__row:last-child::before {
+  border-color: var(--lmb-glow);
+  background: var(--lmb-glow);
+}
+
+.lmb-sentence__row:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 17px;
+  bottom: -5px;
+  left: 5px;
+  width: 1px;
+  background: var(--lmb-bold-line);
+}
+
+.lmb-sentence .lmb-form {
+  font-size: 16.5px;
+  line-height: 1.1;
+  color: var(--lmb-on-deep-muted);
+  white-space: normal;
+}
+
+.lmb-sentence__row:last-child .lmb-form {
+  color: var(--lmb-glow);
+}
+
+.lmb-sentence__stage {
+  font-size: 10px;
+  line-height: 1.2;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--lmb-on-deep-muted);
+  opacity: 0.8;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lmb-sentence__row {
+    animation: lmb-rise 0.5s ease-out both;
+  }
+
+  .lmb-sentence__row:nth-child(2) {
+    animation-delay: 0.35s;
+  }
+
+  .lmb-sentence__row:nth-child(3) {
+    animation-delay: 0.7s;
+  }
+}
+
+/* Rule: the notation itself, large */
+
+.lmb-bold__glyph {
+  position: absolute;
+  right: -40px;
+  bottom: -96px;
+  font-family: var(--lmb-serif);
+  font-size: 240px;
+  line-height: 1;
+  color: #fff;
+  opacity: 0.07;
+  pointer-events: none;
+}
+
+.lmb-rules {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: lmb-rule;
+  font-family: var(--lmb-mono);
+  font-size: 19px;
+  line-height: 1.3;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.lmb-rules li {
+  counter-increment: lmb-rule;
+}
+
+.lmb-rules li::before {
+  content: counter(lmb-rule);
+  display: inline-block;
+  width: 1.4em;
+  font-size: 12px;
+  color: var(--lmb-on-deep-muted);
+}
+
+.lmb-bold--rule b,
+.lmb-bold--rule em {
+  font-weight: inherit;
+  font-style: normal;
+}
+
+.lmb-bold--rule b {
+  color: var(--lmb-glow);
+}
+
+.lmb-bold--rule em {
+  color: var(--lmb-pink);
+}
+
+.lmb-rules__forms {
+  margin-top: 6px;
+  white-space: nowrap;
+}
+
+.lmb-rules__forms .lmb-form {
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+.lmb-rules__forms .lmb-arrow {
+  color: var(--lmb-on-deep-muted);
+}
+
+@keyframes lmb-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes lmb-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
